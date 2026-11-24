@@ -108,6 +108,14 @@ h2{font-weight:800;font-size:clamp(32px,6vw,44px);margin-top:6px}
 .mail button{font:inherit;font-weight:600;background:none;color:var(--fg);border:1.5px solid var(--fg);border-radius:4px;padding:8px 14px;cursor:pointer}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:15px}
 footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-between}
+
+/* skjermbilder */
+.shots{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;margin-top:28px;align-items:start}
+.shots figure{margin:0;min-width:0}
+.shots img{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
+.shots figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
+.shots .wide{grid-column:1/-1}
+@media (max-width:640px){.shots{grid-template-columns:1fr}}
 </style>
 
 </head><body><main>
@@ -158,6 +166,18 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 </section>
 
 <section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Bare Barnemat</div>
+    <h2>Slik ser det ut</h2>
+    <div class="shots">
+      <figure class="wide"><img src="bilder/skrivebord.webp" width="1400" height="877" alt="Bare Barnemat på skjerm: månedsplan med retter per dag og en liste med retter til høyre" loading="lazy"><figcaption>Månedsplanen på skjerm, med rettene klare til å dras inn.</figcaption></figure>
+      <figure><img src="bilder/ukevisning.webp" width="1320" height="1318" alt="To ukers oversikt med lunsj, ettermiddagsmat og matboks for hver dag" loading="lazy"><figcaption>To uker om gangen, fargekodet etter type mat.</figcaption></figure>
+      <figure><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil med ukevelger og varsel om allergener" loading="lazy"><figcaption>På mobil, med varsel når en rett ikke passer for alle barn.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
   <div class="wrap">
     <div class="eyebrow">For leverandører</div>
     <h2>Nå ut til kjøkken som planlegger</h2>
