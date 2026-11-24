@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spisbart – Apper for matkontroll</title><meta name="description" content="Spisbart lager enkle apper for matkontroll. Første app: Bare Barnemat, matplanlegging for barnehager.">
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spisbart – Apper for matkontroll</title><meta name="description" content="Spisbart lager enkle apper for matkontroll og kunnskapsprøver. Bare Barnemat, Auto·Mat og QuizzMeg.">
 
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,6 +116,12 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .shots figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
 .shots .wide{grid-column:1/-1}
 @media (max-width:640px){.shots{grid-template-columns:1fr}}
+
+.phones{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;margin-top:28px;align-items:flex-start}
+.phones figure{margin:0;flex:0 0 min(210px,62vw)}
+.phones img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+.phones figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
+.lead2{max-width:38em;margin-top:14px;color:var(--muted)}
 </style>
 
 </head><body><main>
@@ -155,11 +161,27 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
           <li>Eksport av ferdig månedsmeny</li>
         </ul>
       </article>
-      <article class="app next">
+      <article class="app">
         <span class="status s-soon">Kommer</span>
-        <h3>Neste app</h3>
-        <p>Flere apper er på vei. Alle bygger på samme idé: mat du har oversikt over.</p>
-        <div class="chips" aria-hidden="true"><i style="background:var(--yellow)"></i><i style="background:var(--pink)"></i><i style="background:var(--green)"></i><i style="background:var(--blue)"></i></div>
+        <h3>Auto·Mat</h3>
+        <p>Beregnemaskin for kjøkken og servering. Se hva hver rett koster og hva du tjener på den.</p>
+        <ul>
+          <li>Varekost, påslag og fortjeneste per produkt</li>
+          <li>Bestilling og handleliste</li>
+          <li>Svinn mot regnskapet</li>
+          <li>Marginrapport og allergenkort</li>
+          <li>Meny som plakat med produkter og priser</li>
+        </ul>
+      </article>
+      <article class="app">
+        <span class="status s-soon">Kommer</span>
+        <h3>QuizzMeg Skjenkeprøven</h3>
+        <p>Øv til skjenkeprøven med quiz og pensum samlet i én app.</p>
+      </article>
+      <article class="app">
+        <span class="status s-soon">Kommer</span>
+        <h3>QuizzMeg Etablererprøven</h3>
+        <p>Et hjelpemiddel for å bestå etablererprøven. Les pensum, ta quiz per tema og prøv eksamen.</p>
       </article>
     </div>
   </div>
@@ -179,6 +201,33 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 
 <section>
   <div class="wrap">
+    <div class="eyebrow">Auto·Mat</div>
+    <h2>Beregnemaskin for kjøkkenet</h2>
+    <p class="lead2">Verktøyene ligger samlet i én oversikt, fra varekost og bestilling til svinn, fortjeneste og marginrapport.</p>
+    <div class="phones">
+      <figure><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett og verktøy som varekost, bestilling, svinn, fortjeneste, marginrapport, allergener og meny" loading="lazy"><figcaption>Verktøyene samlet i én oversikt.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">QuizzMeg</div>
+    <h2>Øv til prøvene på mobilen</h2>
+    <p class="lead2">To quiz-apper for deg som skal ta skjenkeprøven eller etablererprøven. Velg tema, les pensum, svar på spørsmål og få forklaring med en gang.</p>
+    <div class="phones">
+      <figure><img src="bilder/quizz-start.webp" width="520" height="799" alt="QuizzMeg Etablererprøven, startskjerm" loading="lazy"><figcaption>Startskjermen til Etablererprøven.</figcaption></figure>
+      <figure><img src="bilder/quizz-kategorier.webp" width="520" height="1086" alt="Liste over kategorier som alkoholloven, bevilling, salg og skjenking, tider og kontroll" loading="lazy"><figcaption>Velg kategori, og se hvor langt du har kommet.</figcaption></figure>
+      <figure><img src="bilder/quizz-sporsmal.webp" width="520" height="1086" alt="Quizspørsmål med fire svaralternativer" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
+      <figure><img src="bilder/quizz-svar.webp" width="520" height="849" alt="Riktig svar markert og forklaring på hvorfor et alternativ er feil" loading="lazy"><figcaption>Svar med forklaring.</figcaption></figure>
+      <figure><img src="bilder/quizz-pensum.webp" width="520" height="849" alt="Pensumtekst om legitimasjonskontroll" loading="lazy"><figcaption>Les pensum når du står fast.</figcaption></figure>
+      <figure><img src="bilder/quizz-eksamen.webp" width="520" height="849" alt="Eksamensmodus med spørsmål 1 av 45" loading="lazy"><figcaption>Eksamensmodus med 45 spørsmål.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
     <div class="eyebrow">For leverandører</div>
     <h2>Nå ut til kjøkken som planlegger</h2>
     <p>Er du grossist eller produsent og vil at varene dine skal finnes der menyene lages? Ta kontakt, så forteller vi hva som er mulig.</p>
@@ -190,7 +239,7 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
     <div class="eyebrow">Kontakt</div>
     <h2>Si fra</h2>
     <p style="margin-top:14px;max-width:34em;color:var(--muted)">Vil du prøve Bare Barnemat i din barnehage, eller har du spørsmål? Send oss en e-post.</p>
-    <div class="mail"><code id="addr">hei@spisbart.no</code><button type="button" id="copy">Kopier</button></div>
+    <div class="mail"><code id="addr">post@spisbart.no</code><button type="button" id="copy">Kopier</button></div>
   </div>
 </section>
 </main>
