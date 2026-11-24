@@ -1035,5 +1035,48 @@ async function resetAll(){
 function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 (async()=>{await refreshAllProgress();})();
 </script>
+<script>
+/* ── DEMO-BEGRENSNING: bare den første kategorien man åpner er åpen. Resten (og eksamen) er låst. ── */
+(function(){
+  var KEY='spisbart-demo-kat', NAME='QuizzMeg Skjenkeprøven';
+  function get(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
+  function set(v){ try{ localStorage.setItem(KEY,v); }catch(e){} }
+  var st=document.createElement('style');
+  st.textContent='.cat-blk.demo-locked{position:relative;filter:saturate(.45) brightness(.92)}'
+   +'.cat-blk.demo-locked::after{content:"🔒 Låst i demo";position:absolute;right:12px;top:10px;background:rgba(0,0,0,.55);color:#fff;font:700 11px Barlow,Arial,sans-serif;letter-spacing:.5px;padding:3px 9px;border-radius:999px;z-index:3}'
+   +'.eksamen-banner.demo-locked{filter:saturate(.45) brightness(.92)}'
+   +'#demo-lock{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}'
+   +'#demo-lock.show{display:flex}'
+   +'#demo-lock .dl-card{background:#fff;border-radius:18px;max-width:340px;width:100%;padding:24px 22px;text-align:center;font-family:Barlow,Arial,sans-serif;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.35)}'
+   +'#demo-lock h3{font-family:"Barlow Condensed",Barlow,sans-serif;font-size:26px;font-weight:800;color:#1B4F7A;margin:4px 0 8px;text-transform:uppercase}'
+   +'#demo-lock p{font-size:14px;line-height:1.5;color:#444;margin:0 0 16px}'
+   +'#demo-lock a.dl-buy{display:block;background:#1A7A6E;color:#fff;text-decoration:none;font-weight:700;padding:12px;border-radius:999px;margin-bottom:10px}'
+   +'#demo-lock button{background:none;border:0;color:#777;font:600 13px Barlow,Arial,sans-serif;cursor:pointer;padding:6px}';
+  document.head.appendChild(st);
+  var m=document.createElement('div'); m.id='demo-lock';
+  m.innerHTML='<div class="dl-card"><div style="font-size:34px">🔒</div><h3>Låst i demoen</h3>'
+   +'<p>Demoen gir deg én kategori å prøve. Resten av '+NAME+' – alle kategorier og eksamen – får du i den fulle versjonen.</p>'
+   +'<a class="dl-buy" href="mailto:post@spisbart.no?subject='+encodeURIComponent('Kjøp '+NAME)+'">Kjøp full versjon</a>'
+   +'<button type="button" id="dl-close">Lukk</button></div>';
+  document.body.appendChild(m);
+  function show(){ m.classList.add('show'); }
+  m.addEventListener('click',function(e){ if(e.target===m||e.target.id==='dl-close') m.classList.remove('show'); });
+  function markLocks(){
+    var k=get();
+    document.querySelectorAll('.cat-blk').forEach(function(b){
+      var mm=/'([^']+)'/.exec(b.getAttribute('onclick')||'');
+      b.classList.toggle('demo-locked', !!(k && mm && mm[1]!==k));
+    });
+    var e=document.querySelector('.eksamen-banner'); if(e) e.classList.add('demo-locked');
+  }
+  function allowed(c){ var k=get(); if(!k){ set(c); setTimeout(markLocks,0); return true; } return k===c; }
+  var oRead=window.openRead, oQuiz=window.startQuizOrResume, oEks=window.startEksamen;
+  window.openRead=function(c){ if(!allowed(c)){ show(); return; } return oRead.apply(this,arguments); };
+  window.startQuizOrResume=function(c){ if(!allowed(c)){ show(); return; } return oQuiz.apply(this,arguments); };
+  window.startEksamen=function(){ show(); };
+  markLocks();
+  var oCats=window.goToCats; window.goToCats=function(){ var r=oCats.apply(this,arguments); markLocks(); return r; };
+})();
+</script>
 </body>
 </html>
