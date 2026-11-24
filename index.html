@@ -122,6 +122,11 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .phones img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
 .phones figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
 .lead2{max-width:38em;margin-top:14px;color:var(--muted)}
+
+.shotrow{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;margin-top:28px;align-items:flex-start}
+.shotrow figure{margin:0;flex:0 0 auto;width:min-content}
+.shotrow img{display:block;height:clamp(200px,calc((100vw - 64px) / 3.3),270px);width:auto;max-width:none;border-radius:8px;border:1px solid var(--line)}
+.shotrow figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
 </style>
 
 </head><body><main>
@@ -191,8 +196,8 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
   <div class="wrap">
     <div class="eyebrow">Bare Barnemat</div>
     <h2>Slik ser det ut</h2>
-    <div class="shots">
-      <figure class="wide"><img src="bilder/skrivebord.webp" width="1400" height="877" alt="Bare Barnemat på skjerm: månedsplan med retter per dag og en liste med retter til høyre" loading="lazy"><figcaption>Månedsplanen på skjerm, med rettene klare til å dras inn.</figcaption></figure>
+    <div class="shotrow">
+      <figure><img src="bilder/skrivebord.webp" width="1400" height="877" alt="Bare Barnemat på skjerm: månedsplan med retter per dag og en liste med retter til høyre" loading="lazy"><figcaption>Månedsplanen på skjerm, med rettene klare til å dras inn.</figcaption></figure>
       <figure><img src="bilder/ukevisning.webp" width="1320" height="1318" alt="To ukers oversikt med lunsj, ettermiddagsmat og matboks for hver dag" loading="lazy"><figcaption>To uker om gangen, fargekodet etter type mat.</figcaption></figure>
       <figure><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil med ukevelger og varsel om allergener" loading="lazy"><figcaption>På mobil, med varsel når en rett ikke passer for alle barn.</figcaption></figure>
     </div>
