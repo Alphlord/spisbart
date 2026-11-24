@@ -1053,17 +1053,20 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
   // as a standalone HTML file (double-clicked, hosted, etc.) it's undefined — fall back to
   // localStorage so changes still persist between reloads either way.
   const hasArtifactStorage = typeof window.storage !== 'undefined' && window.storage && typeof window.storage.get === 'function';
-  let storageShim = hasArtifactStorage ? window.storage : {
+  // Demo: ?demo i adressen → egen lagring (bbmdemo_), ingen innlogging, ingen kontakt med skyen.
+  const BB_DEMO = /[?&]demo(=|&|$)/.test(location.search) && !/demo=(0|false)/.test(location.search);
+  const BB_PFX = BB_DEMO ? 'bbmdemo_' : 'bbm_';
+  let storageShim = (hasArtifactStorage && !BB_DEMO) ? window.storage : {
     async get(key) {
-      const v = localStorage.getItem('bbm_' + key);
+      const v = localStorage.getItem(BB_PFX + key);
       return v === null ? null : { key, value: v };
     },
     async set(key, value) {
-      localStorage.setItem('bbm_' + key, value);
+      localStorage.setItem(BB_PFX + key, value);
       return { key, value };
     },
     async delete(key) {
-      localStorage.removeItem('bbm_' + key);
+      localStorage.removeItem(BB_PFX + key);
       return { key, deleted: true };
     }
   };
@@ -5321,6 +5324,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
   }
 
   async function bbAuthGate() {
+    if (BB_DEMO) return;
     if (hasArtifactStorage || !window.supabase) return; // Claude-artifact eller uten nett: bruk lokal lagring
     const client = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
     let { data: { session } } = await client.auth.getSession();
@@ -5356,8 +5360,30 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
     storageShim = shim;
   }
 
+  function bbDemoBanner() {
+    const b = document.createElement('div');
+    b.style.cssText = 'position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9998;background:#1A7A6E;color:#fff;padding:8px 14px;border-radius:999px;font:600 13px Barlow,Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px)';
+    b.innerHTML = '<span>Demo – data lagres bare i din nettleser</span><button style="background:#fff;color:#1A7A6E;border:0;border-radius:999px;padding:4px 10px;font:inherit;cursor:pointer">Nullstill</button><a href="/" style="color:#fff;text-decoration:underline">Til spisbart.no</a>';
+    b.querySelector('button').onclick = () => { if (confirm('Nullstille demoen og starte på nytt?')) { try { Object.keys(localStorage).filter(k => k.startsWith('bbmdemo_')).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.reload(); } };
+    document.body.appendChild(b);
+  }
+
   (async () => {
     await bbAuthGate();
+    if (BB_DEMO) bbDemoBanner();
+    if (BB_DEMO) { // første besøk: legg inn en eksempelplan for to uker
+      try {
+        if (!localStorage.getItem('bbmdemo_plan')) {
+          const ids = RECIPES.map(r => r.id), demo = {};
+          const d = new Date(currentWeekStart); let i = 0;
+          for (let n = 0; n < 14; n++, d.setDate(d.getDate() + 1)) {
+            if (d.getDay() === 0 || d.getDay() === 6) continue;
+            demo[dateKey(d.getFullYear(), d.getMonth(), d.getDate())] = { lunch: ids[(i++ * 3) % ids.length] };
+          }
+          localStorage.setItem('bbmdemo_plan', JSON.stringify(demo));
+        }
+      } catch (e) {}
+    }
     await loadAll();
     initLogoShuffle();
     initDishSearch();
