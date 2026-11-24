@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spisbart – Apper for matkontroll</title><meta name="description" content="Spisbart lager enkle apper for matkontroll. Første app: Bare Barnemat, matplanlegging for barnehager.">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: sentrert logo-hero, deretter appkort, leverandørstripe og kontakt */
+:root{
+  --bg:#FFFDF8; --fg:#1B1A17; --muted:#5E5A50; --line:#E6E0D2; --card:#FFFFFF; --band:#F4EFE2;
+  --yellow:#E8B84B; --pink:#C8376A; --green:#5C7A39; --blue:#1B4F7A;
+  --logo:#111111; --accent:#C8376A; --on-accent:#FFFFFF;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
+  --pink:#E0577F; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E0577F; --on-accent:#16150F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
+  --pink:#E0577F; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E0577F; --on-accent:#16150F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;line-height:1.05;margin:0;text-wrap:balance}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:15px;color:var(--muted)}
+
+/* hero */
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px;padding-block:56px 64px}
+.logo{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--logo)}
+.logo svg{width:min(250px,60vw);height:auto}
+.txt{display:flex;flex-direction:column;align-items:flex-start}
+.word{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1;font-size:clamp(56px,16vw,84px)}
+.sub{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:28px;margin-top:8px;white-space:nowrap;margin-right:-.14em}
+#bart{animation:farge 10s linear infinite}
+@keyframes farge{
+ 0.0%{fill:#E8B84B}
+ 2.5%{fill:#EAAB3F}
+ 5.0%{fill:#EC9D38}
+ 7.5%{fill:#EC9035}
+ 10.0%{fill:#EB8237}
+ 12.5%{fill:#E9753D}
+ 15.0%{fill:#E56744}
+ 17.5%{fill:#E05A4D}
+ 20.0%{fill:#D94E57}
+ 22.5%{fill:#D14261}
+ 25.0%{fill:#C8376A}
+ 27.5%{fill:#C83C50}
+ 30.0%{fill:#C44336}
+ 32.5%{fill:#BD4C16}
+ 35.0%{fill:#B45500}
+ 37.5%{fill:#A85E00}
+ 40.0%{fill:#9A6600}
+ 42.5%{fill:#8B6D00}
+ 45.0%{fill:#7B7300}
+ 47.5%{fill:#6B7724}
+ 50.0%{fill:#5C7A39}
+ 52.5%{fill:#497943}
+ 55.0%{fill:#35784D}
+ 57.5%{fill:#1B7556}
+ 60.0%{fill:#00725F}
+ 62.5%{fill:#006D67}
+ 65.0%{fill:#00686E}
+ 67.5%{fill:#006374}
+ 70.0%{fill:#005D78}
+ 72.5%{fill:#01567A}
+ 75.0%{fill:#1B4F7A}
+ 77.5%{fill:#005F81}
+ 80.0%{fill:#006F84}
+ 82.5%{fill:#007E83}
+ 85.0%{fill:#008C7D}
+ 87.5%{fill:#2A9974}
+ 90.0%{fill:#55A368}
+ 92.5%{fill:#7CAB5A}
+ 95.0%{fill:#A1B14D}
+ 97.5%{fill:#C6B546}
+ 100.0%{fill:#E8B84B}
+}
+@media (prefers-reduced-motion:reduce){#bart{animation:none;fill:var(--logo)}}
+.lead{max-width:34em;font-size:clamp(18px,2.4vw,21px);color:var(--fg)}
+.cta{display:inline-block;background:var(--accent);color:var(--on-accent);font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:18px;padding:12px 26px;border-radius:4px;text-decoration:none}
+.cta:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* apper */
+section{padding-block:56px}
+h2{font-weight:800;font-size:clamp(32px,6vw,44px);margin-top:6px}
+.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px;margin-top:28px}
+.app{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.app h3{font-weight:800;font-size:30px}
+.status{align-self:flex-start;font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:14px;padding:3px 10px;border-radius:99px;border:1.5px solid currentColor}
+.s-live{color:var(--green)} .s-soon{color:var(--muted)}
+.app ul{margin:0;padding-left:1.1em;color:var(--muted)}
+.app li+li{margin-top:4px}
+.app.next{border-style:dashed;background:transparent}
+.app.next p{color:var(--muted)}
+.chips{display:flex;gap:6px;margin-top:2px}
+.chips i{width:14px;height:14px;display:block}
+
+/* leverandører */
+.band{background:var(--band)}
+.band p{max-width:38em;margin-top:14px;color:var(--muted)}
+
+/* kontakt */
+.mail{display:inline-flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.mail code{font-family:var(--body);font-weight:600;font-size:20px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:8px 14px;user-select:all;overflow-wrap:anywhere}
+.mail button{font:inherit;font-weight:600;background:none;color:var(--fg);border:1.5px solid var(--fg);border-radius:4px;padding:8px 14px;cursor:pointer}
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:15px}
+footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-between}
+</style>
+
+</head><body><main>
+<header class="wrap hero">
+  <div class="logo">
+    <svg viewBox="0 0 100 38" role="img" aria-label="Spisbart-logoen: en bart med et bitt tatt ut">
+      <defs>
+        <path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/>
+        <mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45">
+          <rect x="-5" width="110" height="45" fill="#fff"/>
+          <circle cx="3" cy="33" r="12.5"/>
+          <circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/>
+        </mask>
+      </defs>
+      <g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g>
+    </svg>
+    <div class="txt"><div class="word" id="w">Spisbart</div><div class="sub" id="s">Apper for matkontroll</div></div>
+  </div>
+  <p class="lead">Enkle verktøy som gir kjøkken og barnehager kontroll på hva som serveres, hva det inneholder og hva det koster.</p>
+  <a class="cta" href="#apper">Se appene</a>
+</header>
+
+<section id="apper">
+  <div class="wrap">
+    <div class="eyebrow">Appene våre</div>
+    <h2>Én app for hvert behov</h2>
+    <div class="apps">
+      <article class="app">
+        <span class="status s-live">Under utvikling</span>
+        <h3>Bare Barnemat</h3>
+        <p>Matplanlegging for barnehager. Lag månedsmenyen, se kostnaden per barn og hold orden på allergener.</p>
+        <ul>
+          <li>Månedsplan med dra og slipp</li>
+          <li>Allergener og kosthold synlig på hver rett</li>
+          <li>Budsjett og kostnad per barn</li>
+          <li>Ukespakker, bestilling og matboks</li>
+          <li>Eksport av ferdig månedsmeny</li>
+        </ul>
+      </article>
+      <article class="app next">
+        <span class="status s-soon">Kommer</span>
+        <h3>Neste app</h3>
+        <p>Flere apper er på vei. Alle bygger på samme idé: mat du har oversikt over.</p>
+        <div class="chips" aria-hidden="true"><i style="background:var(--yellow)"></i><i style="background:var(--pink)"></i><i style="background:var(--green)"></i><i style="background:var(--blue)"></i></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">For leverandører</div>
+    <h2>Nå ut til kjøkken som planlegger</h2>
+    <p>Er du grossist eller produsent og vil at varene dine skal finnes der menyene lages? Ta kontakt, så forteller vi hva som er mulig.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Kontakt</div>
+    <h2>Si fra</h2>
+    <p style="margin-top:14px;max-width:34em;color:var(--muted)">Vil du prøve Bare Barnemat i din barnehage, eller har du spørsmål? Send oss en e-post.</p>
+    <div class="mail"><code id="addr">hei@spisbart.no</code><button type="button" id="copy">Kopier</button></div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>© 2026 Spisbart</span><span>Apper for matkontroll</span></div></footer>
+
+<script>
+function fit(){
+  var w=document.getElementById('w'),s=document.getElementById('s');
+  s.style.fontSize='';
+  function rng(el){var r=document.createRange();r.selectNodeContents(el);return r.getBoundingClientRect().width}
+  var fw=parseFloat(getComputedStyle(w).fontSize),fs0=parseFloat(getComputedStyle(s).fontSize);
+  var ww=rng(w)-0.02*fw,sw=rng(s)-0.14*fs0;
+  if(sw>0)s.style.fontSize=(fs0*ww/sw)+'px';
+}
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(fit);
+window.addEventListener('resize',fit);
+document.getElementById('copy').addEventListener('click',function(){
+  var b=this,t=document.getElementById('addr');
+  function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
+  function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
+  try{navigator.clipboard.writeText(t.textContent).then(ok,sel)}catch(e){sel()}
+});
+</script>
+</body></html>
