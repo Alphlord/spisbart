@@ -9238,6 +9238,9 @@ async function seedDemoData() {
     delete p._recalibrateInk;
   });
 
+  // Eksempeltall for Fortjeneste (pr. måned) – råvarekost ≈ 30 % av omsetningen, i tråd med snittet i marginrapporten
+  profitData = { omsetning:485000, andreInntekter:12000, raavare:145500, lonn:195000, husleie:48000, avgifter:6800, strom:14500, andreUtgifter:21000 };
+
   await saveData();
 }
 
