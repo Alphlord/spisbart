@@ -108,26 +108,11 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
 .fb{padding:11px 15px;font-size:13px;line-height:1.55;display:none;border-left:4px solid;}
 .fb.ok{background:#E8F5E9;color:#1B5E20;border-color:#4CAF50;}
 .fb.err{background:#FDECEA;color:#7F0000;border-color:#E53935;}
-.swipe-zone{display:none;border-top:1px solid #eee;background:#fafafa;padding:18px 14px;text-align:center;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;min-height:96px;}
-.swipe-zone:active{cursor:grabbing;}
-.swipe-hint{display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;}
-.sh-row{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#1a1a1a;}
-.sh-arrow{color:var(--b);font-size:18px;}
-.sh-updown{color:var(--t);font-size:14px;}
-.sh-tip{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;text-transform:none;font-family:'Barlow',sans-serif;}
-.radial{position:fixed;inset:0;z-index:5000;pointer-events:none;display:none;}
-.radial.show{display:block;}
-.radial-center{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.9);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(0,0,0,.15);}
-.radial-opt{position:absolute;width:74px;height:74px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%) scale(.85);transition:transform .12s,background .12s;backdrop-filter:blur(2px);}
-.ro-ic{font-size:22px;line-height:1;}
-.ro-lb{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
-.ro-left{background:rgba(27,79,122,.78);color:#fff;}
-.ro-right{background:rgba(46,125,50,.82);color:#fff;}
-.ro-up,.ro-down{background:rgba(200,55,106,.78);color:#fff;}
-.radial-opt.active{transform:translate(-50%,-50%) scale(1.15);}
-.ro-left.active{background:rgba(27,79,122,.97);}
-.ro-right.active{background:rgba(46,125,50,1);}
-.ro-up.active,.ro-down.active{background:rgba(200,55,106,.97);}
+.act-bar{display:none;flex-direction:row;border-top:1px solid #eee;background:#fff;}
+.act{flex:1;padding:13px 4px;border:none;background:#fff;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;color:#333;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.act:not(:last-child){border-right:1px solid #eee;}.act:hover{background:#f5f5f5;}
+.ai{font-size:15px;}
+.a-l{color:#2E7D32;}.a-r{color:var(--b);}.a-s{color:var(--p);}.a-s.on{background:#FEF0F4;}
 .a-l{color:#2E7D32;}.a-r{color:var(--b);}.a-s{color:var(--p);}.a-s.on{background:#FEF0F4;}
 .next-bar{display:none;border-top:1px solid #eee;background:#fff;padding:12px 14px;}
 .next-btn{width:100%;background:var(--b);color:#fff;border:none;border-radius:8px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
@@ -310,19 +295,10 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
           <div class="q-body"><div class="q-text" id="q-text"></div></div>
           <div class="opts" id="opts"></div>
           <div class="fb" id="fb"></div>
-          <div class="swipe-zone" id="swipe-zone">
-            <div class="swipe-hint" id="swipe-hint">
-              <div class="sh-row"><span class="sh-arrow">←</span> Repeter &nbsp;·&nbsp; Lært <span class="sh-arrow">→</span></div>
-              <div class="sh-row sh-updown">↑↓ Les pensum</div>
-              <div class="sh-tip">Hold og dra fingeren i en retning</div>
-            </div>
-            <div class="radial" id="radial">
-              <div class="radial-opt ro-up" data-dir="up"><span class="ro-ic">📖</span><span class="ro-lb">Les</span></div>
-              <div class="radial-opt ro-right" data-dir="right"><span class="ro-ic">✓</span><span class="ro-lb">Lært</span></div>
-              <div class="radial-opt ro-left" data-dir="left"><span class="ro-ic">↺</span><span class="ro-lb">Repeter</span></div>
-              <div class="radial-opt ro-down" data-dir="down"><span class="ro-ic">📖</span><span class="ro-lb">Les</span></div>
-              <div class="radial-center" id="radial-center"></div>
-            </div>
+          <div class="act-bar" id="act-bar">
+            <button class="act a-l" onclick="doLaert()"><span class="ai">✓</span>lært</button>
+            <button class="act a-r" onclick="doRep()"><span class="ai">↺</span>repeter</button>
+            <button class="act a-s" id="les-btn" onclick="openQles()"><span class="ai">📖</span>les</button>
           </div>
           <div class="next-bar" id="next-bar"><button class="next-btn" onclick="eksamenNext()">Neste →</button></div>
         </div>
@@ -779,7 +755,7 @@ function renderEksamenQ(){
   document.getElementById('s-pill').textContent=eksamenScore+' riktige';
   document.getElementById('q-text').textContent=q.q;
   const fb=document.getElementById('fb');fb.style.display='none';fb.className='fb';
-  document.getElementById('swipe-zone').style.display='none';
+  document.getElementById('act-bar').style.display='none';
   document.getElementById('next-bar').style.display='none';
   cat=q._cat;buildPensum('ql-body',PENSUM[q._cat],q.h,false);
   const opts=document.getElementById('opts');opts.innerHTML='';
@@ -833,7 +809,7 @@ function renderQ(){
   document.getElementById('s-pill').textContent='Poeng: '+score;
   document.getElementById('q-text').textContent=q.q;
   const fb=document.getElementById('fb');fb.style.display='none';fb.className='fb';
-  document.getElementById('swipe-zone').style.display='none';document.getElementById('next-bar').style.display='none';
+  document.getElementById('act-bar').style.display='none';document.getElementById('next-bar').style.display='none';
   buildPensum('ql-body',PENSUM[cat],q.h,false);
   const opts=document.getElementById('opts');opts.innerHTML='';
   q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt o'+i;b.textContent=o;b.onclick=()=>pick(i,q);opts.appendChild(b);});
@@ -844,68 +820,14 @@ function pick(idx,q){
   if(idx===q.c)score++;
   document.getElementById('s-pill').textContent='Poeng: '+score;
   const fb=document.getElementById('fb');fb.textContent=(idx===q.c?'✓ Riktig! ':'✗ Feil. ')+q.e;fb.className='fb '+(idx===q.c?'ok':'err');fb.style.display='block';
-  document.getElementById('swipe-zone').style.display='block';
+  document.getElementById('act-bar').style.display='flex';
 }
 function rem(q){let i=queue.indexOf(q);if(i>-1)queue.splice(i,1);let j=rQ.indexOf(q);if(j>-1)rQ.splice(j,1);}
 function doLaert(){rem(curQ());lrn++;saveState();toast('✓ Lært!');nxt();}
 function doRep(){const q=curQ();rem(q);rQ.push(q);rps++;saveState();toast('↺ Repeter');nxt();}
 function nxt(){if(![...queue,...rQ].length)showResult();else renderQ();}
-function openQles(){document.getElementById('q-sl').classList.add('show-les');setTimeout(()=>{const f=document.querySelector('#ql-body .hl');if(f){f.classList.add('hlp');f.scrollIntoView({behavior:'smooth',block:'center'});}},420);}
+function openQles(){document.getElementById('q-sl').classList.add('show-les');document.getElementById('les-btn').classList.add('on');setTimeout(()=>{const f=document.querySelector('#ql-body .hl');if(f){f.classList.add('hlp');f.scrollIntoView({behavior:'smooth',block:'center'});}},420);}
 
-// ===== Swipe gesture handling =====
-(function initSwipe(){
-  const zone=document.getElementById('swipe-zone');
-  if(!zone)return;
-  const radial=document.getElementById('radial');
-  const center=document.getElementById('radial-center');
-  const opts={up:radial.querySelector('.ro-up'),down:radial.querySelector('.ro-down'),left:radial.querySelector('.ro-left'),right:radial.querySelector('.ro-right')};
-  let active=false,startX=0,startY=0,curDir=null;
-  const THRESHOLD=55,RADIUS=80;
-  function dirFromDelta(dx,dy){
-    const adx=Math.abs(dx),ady=Math.abs(dy);
-    if(Math.max(adx,ady)<THRESHOLD)return null;
-    if(adx>ady)return dx>0?'right':'left';
-    return dy>0?'down':'up';
-  }
-  function positionRadial(x,y){
-    center.style.left=x+'px';center.style.top=y+'px';
-    opts.up.style.left=x+'px';opts.up.style.top=(y-RADIUS)+'px';
-    opts.down.style.left=x+'px';opts.down.style.top=(y+RADIUS)+'px';
-    opts.left.style.left=(x-RADIUS)+'px';opts.left.style.top=y+'px';
-    opts.right.style.left=(x+RADIUS)+'px';opts.right.style.top=y+'px';
-  }
-  function highlight(dir){
-    Object.values(opts).forEach(o=>o.classList.remove('active'));
-    if(dir==='up'||dir==='down'){opts.up.classList.add('active');opts.down.classList.add('active');}
-    else if(dir&&opts[dir])opts[dir].classList.add('active');
-  }
-  function start(x,y){
-    active=true;startX=x;startY=y;curDir=null;
-    positionRadial(x,y);highlight(null);
-    radial.classList.add('show');
-  }
-  function move(x,y){
-    if(!active)return;
-    curDir=dirFromDelta(x-startX,y-startY);
-    highlight(curDir);
-  }
-  function end(){
-    if(!active)return;active=false;
-    radial.classList.remove('show');
-    const dir=curDir;curDir=null;
-    if(dir==='right')doLaert();
-    else if(dir==='left')doRep();
-    else if(dir==='up'||dir==='down')openQles();
-    // no swipe -> menu disappears, nothing happens
-  }
-  zone.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);e.preventDefault();},{passive:false});
-  zone.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault();},{passive:false});
-  zone.addEventListener('touchend',e=>{end();e.preventDefault();},{passive:false});
-  zone.addEventListener('touchcancel',()=>{active=false;radial.classList.remove('show');});
-  zone.addEventListener('mousedown',e=>{start(e.clientX,e.clientY);e.preventDefault();});
-  window.addEventListener('mousemove',e=>{if(active)move(e.clientX,e.clientY);});
-  window.addEventListener('mouseup',()=>{if(active)end();});
-})();
 function closeQles(){document.getElementById('q-sl').classList.remove('show-les');const b=document.getElementById('les-btn');if(b)b.classList.remove('on');}
 
 function buildPensum(targetId,sections,hlIds,includeLov=false){
