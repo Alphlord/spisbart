@@ -1,0 +1,1117 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QuizzMeg">
+<meta name="theme-color" content="#1B4F7A">
+<title>QuizzMeg – Skjenkeprøven</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;}
+body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-content:center;min-height:100vh;min-height:100dvh;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;overflow-x:hidden;}
+:root{--y:#E8B84B;--p:#C8376A;--t:#1A7A6E;--b:#1B4F7A;--v:#6B3FA0;--o:#B55A00;}
+.phone{width:100%;max-width:480px;background:#fff;overflow:hidden;position:relative;min-height:100vh;min-height:100dvh;}
+@media(min-width:481px){
+  body{background:#1a1a1a;padding:20px;align-items:flex-start;}
+  .phone{max-width:400px;border-radius:36px;min-height:auto;box-shadow:0 30px 80px rgba(0,0,0,.55);}
+}
+.fw-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;opacity:0;transition:opacity .5s ease;}
+.fw-canvas.show{display:block;}
+.fw-canvas.visible{opacity:1;}
+.home-q{padding:36px 26px 20px;line-height:1.2;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+.home-q span{display:block;}
+.q-quiz{color:var(--p);}.q-les{color:var(--t);}.q-laer{color:var(--b);}
+.hb{height:70px;cursor:pointer;transition:filter .15s;}
+.hb:hover{filter:brightness(1.08);}
+.hb-y{background:var(--y);}.hb-p{background:var(--p);}
+.hb-w{background:#fff;height:140px;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 12px;overflow:hidden;position:relative;}
+.hb-w-ttl{font-family:'Barlow Condensed',sans-serif;font-weight:900;color:var(--b);text-transform:uppercase;text-align:center;line-height:.95;opacity:0;transform:translateY(140px);animation:rise 3.3s cubic-bezier(.22,1,.36,1) .1s forwards;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.hb-w-top{font-size:14px;letter-spacing:1.5px;}
+.hb-w-big{font-size:30px;letter-spacing:.5px;}
+@keyframes rise{
+  0%{opacity:0;transform:translateY(140px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+.rise-y{position:relative;z-index:2;}
+.hb-logo{background:var(--t);height:92px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;}
+.hb-logo:hover{opacity:.88;}
+.logo-wrap{display:flex;flex-direction:column;}
+.logo-top-row{display:flex;align-items:center;gap:9px;}
+.logo-top-sqs{display:flex;flex-direction:column;gap:3px;}
+.sq-y{width:18px;height:8px;background:var(--y);}
+.sq-p{width:18px;height:8px;background:var(--p);}
+.sq-b{width:18px;height:8px;background:var(--b);}
+.logo-main{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;line-height:1;}
+.logo-bottom-row{display:flex;align-items:flex-end;gap:9px;margin-top:3px;}
+.logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.78);letter-spacing:3px;text-transform:uppercase;line-height:1;}
+.hb-dark{background:#13344F;height:70px;cursor:pointer;transition:filter .15s;}
+.hb-dark:hover{filter:brightness(1.3);}
+.home-foot{background:#fff;padding:70px 14px 24px;text-align:center;display:flex;flex-direction:column;gap:24px;align-items:center;}
+.reset-btn{background:none;border:none;font-size:13px;color:#aaa;cursor:pointer;}
+.other-btn{background:none;border:none;font-size:13px;color:#aaa;cursor:pointer;}
+#s-nav{display:none;}
+#s-other{display:none;background:#fff;min-height:580px;}
+#s-links{display:none;background:#fff;min-height:580px;}
+.links-body{padding:20px 16px 30px;}
+.links-intro{font-size:14px;color:#555;line-height:1.5;margin-bottom:20px;}
+.link-sec{margin-bottom:22px;}
+.link-sec-h{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--b);margin-bottom:9px;padding-bottom:5px;border-bottom:2px solid #EEF4FA;}
+.link-card{display:block;background:#F7FAFD;border:1px solid #E1ECF6;border-radius:10px;padding:12px 14px;margin-bottom:8px;text-decoration:none;transition:background .15s,transform .1s;}
+.link-card:hover{background:#EEF4FA;}
+.link-card:active{transform:scale(.99);}
+.lc-ttl{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#1a1a1a;letter-spacing:.3px;}
+.lc-sub{font-size:12px;color:#777;margin-top:2px;line-height:1.4;}
+.link-note{font-size:12px;color:#666;line-height:1.55;margin-top:8px;padding:10px 12px;background:#FFF8E1;border-left:3px solid var(--y);border-radius:6px;}
+.link-disclaimer{font-size:11px;color:#aaa;line-height:1.5;margin-top:14px;font-style:italic;}
+.other-hdr{background:var(--b);padding:13px 14px 11px;display:flex;align-items:center;gap:10px;}
+.other-ttl{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;}
+.other-body{padding:40px 28px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.other-icon{font-size:64px;line-height:1;margin-bottom:6px;}
+.other-h{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;}
+.other-p{font-size:14px;color:#666;line-height:1.5;max-width:280px;}
+.other-link{display:inline-block;background:var(--b);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:12px 24px;border-radius:6px;text-decoration:none;margin-top:8px;transition:filter .15s;}
+.other-link:hover{filter:brightness(1.1);}
+.other-note{font-size:11px;color:#aaa;font-style:italic;margin-top:6px;}
+.nav-vp{overflow:hidden;}
+.nav-sl{display:flex;width:300%;transform:translateX(-33.333%);transition:transform .4s cubic-bezier(.4,0,.2,1);}
+.npnl{width:33.333%;flex-shrink:0;display:flex;flex-direction:column;}
+.q-vp{overflow:hidden;}
+.q-sl{display:flex;width:200%;transition:transform .38s cubic-bezier(.4,0,.2,1);}
+.q-sl.show-les{transform:translateX(-50%);}
+.qp{width:50%;flex-shrink:0;display:flex;flex-direction:column;}
+.q-hdr{padding:14px 14px 14px;flex-shrink:0;}
+.q-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.bk-btn{border:none;width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.bk-btn.light{background:rgba(255,255,255,.18);color:#fff;}.bk-btn.light:hover{background:rgba(255,255,255,.32);}
+.bk-btn.dark{background:rgba(0,0,0,.12);color:#1a1a1a;}.bk-btn.dark:hover{background:rgba(0,0,0,.2);}
+.s-pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;padding:3px 12px;border-radius:20px;}
+.s-pill.light{background:rgba(255,255,255,.25);color:#fff;}.s-pill.dark{background:rgba(0,0,0,.15);color:#1a1a1a;}
+.pg-bar{height:4px;border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.pg-bar.light{background:rgba(255,255,255,.2);}.pg-bar.dark{background:rgba(0,0,0,.12);}
+.pg-fill{height:100%;border-radius:2px;transition:width .4s;}
+.pg-fill.light{background:#fff;}.pg-fill.dark{background:#1a1a1a;}
+.q-ctag{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.q-ctag.light{color:rgba(255,255,255,.85);}.q-ctag.dark{color:rgba(0,0,0,.7);}
+.q-body{padding:20px 18px 16px;background:#fff;}
+.q-text{font-size:18px;font-weight:600;color:#1a1a1a;line-height:1.55;}
+.opts{display:flex;flex-direction:column;}
+.opt{width:100%;border:none;padding:0 22px;height:68px;font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:flex-start;transition:filter .15s;line-height:1.35;}
+.opt:hover:not(:disabled){filter:brightness(.92);}.opt:disabled{cursor:default;}
+.o0{background:var(--y);color:#1a1a1a;}.o1{background:var(--p);color:#fff;}.o2{background:var(--t);color:#fff;}.o3{background:var(--b);color:#fff;}
+.opt.correct::after{content:' ✓';margin-left:8px;}.opt.wrong{opacity:.4;}.opt.wrong::after{content:' ✗';margin-left:8px;}.opt.reveal::after{content:' ✓';margin-left:8px;}
+.fb{padding:11px 15px;font-size:13px;line-height:1.55;display:none;border-left:4px solid;}
+.fb.ok{background:#E8F5E9;color:#1B5E20;border-color:#4CAF50;}
+.fb.err{background:#FDECEA;color:#7F0000;border-color:#E53935;}
+.swipe-zone{display:none;border-top:1px solid #eee;background:#fafafa;padding:18px 14px;text-align:center;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;min-height:96px;}
+.swipe-zone:active{cursor:grabbing;}
+.swipe-hint{display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;}
+.sh-row{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#1a1a1a;}
+.sh-arrow{color:var(--b);font-size:18px;}
+.sh-updown{color:var(--t);font-size:14px;}
+.sh-tip{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;text-transform:none;font-family:'Barlow',sans-serif;}
+.radial{position:fixed;inset:0;z-index:5000;pointer-events:none;display:none;}
+.radial.show{display:block;}
+.radial-center{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.9);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(0,0,0,.15);}
+.radial-opt{position:absolute;width:74px;height:74px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%) scale(.85);transition:transform .12s,background .12s;backdrop-filter:blur(2px);}
+.ro-ic{font-size:22px;line-height:1;}
+.ro-lb{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.ro-left{background:rgba(27,79,122,.78);color:#fff;}
+.ro-right{background:rgba(46,125,50,.82);color:#fff;}
+.ro-up,.ro-down{background:rgba(200,55,106,.78);color:#fff;}
+.radial-opt.active{transform:translate(-50%,-50%) scale(1.15);}
+.ro-left.active{background:rgba(27,79,122,.97);}
+.ro-right.active{background:rgba(46,125,50,1);}
+.ro-up.active,.ro-down.active{background:rgba(200,55,106,.97);}
+.a-l{color:#2E7D32;}.a-r{color:var(--b);}.a-s{color:var(--p);}.a-s.on{background:#FEF0F4;}
+.next-bar{display:none;border-top:1px solid #eee;background:#fff;padding:12px 14px;}
+.next-btn{width:100%;background:var(--b);color:#fff;border:none;border-radius:8px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+.ql-hdr{padding:14px 14px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.ql-ttl{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;}
+.ql-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px;}
+.ql-body{overflow-y:auto;padding:12px 14px 20px;max-height:450px;background:#fff;}
+.cats-hdr{background:var(--b);padding:13px 14px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cats-ttl{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;text-transform:uppercase;}
+.cat-blk{display:flex;flex-direction:column;min-height:90px;padding:12px 16px 10px;position:relative;cursor:pointer;transition:filter .15s;}
+.cat-blk:hover{filter:brightness(1.08);}
+.cat-blk:active{filter:brightness(.95);}
+.cat-main{display:flex;align-items:center;justify-content:space-between;flex:1;}
+.cat-nm{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1px;}
+.cat-acts{display:flex;flex-direction:column;gap:4px;}
+.ca{background:rgba(0,0,0,.32);border:none;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;border-radius:4px;cursor:pointer;}
+.ca:hover{background:rgba(0,0,0,.5);}
+.cat-prog{display:none;margin-top:6px;}
+.cpb{height:6px;background:rgba(0,0,0,.18);border-radius:3px;overflow:hidden;margin-bottom:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,.15);}
+.cpf{height:100%;background:#fff;border-radius:3px;transition:width .5s;box-shadow:0 0 6px rgba(255,255,255,.4);}
+.cpt{font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.95);}
+.resume-badge{display:none !important;}
+.eksamen-banner{background:#fff;padding:14px 16px;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.eksamen-banner:hover{background:#f9f9f9;}
+.eksamen-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;}
+.eksamen-sub{font-size:11px;color:#666;margin-top:1px;}
+.eksamen-btn{background:var(--b);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#np-read{display:flex;flex-direction:column;}
+.read-hdr{padding:14px 14px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.read-ttl{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;text-transform:uppercase;}
+.read-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px;}
+.read-body{overflow-y:auto;padding:14px 14px 0;max-height:500px;background:#fff;}
+.read-qbtn{margin:10px 14px 16px;padding:12px;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#1a1a1a;flex-shrink:0;}
+.psec{margin-bottom:14px;}
+.psec-h{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;padding-bottom:4px;border-bottom:2px solid;}
+.pp{font-size:13px;line-height:1.7;color:#555;margin-bottom:5px;padding:7px 10px;border-radius:6px;border-left:3px solid #eee;}
+.pp.hl{background:#FFF8E1;border-left-color:var(--y);color:#1a1a1a;font-weight:500;}
+.pp.hlp{animation:hlp 1.3s ease;}
+@keyframes hlp{0%{background:#FFE082;}60%{background:#FFF8E1;}100%{background:#FFF8E1;}}
+.lov-divider{margin:18px 0 12px;border:none;border-top:2px solid #1B4F7A;opacity:.15;}
+.lov-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.lov-badge{background:var(--b);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:3px;}
+.lov-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--b);letter-spacing:1px;text-transform:uppercase;}
+.lov-para{margin-bottom:9px;border:0.5px solid #dce8f5;border-radius:8px;overflow:hidden;}
+.lov-para-head{background:#EEF4FA;padding:6px 10px;display:flex;align-items:baseline;gap:8px;}
+.lov-para-num{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--b);flex-shrink:0;}
+.lov-para-title{font-size:12px;font-weight:600;color:#1a1a1a;}
+.lov-para-body{padding:8px 10px;font-size:12px;line-height:1.65;color:#444;}
+#s-result{display:none;flex-direction:column;}
+.rh{padding:28px 20px 18px;text-align:center;}
+.rl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;}
+.rs{font-family:'Barlow Condensed',sans-serif;font-size:66px;font-weight:800;line-height:1;}
+.rsub{font-size:13px;margin-top:2px;}
+.rb{padding:14px 16px;}
+.rm{font-size:14px;font-weight:600;color:#1a1a1a;text-align:center;margin-bottom:12px;}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.sc{background:#F7F5F0;border-radius:10px;padding:11px;text-align:center;}
+.sv{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--b);}
+.slab{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.res-btns{display:flex;flex-direction:column;gap:8px;}
+.rb1{border:none;border-radius:10px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#1a1a1a;}
+.rb2{background:none;border:2px solid var(--b);border-radius:10px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--b);}
+.rb2:hover{background:var(--b);color:#fff;}
+.rb3{background:none;border:2px solid #ccc;border-radius:10px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#888;}
+.grade-badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:10px;}
+.grade-pass{background:#E8F5E9;color:#1B5E20;}.grade-fail{background:#FDECEA;color:#7F0000;}
+.cat-breakdown{margin-bottom:14px;}
+.cat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;border-radius:8px;margin-bottom:5px;font-size:13px;}
+.cat-row-name{font-weight:600;color:#333;}
+.cat-row-score{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;}
+.toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="phone">
+<canvas id="fw-canvas" class="fw-canvas"></canvas>
+
+<div id="s-home">
+  <div class="hb hb-w" onclick="goToCats()"><div class="hb-w-ttl"><span class="hb-w-top">ET HJELPEMIDDEL FOR Å BESTÅ</span><span class="hb-w-big">KUNNSKAPSPRØVEN</span></div></div>
+  <div class="hb hb-p rise-y" onclick="goToCats()"></div><div class="hb hb-y" onclick="goToCats()"></div>
+  <div class="hb-logo" onclick="goToCats()">
+    <div class="logo-wrap">
+      <div class="logo-top-row"><div class="logo-top-sqs"><div class="sq-p"></div><div class="sq-y"></div></div><div class="logo-main">QUIZZMEG</div></div>
+      <div class="logo-bottom-row"><div class="sq-b"></div><div class="logo-sub">SKJENKEPRØVEN</div></div>
+    </div>
+  </div>
+  <div class="hb-dark" onclick="goToCats()"></div>
+  <div class="home-foot">
+    <button class="other-btn" onclick="showLinks()">🔗 Nyttige lenker og info</button>
+    <button class="reset-btn" onclick="resetAll()">↺ Nullstill mine resultater</button>
+    <button class="other-btn" onclick="showOtherQuizzes()">Sjekk våre andre kunnskapsquizzer</button>
+  </div>
+</div>
+
+<div id="s-links">
+  <div class="other-hdr">
+    <button class="bk-btn light" onclick="goHome()">←</button>
+    <div class="other-ttl">Nyttige lenker</div>
+  </div>
+  <div class="links-body">
+    <div class="links-intro">Alt du trenger for å forberede deg, melde deg opp og søke om bevilling.</div>
+
+    <div class="link-sec">
+      <div class="link-sec-h">Ta kunnskapsprøven</div>
+      <a class="link-card" href="https://www.helsedirektoratet.no/forebygging-diagnose-og-behandling/forebygging-og-levevaner/alkohol/kunnskapsprove-i-alkoholloven" target="_blank" rel="noopener">
+        <div class="lc-ttl">Helsedirektoratet – Kunnskapsprøven</div>
+        <div class="lc-sub">Hvem må ta prøven, pensum og praktiske opplysninger</div>
+      </a>
+      <a class="link-card" href="http://serveringsproven.no/login/index.php" target="_blank" rel="noopener">
+        <div class="lc-ttl">Serveringsprøven.no (VINN)</div>
+        <div class="lc-sub">Den offisielle prøveportalen</div>
+      </a>
+      <div class="link-note">Du melder deg opp og avlegger prøven hos kommunen din. Prøven koster 400 kr og betales på forhånd. Bevillingsmyndigheten skal avholde prøven innen to måneder etter at du har meldt deg på.</div>
+    </div>
+
+    <div class="link-sec">
+      <div class="link-sec-h">Søke om skjenkebevilling</div>
+      <a class="link-card" href="https://www.helsedirektoratet.no/forebygging-diagnose-og-behandling/forebygging-og-levevaner/alkohol/skjenkebevilling-for-alkohol" target="_blank" rel="noopener">
+        <div class="lc-ttl">Helsedirektoratet – Skjenkebevilling</div>
+        <div class="lc-sub">Regler og krav for skjenkebevilling</div>
+      </a>
+      <div class="link-note">Søknad om skjenkebevilling sendes til kommunen der skjenkingen skal skje. Saksbehandling tar normalt inntil fire måneder, og søknaden sendes på høring til blant annet politiet og Skatteetaten.</div>
+    </div>
+
+    <div class="link-sec">
+      <div class="link-sec-h">Pensum og lovverk</div>
+      <a class="link-card" href="https://lovdata.no/dokument/NL/lov/1989-06-02-27" target="_blank" rel="noopener">
+        <div class="lc-ttl">Alkoholloven (Lovdata)</div>
+        <div class="lc-sub">Skjenkebevilling: kapittel 1, 4, 5, 7, 8 og 9</div>
+      </a>
+      <a class="link-card" href="https://lovdata.no/dokument/SF/forskrift/2005-06-08-538" target="_blank" rel="noopener">
+        <div class="lc-ttl">Alkoholforskriften (Lovdata)</div>
+        <div class="lc-sub">Kapittel 1, 2, 4, 5, 6, 8, 9, 10, 11 og 14</div>
+      </a>
+    </div>
+
+    <div class="link-sec">
+      <div class="link-sec-h">Mer hjelp</div>
+      <a class="link-card" href="https://kompetansebasen.no/ofte-stilte-sporsmal/" target="_blank" rel="noopener">
+        <div class="lc-ttl">Ofte stilte spørsmål</div>
+        <div class="lc-sub">Kompetansebasen.no – praktiske svar om prøven</div>
+      </a>
+    </div>
+    <div class="link-disclaimer">Lenkene fører til eksterne nettsteder. QuizzMeg er et uoffisielt hjelpemiddel og er ikke tilknyttet Helsedirektoratet eller VINN.</div>
+  </div>
+</div>
+
+<div id="s-other">
+  <div class="other-hdr">
+    <button class="bk-btn light" onclick="goHome()">←</button>
+    <div class="other-ttl">Andre quizzer</div>
+  </div>
+  <div class="other-body">
+    <div class="other-icon">🎓</div>
+    <div class="other-h">Flere kunnskapsquizzer</div>
+    <div class="other-p">Vi jobber med å lage flere quizzer innen ulike fagområder. Følg med på vår nettside for oppdateringer!</div>
+    <a class="other-link" href="https://spisbart.no" target="_blank" rel="noopener">automat.no →</a>
+    <div class="other-note">Siden er under utvikling</div>
+  </div>
+</div>
+
+<div id="s-nav">
+  <div class="nav-vp"><div class="nav-sl" id="nav-sl">
+
+    <div class="npnl" id="np-quiz">
+      <div class="q-vp"><div class="q-sl" id="q-sl">
+        <div class="qp">
+          <div class="q-hdr" id="q-hdr">
+            <div class="q-top">
+              <div style="display:flex;gap:6px;">
+                <button class="bk-btn light" id="bk-main" onclick="goToCats()">←</button>
+                <button class="bk-btn light" id="restart-btn" onclick="confirmFreshStart()" style="font-size:12px;">↺</button>
+              </div>
+              <div class="s-pill light" id="s-pill">Poeng: 0</div>
+            </div>
+            <div class="pg-bar light" id="pg-bar"><div class="pg-fill light" id="pg-fill"></div></div>
+            <div class="q-ctag light" id="q-ctag"></div>
+          </div>
+          <div class="q-body"><div class="q-text" id="q-text"></div></div>
+          <div class="opts" id="opts"></div>
+          <div class="fb" id="fb"></div>
+          <div class="swipe-zone" id="swipe-zone">
+            <div class="swipe-hint" id="swipe-hint">
+              <div class="sh-row"><span class="sh-arrow">←</span> Repeter &nbsp;·&nbsp; Lært <span class="sh-arrow">→</span></div>
+              <div class="sh-row sh-updown">↑↓ Les pensum</div>
+              <div class="sh-tip">Hold og dra fingeren i en retning</div>
+            </div>
+            <div class="radial" id="radial">
+              <div class="radial-opt ro-up" data-dir="up"><span class="ro-ic">📖</span><span class="ro-lb">Les</span></div>
+              <div class="radial-opt ro-right" data-dir="right"><span class="ro-ic">✓</span><span class="ro-lb">Lært</span></div>
+              <div class="radial-opt ro-left" data-dir="left"><span class="ro-ic">↺</span><span class="ro-lb">Repeter</span></div>
+              <div class="radial-opt ro-down" data-dir="down"><span class="ro-ic">📖</span><span class="ro-lb">Les</span></div>
+              <div class="radial-center" id="radial-center"></div>
+            </div>
+          </div>
+          <div class="next-bar" id="next-bar"><button class="next-btn" onclick="eksamenNext()">Neste →</button></div>
+        </div>
+        <div class="qp">
+          <div class="ql-hdr" id="ql-hdr">
+            <button class="bk-btn light" id="ql-bk" onclick="closeQles()">←</button>
+            <div><div class="ql-ttl" id="ql-ttl" style="color:#fff;"></div><div class="ql-sub">Relevant tekst uthevet</div></div>
+          </div>
+          <div class="ql-body" id="ql-body"></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="npnl" id="np-cats">
+      <div class="cats-hdr"><button class="bk-btn light" onclick="goHome()">←</button><div class="cats-ttl">Velg kategori</div></div>
+      <div class="cat-blk" style="background:var(--y);" onclick="startQuizOrResume('salg')"><div class="resume-badge" id="rb-salg">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('salg')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('salg')">QUIZZ</button></div><div class="cat-nm">SALG</div></div><div class="cat-prog" id="cp-salg"><div class="cpb"><div class="cpf" id="cpf-salg"></div></div><div class="cpt" id="cpt-salg"></div></div></div>
+      <div class="cat-blk" style="background:var(--p);" onclick="startQuizOrResume('bevilling')"><div class="resume-badge" id="rb-bevilling">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('bevilling')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('bevilling')">QUIZZ</button></div><div class="cat-nm">BEVILLING</div></div><div class="cat-prog" id="cp-bevilling"><div class="cpb"><div class="cpf" id="cpf-bevilling"></div></div><div class="cpt" id="cpt-bevilling"></div></div></div>
+      <div class="cat-blk" style="background:var(--v);" onclick="startQuizOrResume('skjenketider')"><div class="resume-badge" id="rb-skjenketider">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('skjenketider')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('skjenketider')">QUIZZ</button></div><div class="cat-nm">TIDER</div></div><div class="cat-prog" id="cp-skjenketider"><div class="cpb"><div class="cpf" id="cpf-skjenketider"></div></div><div class="cpt" id="cpt-skjenketider"></div></div></div>
+      <div class="cat-blk" style="background:var(--t);" onclick="startQuizOrResume('kunde')"><div class="resume-badge" id="rb-kunde">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('kunde')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('kunde')">QUIZZ</button></div><div class="cat-nm">KUNDE</div></div><div class="cat-prog" id="cp-kunde"><div class="cpb"><div class="cpf" id="cpf-kunde"></div></div><div class="cpt" id="cpt-kunde"></div></div></div>
+      <div class="cat-blk" style="background:var(--o);" onclick="startQuizOrResume('internkontroll')"><div class="resume-badge" id="rb-internkontroll">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('internkontroll')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('internkontroll')">QUIZZ</button></div><div class="cat-nm">INTERN</div></div><div class="cat-prog" id="cp-internkontroll"><div class="cpb"><div class="cpf" id="cpf-internkontroll"></div></div><div class="cpt" id="cpt-internkontroll"></div></div></div>
+      <div class="cat-blk" style="background:var(--b);" onclick="startQuizOrResume('reklame')"><div class="resume-badge" id="rb-reklame">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('reklame')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('reklame')">QUIZZ</button></div><div class="cat-nm">REKLAME</div></div><div class="cat-prog" id="cp-reklame"><div class="cpb"><div class="cpf" id="cpf-reklame"></div></div><div class="cpt" id="cpt-reklame"></div></div></div>
+      <div class="eksamen-banner" onclick="startEksamen()">
+        <div><div class="eksamen-title">Full eksamen</div><div class="eksamen-sub">40 spørsmål · alle kategorier · ekte prøve</div></div>
+        <button class="eksamen-btn">Start →</button>
+      </div>
+    </div>
+
+    <div class="npnl" id="np-read">
+      <div class="read-hdr" id="read-hdr"><button class="bk-btn light" onclick="goToCats()">←</button><div><div class="read-ttl" id="read-ttl"></div><div class="read-sub">Bakgrunnsstoff</div></div></div>
+      <div class="read-body" id="read-body"></div>
+      <button class="read-qbtn" id="read-qbtn" onclick="startQuizFromRead()">Start quizz →</button>
+    </div>
+
+  </div></div>
+</div>
+
+<div id="s-result">
+  <div class="rh" id="res-hdr">
+    <div class="rl" id="res-cat" style="color:rgba(255,255,255,.5);"></div>
+    <div class="rs" id="res-sc" style="color:var(--y);"></div>
+    <div class="rsub" id="res-sub" style="color:rgba(255,255,255,.6);">riktige svar</div>
+  </div>
+  <div class="rb">
+    <div id="grade-wrap" style="text-align:center;display:none;margin-bottom:4px;"></div>
+    <div class="rm" id="res-msg"></div>
+    <div id="cat-breakdown" class="cat-breakdown" style="display:none;"></div>
+    <div class="sg" id="stat-grid">
+      <div class="sc"><div class="sv" id="sr">0</div><div class="slab">Riktige</div></div>
+      <div class="sc"><div class="sv" id="sl">0</div><div class="slab">Lært</div></div>
+      <div class="sc"><div class="sv" id="sp">0</div><div class="slab">Repeter</div></div>
+    </div>
+    <div class="res-btns">
+      <button class="rb1" id="rb1-rep" onclick="startRepeat()">Øv på feil igjen</button>
+      <button class="rb1" id="rb1-eks" onclick="startEksamen()" style="display:none;">Ta eksamen igjen</button>
+      <button class="rb2" onclick="goToCats()">Tilbake til kategorier</button>
+      <button class="rb3" id="rb3-fresh" onclick="freshStart()">↺ Start ny quiz</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast-el"></div>
+<script>
+const C={
+  salg:{name:'Salg',col:'#E8B84B'},
+  bevilling:{name:'Bevilling',col:'#C8376A'},
+  skjenketider:{name:'Skjenketider',col:'#6B3FA0'},
+  kunde:{name:'Kunde',col:'#1A7A6E'},
+  internkontroll:{name:'Internkontroll',col:'#B55A00'},
+  reklame:{name:'Reklame',col:'#1B4F7A'}
+};
+const EKSAMEN_COL='#ffffff';
+
+const PENSUM={
+salg:[
+  {h:'Aldersgrenser',paras:[
+    {id:'s1',t:'Aldersgrensen for kjøp av øl og vin (inntil 22% alkohol) er 18 år. Dette gjelder i butikk, på Vinmonopolet og på skjenkesteder.'},
+    {id:'s2',t:'Aldersgrensen for kjøp av brennevin (over 22% alkohol) er 20 år. Brennevin selges kun på Vinmonopolet eller skjenkes på steder med riktig bevilling.'},
+    {id:'s3',t:'Lettøl med under 0,7% alkohol regnes ikke som alkohol etter loven og kan kjøpes uten aldersgrense.'},
+  ]},
+  {h:'Salgssteder og alkoholinnhold',paras:[
+    {id:'s4',t:'Dagligvarebutikker kan kun selge drikke med inntil 4,7 volumprosent alkohol – øl, cider og rusbrus innenfor grensen.'},
+    {id:'s5',t:'Vinmonopolet er det eneste lovlige salgsstedet for drikke med mer enn 4,7% alkohol til privatkunder.'},
+    {id:'s6',t:'Taxfree-salg ved norske flyplasser reguleres av egne kvoter for innreisende, separat fra alkoholloven.'},
+    {id:'s6b',t:'Det er forbudt å selge alkohol på kreditt. Alkohol kan ikke selges mot utsatt betaling eller på regning til kunder.'},
+  ]},
+  {h:'Salgstider',paras:[
+    {id:'s7',t:'Salg av øl og drikke inntil 4,7% i butikk er tillatt mellom kl. 08:00 og 20:00 på hverdager og lørdager.'},
+    {id:'s8',t:'På dager før helligdager (juleaften, påskeaften, pinseaften) stopper butikksalget kl. 18:00.'},
+    {id:'s9',t:'På søndager og helligdager er salg av alkohol i dagligvarebutikk forbudt. Kommunen kan ikke dispensere fra dette.'},
+    {id:'s10',t:'Kommunen kan vedta kortere salgstider enn de nasjonale, men kan aldri utvide dem.'},
+  ]},
+  {h:'Legitimasjon og ID-kontroll',paras:[
+    {id:'s11',t:'Ansatte plikter å kreve legitimasjon dersom det er tvil om at kunden har nådd aldersgrensen. Er du i tvil, skal du spørre.'},
+    {id:'s12',t:'Godkjent legitimasjon er pass, bankkort med bilde, nasjonalt ID-kort eller førerkort. Kopi av legitimasjon godtas ikke.'},
+    {id:'s13',t:'Dersom en kunde fremviser falsk ID, fritas den ansatte fra ansvar ved god tro – men plikten til å vurdere troverdighet gjelder alltid.'},
+  ]},
+],
+bevilling:[
+  {h:'Typer bevillinger',paras:[
+    {id:'b1',t:'Skjenkebevilling gir rett til å servere alkohol mot betaling på et bestemt sted. Det finnes bevilling for øl/vin og separat for brennevin.'},
+    {id:'b2',t:'Salgsbevilling gjelder for dagligvarebutikker som vil selge øl inntil 4,7%. Bevillingen gis av kommunen.'},
+    {id:'b3',t:'Ambulerende skjenkebevilling gis for enkeltarrangementer (bryllup, konferanser) der alkohol skjenkes uten fast bevilling på stedet.'},
+    {id:'b4',t:'Bevilling for lukket selskap gjelder private arrangementer der alkohol serveres til inviterte gjester – ikke selges kommersielt.'},
+  ]},
+  {h:'Kommunens rolle og alkoholpolitisk plan',paras:[
+    {id:'b5',t:'Det er kommunen – ikke staten – som gir og trekker tilbake skjenke- og salgsbevillinger. Kommunestyret fatter vedtaket.'},
+    {id:'b6',t:'Alle kommuner er pålagt å utarbeide en alkoholpolitisk plan. Planen regulerer antall bevillinger, åpningstider og lokale retningslinjer.'},
+    {id:'b7',t:'Bevillingen er tidsbegrenset, normalt til fire år (kommunevalgperioden). Den må fornyes ved periodens slutt.'},
+    {id:'b8x',t:'Bevillingen er knyttet til et bestemt lokale og kan ikke overføres til ny eier uten ny søknad til kommunen.'},
+  ]},
+  {h:'Styrer og stedfortreder',paras:[
+    {id:'b8',t:'Alle skjenkesteder må ha en godkjent styrer og minst én stedfortreder, begge med bestått kunnskapsprøve.'},
+    {id:'b9',t:'Styrer og stedfortreder er personlig ansvarlige for at skjenking skjer lovlig. Endringer i hvem som innehar rollene må meldes umiddelbart.'},
+    {id:'b10',t:'Stedet kan ikke drive uten godkjent styrer. Begge må være fylt 20 år.'},
+  ]},
+  {h:'Prikksystem og sanksjoner',paras:[
+    {id:'b11',t:'Alkoholloven bruker et prikksystem. Ulike lovbrudd utløser 1–8 prikker avhengig av alvorlighetsgrad.'},
+    {id:'b12',t:'Skjenking til mindreårig: 8 prikker. Skjenking til åpenbart påvirket: 4 prikker. Brudd på skjenketid: 4 prikker.'},
+    {id:'b13',t:'Når et sted har fått 12 prikker i løpet av to år, skal bevillingen inndras i minst én uke.'},
+    {id:'b14',t:'Grove brudd – som skjenking til mindreårige – kan gi umiddelbar inndragning uavhengig av prikktallet.'},
+  ]},
+],
+skjenketider:[
+  {h:'Nasjonale skjenketider',paras:[
+    {id:'sk1',t:'Den nasjonale maksimale skjenketiden for brennevin er kl. 02:00. Dette er en absolutt grense som kommunen ikke kan utvide.'},
+    {id:'sk2',t:'Den nasjonale maksimale skjenketiden for øl og vin er kl. 01:00. Kommunen kan utvide denne til kl. 02:00, men ikke lenger.'},
+    {id:'sk3',t:'Kommunen kan vedta strengere (kortere) skjenketider enn de nasjonale grensene, men aldri lempeligere.'},
+  ]},
+  {h:'Salgstider vs. skjenketider',paras:[
+    {id:'sk4',t:'Salgstid gjelder alkohol solgt i butikk (dagligvare): kl. 08:00–20:00 hverdager, kl. 08:00–18:00 dager før helligdag.'},
+    {id:'sk5',t:'Skjenketid gjelder servering av alkohol på restaurant, bar og lignende serveringssteder. Disse tidene er regulert av kommunen innenfor nasjonale rammer.'},
+    {id:'sk6',t:'Det finnes ingen nasjonal nedre grense for når skjenking kan starte. Kommunen fastsetter dette i sin alkoholpolitiske plan.'},
+  ]},
+  {h:'Særlige dager og situasjoner',paras:[
+    {id:'sk7',t:'Kommunen kan vedta utvidede skjenketider på særlige dager som nyttårsaften. Dette må besluttes i kommunens alkoholpolitiske plan eller som enkeltvedtak.'},
+    {id:'sk8',t:'Skjenking skal opphøre ved skjenketidens utløp. Det er ikke tillatt å fortsette å skjenke gjester som befinner seg i lokalet etter stengetid.'},
+    {id:'sk9',t:'Brudd på skjenketider gir 4 prikker på bevillingen. Gjentatte brudd kan føre til inndragning av bevillingen.'},
+  ]},
+  {h:'Lokale vedtak og håndhevelse',paras:[
+    {id:'sk10',t:'Kommunens skjenketider fastsettes i den alkoholpolitiske planen og gjelder alle skjenkesteder i kommunen, med mindre særskilte vilkår er satt i den individuelle bevillingen.'},
+    {id:'sk11',t:'Politiet og kommunens kontrollører kan stanse ulovlig skjenking etter stengetid. Politiet kan stenge stedet umiddelbart ved grove brudd.'},
+  ]},
+],
+kunde:[
+  {h:'Åpenbart påvirkede gjester',paras:[
+    {id:'k1',t:'Det er forbudt å skjenke alkohol til noen som er åpenbart påvirket av alkohol eller andre rusmidler, uavhengig av om de ber om det.'},
+    {id:'k2',t:'Tegn på åpenbar påvirkning: ustødig gange, utydelig eller usammenhengende tale, aggressiv eller ukritisk atferd, kraftig nedsatt reaksjonsevne.'},
+    {id:'k3',t:'Det er tilstrekkelig at ett tydelig tegn er til stede. Ansatte skal bruke skjønn – alle tegn trenger ikke å være synlige.'},
+    {id:'k4',t:'Ansatte plikter å vurdere gjestenes tilstand løpende gjennom kvelden – ikke bare ved ankomst. En gjest kan bli mer påvirket i løpet av kvelden.'},
+  ]},
+  {h:'Nekte salg og servering',paras:[
+    {id:'k5',t:'Ansatte har både rett og plikt til å nekte servering dersom vilkårene ikke er oppfylt – uansett aldersgrense, påvirkning eller skjenketider.'},
+    {id:'k6',t:'En avgjørelse om å nekte servering skal opprettholdes selv om gjesten insisterer, protesterer eller klager til leder.'},
+    {id:'k7',t:'Ansatte kan be politiet om hjelp dersom en nektet gjest ikke forlater stedet eller oppfører seg truende.'},
+  ]},
+  {h:'Mindreårige og stråkjøp',paras:[
+    {id:'k8',t:'Det er forbudt å selge eller skjenke alkohol til mindreårige. Aldersgrensen gjelder alltid – også om de er med foreldre eller foresatte.'},
+    {id:'k9',t:'Ansatte skal be om legitimasjon ved tvil om alder. Det holder ikke å vurdere utseende alene.'},
+    {id:'k10',t:'Stråkjøp – der en myndig person kjøper alkohol på vegne av en mindreårig – er forbudt. Ansatte bør være årvåkne for slike situasjoner.'},
+  ]},
+  {h:'Ordensvakter og ansvar',paras:[
+    {id:'k11',t:'Skjenkestedet plikter å opprettholde ro og orden. Ansatte kan bortvise gjester som opptrer voldelig, truende eller svært forstyrrende.'},
+    {id:'k11b',t:'Ordensvakter (vektere) kan benyttes for å opprettholde orden. Vaktene plikter å følge alkoholloven og kan ikke bidra til ulovlig skjenking.'},
+    {id:'k12',t:'Opplæring av ansatte er bevillingshaver og styrers ansvar. Styrer er personlig ansvarlig for lovlig skjenking.'},
+    {id:'k13',t:'Gjentatte ordensproblemer kan føre til tap av skjenkebevillingen, selv om bruddene skyldes gjestenes atferd.'},
+  ]},
+],
+internkontroll:[
+  {h:'Hva er internkontroll?',paras:[
+    {id:'ik1',t:'Internkontroll etter alkoholloven er et system av skriftlige rutiner som skal sikre at virksomheten overholder alkoholloven til enhver tid.'},
+    {id:'ik2',t:'Alle bevillingshavere (serveringssteder med skjenkebevilling og butikker med salgsbevilling) er pålagt å ha et internkontrollsystem.'},
+    {id:'ik3',t:'Internkontrollsystemet skal være skriftlig og tilgjengelig for alle ansatte som håndterer alkohol.'},
+  ]},
+  {h:'Hva skal systemet inneholde?',paras:[
+    {id:'ik4',t:'Rutiner for alderskontroll: hvilken legitimasjon som godtas, hvem som har ansvar for å sjekke, og hva som skal gjøres ved tvil.'},
+    {id:'ik5',t:'Rutiner for håndtering av åpenbart påvirkede gjester: konkrete tiltak for å nekte servering og håndtere situasjonen trygt.'},
+    {id:'ik6',t:'Rutiner for skjenketider: tydelig beskrivelse av gjeldende skjenketider og hvem som er ansvarlig for at de overholdes.'},
+    {id:'ik7',t:'Rutiner for opplæring av ansatte: hvem som er ansvarlig, hva opplæringen skal inneholde, og hvordan ny ansatte skal introduseres.'},
+    {id:'ik8',t:'Rutiner for avviksregistrering: et system for å registrere og følge opp hendelser der rutiner ikke ble fulgt.'},
+  ]},
+  {h:'Ansvar og oppdatering',paras:[
+    {id:'ik9',t:'Bevillingshaver er ansvarlig for å opprette, vedlikeholde og følge opp internkontrollsystemet.'},
+    {id:'ik10',t:'Systemet skal oppdateres ved endringer i lover og regler, ved endringer i rutiner, og ved endring av styrer eller stedfortreder.'},
+    {id:'ik11',t:'Alle ansatte som håndterer alkohol skal kjenne innholdet i internkontrollsystemet – ikke bare styrer.'},
+  ]},
+  {h:'Tilsyn og konsekvenser',paras:[
+    {id:'ik12',t:'Kommunen kan ved tilsyn kreve å se internkontrollsystemet. Manglende eller mangelfullt system kan gi anmerkninger og prikker.'},
+    {id:'ik13',t:'Et velfungerende internkontrollsystem viser at bevillingshaveren tar sine forpliktelser på alvor, og kan telle positivt ved kommunal behandling.'},
+    {id:'ik14',t:'Serveringsloven har egne krav til internkontroll i tillegg til alkoholloven. Begge regelverk gjelder parallelt for serveringssteder.'},
+  ]},
+],
+reklame:[
+  {h:'Reklameforbudet',paras:[
+    {id:'r1',t:'Alkoholloven § 9-2 inneholder et generelt forbud mot reklame for alkoholholdige drikker i Norge, uavhengig av medium.'},
+    {id:'r2',t:'Forbudet gjelder all form for kommersiell markedsføring – aviser, TV, internett, sosiale medier, utendørsreklame og direktereklame.'},
+    {id:'r3',t:'Formålet er å begrense alkoholforbruket i befolkningen, særlig blant unge, ved å redusere eksponering for alkohol som attraktivt produkt.'},
+  ]},
+  {h:'Unntak fra forbudet',paras:[
+    {id:'r4',t:'Nøktern produktinformasjon på selve salgsstedet (prisskilt, produktbeskrivelser uten reklameelementer) er tillatt.'},
+    {id:'r5',t:'Faglige publikasjoner og informasjon rettet mot bransjen – ikke forbrukere – er tillatt.'},
+    {id:'r6',t:'Firmanavn og logo kan vises utad, men alkohol skal ikke fremheves på en reklamemessig måte.'},
+  ]},
+  {h:'Emballasje, merkingsregler og digitale medier',paras:[
+    {id:'r6b',t:'Alkoholprodukter skal merkes med alkoholinnhold i volumprosent. Merking som kan villede forbrukeren om produktets art eller styrke er forbudt.'},
+    {id:'r6c',t:'Emballasje og design på alkoholprodukter må ikke appellere til mindreårige eller fremstå som markedsføring i strid med reklameforbudet.'},
+    {id:'r7',t:'Indirekte reklame – via sponsing, events eller merkevarer der alkohol fremmes indirekte – er forbudt.'},
+    {id:'r8',t:'Sosiale medier regnes som markedsføringskanaler. Norske aktører kan ikke drive alkoholreklame rettet mot norske brukere på noen plattform.'},
+    {id:'r9',t:'Norske aktører kan ikke betale for alkoholreklame på utenlandske plattformer rettet mot norske brukere.'},
+  ]},
+  {h:'Konsekvenser ved brudd',paras:[
+    {id:'r10',t:'Brudd på reklameforbudet kan medføre prikker på bevillingen. Grove brudd kan gi inndragning.'},
+    {id:'r11',t:'Forbrukerrådet og kommunen kan anmelde brudd. Saker kan også behandles av Markedsrådet etter markedsføringsloven.'},
+    {id:'r12',t:'Selv utilsiktet reklame – et bilde der alkohol er fremtredende – kan vurderes som ulovlig markedsføring.'},
+  ]},
+],
+};
+
+const LOV_CAT={
+salg:[
+  {num:'§ 1-5',title:'Aldersgrenser',body:'Forbudt å selge alkohol (gruppe 1 og 2) til under 18 år. Brennevin (gruppe 3) ikke til under 20 år.'},
+  {num:'§ 3-1',title:'Salgsbevilling',body:'Salg av alkohol gruppe 1–2 krever kommunal salgsbevilling. Gruppe 3 selges bare av AS Vinmonopolet.'},
+  {num:'§ 3-7',title:'Salgstider',body:'Salg tillatt kl. 08–20 hverdager. Dagen før helligdag: til kl. 18. Ikke tillatt søndager/helligdager. Kommunen kan innsnevre.'},
+  {num:'§ 8-6',title:'Kredittsalg forbudt',body:'Det er forbudt å selge alkohol på kreditt. Alkohol kan ikke selges mot utsatt betaling.'},
+],
+bevilling:[
+  {num:'§ 4-1',title:'Skjenkebevilling',body:'Skjenking av alkohol krever kommunal skjenkebevilling, knyttet til bestemt lokale og tidsrom.'},
+  {num:'§ 1-7c',title:'Styrer og stedfortreder',body:'Bevillingshaver skal utpeke styrer og stedfortreder (begge fylt 20 år) med bestått kunnskapsprøve. Endringer meldes straks.'},
+  {num:'§ 1-8',title:'Prikksystem',body:'12 prikker innen 2 år: inndragning min. 1 uke. Skjenking til mindreårig: 8 prikker. Skjenking til påvirket: 4 prikker. Brudd på skjenketid: 4 prikker.'},
+  {num:'§ 1-6',title:'Alkoholpolitisk plan',body:'Kommunen er pålagt å utarbeide en alkoholpolitisk plan som regulerer bevillingspolitikk og lokale skjenketider.'},
+],
+skjenketider:[
+  {num:'§ 4-4',title:'Nasjonale skjenketider',body:'Brennevin kan ikke skjenkes etter kl. 02:00. Øl og vin kan skjenkes til kl. 01:00. Kommunen kan utvide øl/vin til kl. 02:00. Absolutt grense: kl. 02:00.'},
+  {num:'§ 3-7',title:'Nasjonale salgstider',body:'Salg av alkohol i butikk: kl. 08–20 hverdager/lørdag. Kl. 08–18 dager før helligdag. Ikke tillatt søndager og helligdager.'},
+  {num:'§ 4-4 (3)',title:'Kommunal myndighet',body:'Kommunen kan innsnevre, men ikke utvide, de nasjonale skjenketidene. Lokale vedtekter fastsettes i alkoholpolitisk plan.'},
+],
+kunde:[
+  {num:'§ 8-11',title:'Forbud mot skjenking i visse tilfeller',body:'Forbudt å skjenke åpenbart påvirkede og mindreårige. Ansatte plikter løpende vurdering av gjestenes tilstand.'},
+  {num:'§ 8-6',title:'Legitimasjonskrav',body:'Den som selger/skjenker alkohol plikter å kreve ID ved tvil om alder. Gyldig: pass, bankkort m/bilde, nasjonalt ID-kort, førerkort.'},
+  {num:'§ 4-7',title:'Ordensmessige krav',body:'Skjenkestedet plikter å opprettholde god orden. Forstyrrende gjester kan bortvises. Ordensproblemer kan gi inndragning.'},
+  {num:'§ 1-9',title:'Straffeansvar',body:'Forsettlig eller uaktsomt brudd på alkoholloven kan gi bøter eller fengsel inntil 1 år. Medvirkning straffes likt.'},
+],
+internkontroll:[
+  {num:'§ 1-9',title:'Internkontrollplikt',body:'Bevillingshaver plikter å ha et internkontrollsystem med skriftlige rutiner som sikrer etterlevelse av alkoholloven.'},
+  {num:'Serveringsloven § 17',title:'Internkontroll etter serveringsloven',body:'Serveringsstedets innehaver plikter å sørge for at virksomheten drives i samsvar med gjeldende lover og forskrifter, herunder krav til internkontroll.'},
+  {num:'§ 1-8 (tilsyn)',title:'Kommunalt tilsyn',body:'Kommunen fører tilsyn med at bevillingshaverne overholder alkoholloven, herunder at internkontrollsystemet er på plass og fungerer.'},
+],
+reklame:[
+  {num:'§ 9-2',title:'Generelt reklameforbud',body:'Reklame for alkohol er forbudt. Gjelder alle medier: aviser, TV, internett, sosiale medier, utendørsreklame.'},
+  {num:'§ 9-2 (2)',title:'Unntak',body:'Nøktern produktinformasjon på salgsstedet er tillatt. Faglig informasjon til bransjen er tillatt. Logo og firmanavn er tillatt.'},
+  {num:'§ 9-2 (3)',title:'Indirekte reklame',body:'Sponsing av arrangementer og bruk av alkoholmerker i markedsføringsammenheng er forbudt som indirekte reklame.'},
+  {num:'Drikkevareloven § 5',title:'Merkingskrav',body:'Alkoholprodukter skal merkes med alkoholinnhold i volumprosent. Villedende merking er forbudt.'},
+],
+};
+
+const QUESTIONS={
+salg:[
+  {q:'Hva er aldersgrensen for kjøp av øl i dagligvarebutikk?',opts:['16 år','18 år','20 år','21 år'],c:1,e:'Aldersgrensen for øl og vin er 18 år.',h:['s1']},
+  {q:'Hva er aldersgrensen for kjøp av brennevin?',opts:['16 år','18 år','20 år','21 år'],c:2,e:'Brennevin krever at kjøper er fylt 20 år.',h:['s2']},
+  {q:'Hva er maksimal alkoholprosent i drikke som selges i dagligvarebutikk?',opts:['3,7%','4,7%','5,5%','6,0%'],c:1,e:'Dagligvarebutikker kan kun selge drikke med inntil 4,7% alkohol.',h:['s4']},
+  {q:'Hvor kjøper man vin i Norge?',opts:['Dagligvarebutikk','Kiosk','Vinmonopolet','Nettbutikk'],c:2,e:'Vin (over 4,7%) selges kun på Vinmonopolet.',h:['s5']},
+  {q:'Til hvilken tid stopper salg av øl i butikk på hverdager?',opts:['Kl. 18:00','Kl. 20:00','Kl. 21:00','Kl. 22:00'],c:1,e:'Salg av øl er tillatt til kl. 20:00 på hverdager og lørdager.',h:['s7']},
+  {q:'Kan man kjøpe øl i dagligvarebutikk på søndager?',opts:['Ja, til kl. 15','Ja, til kl. 18','Nei','Bare lettøl'],c:2,e:'Salg av alkohol i dagligvarebutikk er forbudt på søndager.',h:['s9']},
+  {q:'Hva er salgsfristen for øl i butikk på julaften?',opts:['Kl. 16:00','Kl. 18:00','Kl. 20:00','Ingen salg'],c:1,e:'Dagen før helligdag stopper salget kl. 18:00.',h:['s8']},
+  {q:'Hva skal ansatte gjøre ved tvil om kundens alder?',opts:['Selge likevel','Ringe sjefen','Be om legitimasjon','Nekte automatisk'],c:2,e:'Ved tvil om alder plikter ansatte alltid å be om gyldig legitimasjon.',h:['s11']},
+  {q:'Hva er gyldig legitimasjon ved alkoholkjøp?',opts:['Studentbevis','Pass','Bibliotekskort','Treningskort'],c:1,e:'Gyldig ID: pass, bankkort med bilde, nasjonalt ID-kort eller førerkort.',h:['s12']},
+  {q:'Hva er lettøl definert som i alkoholloven?',opts:['Under 2,5%','Under 1,0%','Under 0,7%','Under 4,7%'],c:2,e:'Drikke med under 0,7% alkohol regnes ikke som alkohol.',h:['s3']},
+  {q:'Er det tillatt å selge alkohol på kreditt?',opts:['Ja','Nei, det er forbudt','Bare ved kjøp over 500 kr','Bare på Vinmonopolet'],c:1,e:'Det er forbudt å selge alkohol på kreditt etter alkoholloven § 8-6.',h:['s6b']},
+  {q:'Kan kommunen forlenge salgstiden for øl utover nasjonale grenser?',opts:['Ja, alltid','Ja, med søknad','Nei','Bare i helger'],c:2,e:'Kommunen kan kun innskrenke salgstidene – aldri utvide dem.',h:['s10']},
+  {q:'Er kopi av legitimasjon godkjent ved alkoholkjøp?',opts:['Ja','Nei','Bare digital kopi','Bare pass-kopi'],c:1,e:'Kopi av legitimasjon godtas ikke – original må fremvises.',h:['s12']},
+  {q:'Hva gjelder for salg av alkohol på helligdager?',opts:['Til kl. 15','Til kl. 18','Ingen salg','Normalt salg'],c:2,e:'Salg av alkohol i butikk er forbudt på søndager og helligdager.',h:['s9']},
+  {q:'Hva kan dagligvarebutikker selge av alkohol?',opts:['Alt under 6%','Bare øl','Øl, cider og rusbrus inntil 4,7%','Øl og vin'],c:2,e:'Dagligvarebutikker kan selge øl, cider og rusbrus med inntil 4,7% alkohol.',h:['s4']},
+  {q:'Til hvilken tid stopper salg på pinseaften?',opts:['Kl. 16:00','Kl. 18:00','Kl. 20:00','Ingen salg'],c:1,e:'Pinseaften er dag før helligdag – salget stopper kl. 18:00.',h:['s8']},
+  {q:'Hva er reglene for taxfree-salg av alkohol?',opts:['Forbudt','Egne regler for innreisende','Samme som i butikk','Fri omsetning'],c:1,e:'Taxfree-salg reguleres av egne kvoter for innreisende.',h:['s6']},
+  {q:'Hva er aldersgrensen for cider i dagligvarebutikk?',opts:['16 år','18 år','20 år','Ingen'],c:1,e:'Cider med alkohol over 0,7% har aldersgrense 18 år.',h:['s1']},
+  {q:'Hva skjer om en ansatt selger til en kunde med falsk ID?',opts:['Ansatte straffes alltid','Fritas ved god tro, men vurderingsplikt gjelder','Butikken straffes','Ingenting'],c:1,e:'Svikaktig ID fritar ansatte som handlet i god tro, men vurderingsplikten gjelder alltid.',h:['s13']},
+  {q:'Hva selger Vinmonopolet?',opts:['Kun brennevin','Kun øl og vin','All alkohol over 4,7%','Kun importert alkohol'],c:2,e:'Vinmonopolet selger all alkohol over 4,7%, inkludert vin, sterkøl og brennevin.',h:['s5']},
+],
+bevilling:[
+  {q:'Hvem gir skjenkebevilling i Norge?',opts:['Staten','Kommunen','Politiet','Statsforvalteren'],c:1,e:'Det er kommunen som tildeler og trekker tilbake skjenkebevillinger.',h:['b5']},
+  {q:'Hva er en ambulerende skjenkebevilling?',opts:['Fast bevilling for bar','Bevilling for enkeltarrangementer','Vinmonopolets tillatelse','Statlig bevilling'],c:1,e:'Ambulerende bevilling gis for enkeltarrangementer uten fast skjenkested.',h:['b3']},
+  {q:'Hva er en alkoholpolitisk plan?',opts:['En liste over godkjente drikkevarer','Kommunens plan for bevillingspolitikk og lokale skjenketider','En oversikt over ansatte','En rapport til statsforvalteren'],c:1,e:'Alle kommuner er pålagt å utarbeide en alkoholpolitisk plan som regulerer bevillingspolitikken.',h:['b6']},
+  {q:'Hvem er pålagt å utarbeide alkoholpolitisk plan?',opts:['Hvert enkelt skjenkested','Politiet','Alle kommuner','Statsforvalteren'],c:2,e:'Alle kommuner er pålagt å ha en alkoholpolitisk plan etter alkoholloven.',h:['b6']},
+  {q:'Hvor lenge er en skjenkebevilling normalt gyldig?',opts:['1 år','2 år','4 år','10 år'],c:2,e:'Bevillingen er tidsbegrenset til normalt fire år.',h:['b7']},
+  {q:'Hva kreves av styrer og stedfortreder?',opts:['Ingen krav','Bestå kunnskapsprøven','5 års erfaring','Statlig godkjenning'],c:1,e:'Styrer og stedfortreder må ha bestått kunnskapsprøven om alkoholloven.',h:['b8']},
+  {q:'Hvor mange prikker gir skjenking til mindreårig?',opts:['2 prikker','4 prikker','8 prikker','12 prikker'],c:2,e:'Skjenking til mindreårig gir 8 prikker – det høyeste antallet for ett brudd.',h:['b12']},
+  {q:'Hvor mange prikker gir skjenking til åpenbart påvirket person?',opts:['1 prikk','2 prikker','4 prikker','8 prikker'],c:2,e:'Skjenking til åpenbart påvirket person gir 4 prikker.',h:['b12']},
+  {q:'Hvor mange prikker gir automatisk inndragning av bevilling?',opts:['6 prikker','8 prikker','10 prikker','12 prikker'],c:3,e:'Ved 12 prikker innen to år skal bevillingen inndras i minst én uke.',h:['b13']},
+  {q:'Kan en skjenkebevilling overføres til ny eier?',opts:['Ja, automatisk','Ja, med melding','Nei, ny søknad kreves','Bare midlertidig'],c:2,e:'Bevillingen kan ikke overføres – ny eier må søke på nytt.',h:['b8x']},
+  {q:'Hva skjer ved grove brudd uavhengig av prikktallet?',opts:['Ingenting ekstra','Kun bøter','Umiddelbar inndragning','Kun advarsel'],c:2,e:'Grove brudd kan gi umiddelbar inndragning.',h:['b14']},
+  {q:'Hva er en salgsbevilling?',opts:['Brennevinsskjenking','Salg av øl i butikk','Alkoholimport','Vinmonopolets lisens'],c:1,e:'Salgsbevilling gjelder dagligvarebutikker som vil selge øl inntil 4,7%.',h:['b2']},
+  {q:'Hva er tidsperioden for telling av prikker?',opts:['1 år','2 år','3 år','5 år'],c:1,e:'Prikker telles over en periode på to år.',h:['b13']},
+  {q:'Hva må meldes umiddelbart til kommunen?',opts:['Ny meny','Endring av åpningstider','Endring av styrer/stedfortreder','Ny bartender'],c:2,e:'Endringer i styrer eller stedfortreder må meldes til kommunen umiddelbart.',h:['b9']},
+  {q:'Kan stedet drive uten godkjent styrer?',opts:['Ja, med stedfortreder','Ja, midlertidig','Nei','Ja, med kommunens tillatelse'],c:2,e:'Et skjenkested kan ikke drive uten godkjent styrer.',h:['b10']},
+  {q:'Hva er minimum antall stedfortreder?',opts:['Ingen krav','Minst 1','Minst 2','Minst 3'],c:1,e:'Alle skjenkesteder må ha minst én godkjent stedfortreder.',h:['b8']},
+  {q:'Hva slags informasjon regulerer alkoholpolitisk plan?',opts:['Kun åpningstider','Antall bevillinger, åpningstider og lokale retningslinjer','Kun alkoholinnhold','Kun reklame'],c:1,e:'Den alkoholpolitiske planen regulerer antall bevillinger, skjenketider og lokale retningslinjer.',h:['b6']},
+  {q:'Hva kan politiet gjøre ved grove brudd?',opts:['Ingenting','Gi bøter','Stenge stedet','Inndra bevillingen'],c:2,e:'Politiet kan stenge et sted umiddelbart ved fare for ro og orden.',h:['b14']},
+  {q:'Er skjenkebevillingen knyttet til et bestemt sted?',opts:['Nei, gjelder overalt','Ja, den er stedbunden','Bare delvis','Kun for brennevin'],c:1,e:'Skjenkebevillingen er knyttet til et bestemt lokale.',h:['b8x']},
+  {q:'Hvem kan søke om skjenkebevilling?',opts:['Bare AS-selskaper','Enkeltpersoner og selskaper som driver serveringssted','Bare ENK','Bare kjeder'],c:1,e:'Enkeltpersoner og selskaper som driver serveringssted kan søke.',h:['b5']},
+  {q:'Hvor lang behandlingstid må du normalt regne med for en søknad om skjenkebevilling?',opts:['Inntil 1 uke','Inntil 2 uker','Inntil 4 måneder','Inntil 1 år'],c:2,e:'Søknad om skjenkebevilling behandles normalt innen fire måneder, og sendes blant annet på høring til politiet og Skatteetaten.',h:['b5']},
+  {q:'Hvem behandler søknaden om skjenkebevilling?',opts:['Helsedirektoratet','Kommunen','Politiet','Skatteetaten'],c:1,e:'Det er kommunen der skjenkingen skal skje som behandler søknaden og tildeler bevilling.',h:['b5']},
+  {q:'Må styrer og stedfortreder ha fylt en bestemt alder?',opts:['Nei','Ja, 18 år','Ja, 20 år','Ja, 25 år'],c:2,e:'Både styrer og stedfortreder må ha fylt 20 år og ha bestått kunnskapsprøven.',h:['b8']},
+],
+skjenketider:[
+  {q:'Hva er den nasjonale maksimale skjenketiden for brennevin?',opts:['Kl. 24:00','Kl. 01:00','Kl. 02:00','Kl. 03:00'],c:2,e:'Den absolutte nasjonale grensen for skjenking av brennevin er kl. 02:00.',h:['sk1']},
+  {q:'Hva er den nasjonale maksimale skjenketiden for øl og vin?',opts:['Kl. 22:00','Kl. 24:00','Kl. 01:00','Kl. 02:00'],c:2,e:'Nasjonalt kan øl og vin skjenkes til kl. 01:00. Kommunen kan utvide til kl. 02:00.',h:['sk2']},
+  {q:'Kan kommunen tillate skjenking av brennevin etter kl. 02:00?',opts:['Ja, alltid','Ja, med dispensasjon','Nei','Ja, i helger'],c:2,e:'Kl. 02:00 er en absolutt grense for brennevin som kommunen ikke kan utvide.',h:['sk1']},
+  {q:'Kan kommunen utvide skjenketiden for øl og vin utover kl. 01:00?',opts:['Nei','Ja, til kl. 02:00','Ja, til kl. 03:00','Bare på fredager'],c:1,e:'Kommunen kan utvide skjenketiden for øl og vin til maksimalt kl. 02:00.',h:['sk2']},
+  {q:'Kan kommunen vedta strengere skjenketider enn de nasjonale?',opts:['Nei','Ja','Bare for brennevin','Bare i helger'],c:1,e:'Kommunen kan innsnevre, men aldri utvide, de nasjonale skjenketidene.',h:['sk3']},
+  {q:'Hva er forskjellen på salgstid og skjenketid?',opts:['Ingen forskjell','Salgstid gjelder butikk, skjenketid gjelder serveringssteder','Skjenketid er alltid kortere','Salgstid gjelder serveringssteder'],c:1,e:'Salgstid gjelder butikker, skjenketid gjelder serveringssteder.',h:['sk4','sk5']},
+  {q:'Fra hvilken tid kan øl selges i dagligvarebutikk?',opts:['Kl. 06:00','Kl. 07:00','Kl. 08:00','Kl. 09:00'],c:2,e:'Salg av alkohol i butikk er tillatt fra kl. 08:00.',h:['sk4']},
+  {q:'Hvem fastsetter de lokale skjenketidene?',opts:['Staten','Kommunen','Politiet','Statsforvalteren'],c:1,e:'Kommunen fastsetter lokale skjenketider i den alkoholpolitiske planen.',h:['sk3']},
+  {q:'Hva er salgsgrensen for øl i butikk på lørdager?',opts:['Kl. 16:00','Kl. 18:00','Kl. 20:00','Kl. 22:00'],c:2,e:'Lørdager følger samme salgstid som hverdager: til kl. 20:00.',h:['sk4']},
+  {q:'Hva gir brudd på skjenketider i prikksystemet?',opts:['1 prikk','2 prikker','4 prikker','8 prikker'],c:2,e:'Brudd på skjenketider gir 4 prikker på bevillingen.',h:['sk9']},
+  {q:'Kan et skjenkested fortsette å skjenke etter stengetid til gjester som allerede er inne?',opts:['Ja, i 30 minutter','Ja, om de bestilte før stengetid','Nei','Ja, om de ikke forlater stedet'],c:2,e:'Skjenking skal opphøre ved skjenketidens utløp uten unntak.',h:['sk8']},
+  {q:'Hvem håndhever brudd på skjenketider?',opts:['Kun kommunen','Kun politiet','Kommunens kontrollører og politiet','Statsforvalteren'],c:2,e:'Både kommunens kontrollører og politiet kan håndheve brudd på skjenketider.',h:['sk11']},
+  {q:'Hva er den tidligste tillatte salgstiden for øl i butikk?',opts:['Kl. 06:00','Kl. 07:00','Kl. 08:00','Kl. 09:00'],c:2,e:'Alkohol kan selges i butikk fra kl. 08:00.',h:['sk4']},
+  {q:'Kan kommunen gi spesielle skjenketider for nyttårsaften?',opts:['Nei, alltid nasjonale grenser','Ja, kommunen kan vedta utvidede tider','Ja, alltid til kl. 05:00','Nei, politiet bestemmer'],c:1,e:'Kommunen kan vedta utvidede skjenketider på særlige dager som nyttårsaften.',h:['sk7']},
+  {q:'Er det en nasjonal nedre grense for når skjenking kan starte?',opts:['Ja, kl. 08:00','Ja, kl. 10:00','Nei, kommunen bestemmer','Ja, kl. 12:00'],c:2,e:'Det finnes ingen nasjonal nedre grense for start av skjenking. Kommunen fastsetter dette.',h:['sk6']},
+  {q:'Hva regulerer kommunens skjenketider?',opts:['Politiets vedtak','Den alkoholpolitiske planen','Statsforvalterens direktiv','Stortingets forskrift'],c:1,e:'Kommunens skjenketider fastsettes i den alkoholpolitiske planen.',h:['sk10']},
+  {q:'Til hvilken tid stopper salg av øl i butikk på julaften?',opts:['Kl. 16:00','Kl. 18:00','Kl. 20:00','Ingen salg'],c:1,e:'Julaften er dag før helligdag – butikksalget stopper kl. 18:00.',h:['sk4']},
+  {q:'Er det lov å selge øl i butikk på 1. nyttårsdag?',opts:['Ja, til kl. 18:00','Ja, til kl. 20:00','Nei','Bare lettøl'],c:2,e:'1. nyttårsdag er helligdag – salg av alkohol i butikk er forbudt.',h:['sk4']},
+  {q:'Hva er maksimal skjenketid kommunen kan vedta for øl og vin?',opts:['Kl. 24:00','Kl. 01:00','Kl. 02:00','Kl. 03:00'],c:2,e:'Kommunen kan utvide skjenketiden for øl og vin til maksimalt kl. 02:00.',h:['sk2']},
+  {q:'Hva er absolutt nasjonal grense for skjenking – ingen unntak?',opts:['Kl. 01:00','Kl. 02:00','Kl. 03:00','Kl. 04:00'],c:1,e:'Kl. 02:00 er den absolutte grensen ingen kommune kan overskride.',h:['sk1']},
+],
+kunde:[
+  {q:'Hva er forbudt å gjøre overfor åpenbart påvirkede gjester?',opts:['Be dem sitte ned','Skjenke mer alkohol','Tilby vann','Tilkalle vakt'],c:1,e:'Det er forbudt å skjenke alkohol til noen som er åpenbart påvirket.',h:['k1']},
+  {q:'Hvilke tegn tyder på åpenbar påvirkning?',opts:['Høy latter','Ustødig gange og utydelig tale','Rødmusset ansikt','At de prater mye'],c:1,e:'Ustødig gange, utydelig tale og aggressiv atferd er typiske tegn.',h:['k2']},
+  {q:'Når skal ansatte vurdere gjestenes tilstand?',opts:['Kun ved ankomst','Kun ved bestilling','Løpende gjennom kvelden','Kun ved stengning'],c:2,e:'Ansatte plikter å vurdere gjestenes tilstand løpende – ikke bare ved ankomst.',h:['k4']},
+  {q:'Hva er stråkjøp?',opts:['Kjøp uten kvittering','Myndig kjøper alkohol for mindreårig','Kjøp på kreditt','Ulovlig import'],c:1,e:'Stråkjøp er når en myndig person kjøper alkohol på vegne av en mindreårig.',h:['k10']},
+  {q:'Hva kan ordensvakter gjøre ved ordensproblemer?',opts:['Skjenke mer for å roe situasjonen','Bidra til å bortvise forstyrrende gjester','Bestemme skjenketider','Endre bevillingens vilkår'],c:1,e:'Ordensvakter kan bidra til å bortvise gjester, men plikter også å følge alkoholloven.',h:['k11b']},
+  {q:'Plikter ordensvakter å følge alkoholloven?',opts:['Nei, de er ikke ansatte','Ja','Bare om de er uniformert','Bare om skjenkestedet krever det'],c:1,e:'Ordensvakter plikter å følge alkoholloven og kan ikke bidra til ulovlig skjenking.',h:['k11b']},
+  {q:'Hvem er ansvarlig for at ansatte kjenner reglene?',opts:['Kommunen','Den ansatte selv','Politiet','Bevillingshaver og styrer'],c:3,e:'Opplæring av ansatte er bevillingshaver og styrers ansvar.',h:['k12']},
+  {q:'Kan man gi etter for en gjest som insisterer på servering?',opts:['Ja, om de virker greie','Nei – hold fast ved avgjørelsen','Bare utenfor rushtiden','Bare om de har med venn'],c:1,e:'Ansatte har rett og plikt til å nekte – avgjørelsen skal holdes fast.',h:['k5','k6']},
+  {q:'Hva kan skje med stedet ved gjentatte ordensproblemer?',opts:['Ingenting','Høyere avgifter','Tap av bevilling','Kun advarsel'],c:2,e:'Gjentatte ordensproblemer kan føre til tap av skjenkebevillingen.',h:['k13']},
+  {q:'Hva gjøres om en nektet gjest ikke forlater stedet?',opts:['Servere likevel','Be dem vente','Tilkalle politiet','Gi dem vann'],c:2,e:'Ansatte kan be politiet om hjelp.',h:['k7']},
+  {q:'Er ett tydelig tegn på påvirkning nok til å nekte servering?',opts:['Nei, alle tegn må ses','Ja, ett tydelig tegn er nok','Bare ved ustødig gange','Bare for brennevin'],c:1,e:'Det er tilstrekkelig at ett tegn er tydelig til stede.',h:['k3']},
+  {q:'Er det tillatt å servere mindreårig som er med foreldre?',opts:['Ja, med samtykke','Nei, aldersgrensen gjelder alltid','Bare for øl','Bare på restaurant'],c:1,e:'Aldersgrensen gjelder alltid – heller ikke foreldre kan gi samtykke.',h:['k8']},
+  {q:'Gjelder forbudet mot skjenking også ved påvirkning av narkotika?',opts:['Nei, kun alkohol','Ja – alle rusmidler','Bare tunge stoffer','Bare utendørs'],c:1,e:'Forbudet gjelder åpenbar påvirkning av alkohol ELLER andre rusmidler.',h:['k1']},
+  {q:'Kan en borvist gjest slippes inn igjen samme kveld?',opts:['Ja, etter en times pause','Ja, om de roer seg','Nei – bortvisning gjelder kvelden','Bare om de beklager'],c:2,e:'En borvist gjest bør ikke slippes inn igjen – avgjørelsen skal opprettholdes.',h:['k5']},
+  {q:'Hvem har overordnet ansvar for lovlig skjenking?',opts:['Den ansatte','Vaktselskapet','Styrer og stedfortreder','Kommunen'],c:2,e:'Styrer og stedfortreder er personlig ansvarlige for lovlig skjenking.',h:['k12']},
+  {q:'Kan en ansatt som bevisst skjenker mindreårige straffes personlig?',opts:['Nei, kun bevillingen','Ja, personlig straff mulig','Kun advarsel','Nei, kun bøter'],c:1,e:'En ansatt som bevisst bryter alkoholloven kan straffes personlig.',h:['k12']},
+  {q:'Hva betyr "løpende" vurdering av gjestenes tilstand?',opts:['Hvert 30. minutt nøyaktig','Kontinuerlig gjennom kvelden','Bare ved brennevinbestilling','Bare ved store grupper'],c:1,e:'Løpende betyr kontinuerlig – en gjest kan bli mer påvirket etter ankomst.',h:['k4']},
+  {q:'Hva er bortvisning?',opts:['Å nekte betaling','Å be en gjest forlate stedet','Å stenge baren','Å ringe politiet'],c:1,e:'Bortvisning betyr å be en gjest om å forlate serveringsstedet.',h:['k11']},
+  {q:'Hva gjøres ved mistanke om stråkjøp?',opts:['Selge likevel','Nekte salget','Spørre den mindreårige','Ringe politiet'],c:1,e:'Ved mistanke om stråkjøp bør man nekte salget.',h:['k10']},
+  {q:'Kan en ansatt be politiet om hjelp ved urolige gjester?',opts:['Nei, bare vektere kan det','Ja','Bare styreren kan det','Bare ved vold'],c:1,e:'Ansatte kan tilkalle politiet om nødvendig for å håndtere vanskelige situasjoner.',h:['k7']},
+],
+internkontroll:[
+  {q:'Hva er internkontroll etter alkoholloven?',opts:['Regnskapsføring','Skriftlige rutiner for å sikre at alkoholloven overholdes','Kontroll av ansatte','Et sikkerhetssystem'],c:1,e:'Internkontroll er et system av skriftlige rutiner som sikrer etterlevelse av alkoholloven.',h:['ik1']},
+  {q:'Hvem plikter å ha et internkontrollsystem?',opts:['Bare store serveringssteder','Alle med skjenke- eller salgsbevilling','Bare steder med brennevinsbevilling','Kommunen'],c:1,e:'Alle bevillingshavere – serveringssteder og butikker – er pålagt internkontroll.',h:['ik2']},
+  {q:'Skal internkontrollsystemet være skriftlig?',opts:['Nei','Ja','Bare for store steder','Bare ved tilsyn'],c:1,e:'Internkontrollsystemet skal alltid være skriftlig.',h:['ik3']},
+  {q:'Hvem er ansvarlig for å opprette internkontrollsystemet?',opts:['Kommunen','Bevillingshaver','Den ansatte','Politiet'],c:1,e:'Bevillingshaver er ansvarlig for å opprette og vedlikeholde internkontrollsystemet.',h:['ik9']},
+  {q:'Hva skal rutiner for alderskontroll i internkontrollsystemet inneholde?',opts:['Ingenting spesifikt','Hvilken legitimasjon som godtas og hvem som har ansvar','Kun aldersgrenser','Kun for brennevin'],c:1,e:'Rutinene skal beskrive hvilken ID som godtas og hvem som har ansvar for kontrollen.',h:['ik4']},
+  {q:'Hvem skal kjenne innholdet i internkontrollsystemet?',opts:['Kun styrer','Styrer, stedfortreder og alle ansatte som håndterer alkohol','Kun eieren','Kun kommunen'],c:1,e:'Alle ansatte som håndterer alkohol skal kjenne innholdet i systemet.',h:['ik11']},
+  {q:'Kan kommunen kreve å se internkontrollsystemet ved tilsyn?',opts:['Nei','Ja','Bare med forhåndsvarsel','Bare ved alvorlige brudd'],c:1,e:'Kommunen kan ved tilsyn kreve å se internkontrollsystemet.',h:['ik12']},
+  {q:'Hva bør rutinene for håndtering av påvirkede gjester beskrive?',opts:['Ingenting','Konkrete tiltak for å nekte servering og håndtere situasjonen','Kun hvem som har ansvar','Bare for nye ansatte'],c:1,e:'Rutinene skal beskrive konkrete tiltak for å nekte servering og håndtere situasjonen.',h:['ik5']},
+  {q:'Når skal internkontrollsystemet oppdateres?',opts:['Aldri','Ved endringer i lover, rutiner eller personale','Hvert 5. år','Bare ved tilsyn'],c:1,e:'Systemet skal oppdateres ved lovendringer, rutineendringer og ved skifte av styrer.',h:['ik10']},
+  {q:'Hva kan skje om et skjenkested ikke har internkontrollsystem?',opts:['Ingenting','Anmerkninger og prikker ved tilsyn','Automatisk inndragning','Bøter fra politiet'],c:1,e:'Manglende internkontrollsystem kan gi anmerkninger og prikker ved kommunalt tilsyn.',h:['ik12']},
+  {q:'Bør rutiner for skjenketider inngå i internkontrollsystemet?',opts:['Nei','Ja','Bare for steder med brennevin','Bare om kommunen krever det'],c:1,e:'Rutiner for skjenketider er en viktig del av internkontrollsystemet.',h:['ik6']},
+  {q:'Hva er formålet med internkontroll?',opts:['Å spare penger','Å sikre at alkoholloven overholdes og forebygge brudd','Å dokumentere omsetning','Å tilfredsstille kommunen'],c:1,e:'Internkontroll skal sikre lovetterlevelse og forebygge brudd på alkoholloven.',h:['ik1']},
+  {q:'Hva er et avviksregistreringssystem i internkontroll?',opts:['Regnskapsoverview','System for å registrere og følge opp brudd på rutinene','System for ansattkontroll','System for å melde fra til kommunen'],c:1,e:'Avviksregistrering dokumenterer hendelser der rutiner ikke ble fulgt.',h:['ik8']},
+  {q:'Bør internkontrollsystemet inneholde rutiner for opplæring?',opts:['Nei','Ja, hvem som er ansvarlig og hva opplæringen inneholder','Kun antall timer','Kun for nye ansatte'],c:1,e:'Rutiner for opplæring av ansatte er en sentral del av internkontrollsystemet.',h:['ik7']},
+  {q:'Hvilken lov stiller i tillegg til alkoholloven krav til internkontroll for serveringssteder?',opts:['Arbeidsmiljøloven','Serveringsloven','Matloven','Markedsføringsloven'],c:1,e:'Serveringsloven har egne krav til internkontroll i tillegg til alkoholloven.',h:['ik14']},
+  {q:'Hva bør internkontrollsystemet si om ordensvakter?',opts:['Ingenting','Når de skal benyttes og hvilke krav som stilles','Bare antall vakter','Bare for steder med over 200 gjester'],c:1,e:'Systemet bør beskrive når ordensvakter skal benyttes og hvilke krav som stilles.',h:['ik7']},
+  {q:'Hva viser et velfungerende internkontrollsystem ved kommunalt tilsyn?',opts:['Ingenting av betydning','At bevillingshaveren tar sine forpliktelser på alvor','Høy omsetning','At styrer er kvalifisert'],c:1,e:'Et godt internkontrollsystem viser at bevillingshaveren tar sine lovpålagte forpliktelser på alvor.',h:['ik13']},
+  {q:'Hva bør rutiner for ID-kontroll i internkontrollsystemet inkludere?',opts:['Ingenting','Hvilken legitimasjon som godtas og hvem som kontrollerer','Kun aldersgrenser','Bare for brennevin'],c:1,e:'ID-kontrollrutinene skal angi godkjent legitimasjon og ansvarsforhold.',h:['ik4']},
+  {q:'Kan et godt internkontrollsystem redusere risikoen for brudd?',opts:['Nei','Ja, det gir klare rutiner alle ansatte kan følge','Bare om kommunen godkjenner det','Nei, kun styrers kompetanse teller'],c:1,e:'Klare skriftlige rutiner reduserer risikoen for at ansatte bryter alkoholloven.',h:['ik1']},
+  {q:'Hvem bærer det overordnede ansvaret for internkontroll?',opts:['Styrer alene','Bevillingshaver','Den ansatte ved hvert brudd','Kommunen'],c:1,e:'Bevillingshaver bærer det overordnede ansvaret for at internkontrollsystemet er på plass og fungerer.',h:['ik9']},
+],
+reklame:[
+  {q:'Hva sier alkoholloven om alkoholreklame i Norge?',opts:['Fritt tillatt','Generelt forbudt','Kun forbudt på TV','Bare for brennevin'],c:1,e:'Alkoholloven § 9-2 inneholder et generelt forbud mot alkoholreklame.',h:['r1']},
+  {q:'Hva er formålet med reklameforbudet?',opts:['Beskytte norsk næringsliv','Begrense alkoholforbruk særlig blant unge','Øke avgiftsinntekter','Beskytte Vinmonopolet'],c:1,e:'Formålet er å begrense alkoholforbruket ved å redusere eksponering.',h:['r3']},
+  {q:'Hva er tillatt av informasjon på salgsstedet?',opts:['Stor reklameplakat','Nøktern produktinformasjon som prisskilt','Kampanjetilbud og bilder','Ingen informasjon'],c:1,e:'Nøktern produktinformasjon som prisskilt på salgsstedet er tillatt.',h:['r4']},
+  {q:'Er alkoholreklame på Instagram tillatt for norske aktører?',opts:['Ja, alltid','Ja, med godkjenning','Nei','Bare for øl'],c:2,e:'Sosiale medier er markedsføringskanaler – alkoholreklame er forbudt.',h:['r8']},
+  {q:'Hva er indirekte alkoholreklame?',opts:['Prisskilt i butikk','Sponsing og events der alkohol fremmes indirekte','Produktinfo på Vinmonopolet','Fagpresse for bransjen'],c:1,e:'Indirekte reklame via sponsing og events der alkohol fremmes er forbudt.',h:['r7']},
+  {q:'Hva skal alkoholprodukter merkes med?',opts:['Kun pris','Alkoholinnhold i volumprosent','Kun produksjonsland','Kun kalorinnhold'],c:1,e:'Alkoholprodukter skal merkes med alkoholinnhold i volumprosent.',h:['r6b']},
+  {q:'Er emballasje som appellerer til mindreårige tillatt?',opts:['Ja','Nei, det er i strid med reklameforbudet','Bare for lettøl','Bare i butikk'],c:1,e:'Emballasje som appellerer til mindreårige er i strid med reklameforbudet.',h:['r6c']},
+  {q:'Kan norsk firma betale for alkoholreklame på utenlandske nettsider rettet mot Norge?',opts:['Ja, fritt','Ja, med melding','Nei','Bare for svak alkohol'],c:2,e:'Norske aktører kan ikke betale for alkoholreklame rettet mot norske brukere.',h:['r9']},
+  {q:'Gjelder forbudet for nettannonser og digitale medier?',opts:['Nei, bare tradisjonelle medier','Ja, alle medier','Bare TV og radio','Bare sosiale medier'],c:1,e:'Reklameforbudet gjelder all kommersiell markedsføring uavhengig av medium.',h:['r2']},
+  {q:'Hvem kan anmelde brudd på reklameforbudet?',opts:['Bare politiet','Forbrukerrådet og kommunen','Bare Vinmonopolet','Bare Mattilsynet'],c:1,e:'Forbrukerrådet og kommunen kan anmelde brudd på reklameforbudet.',h:['r11']},
+  {q:'Kan utilsiktet alkoholreklame vurderes som ulovlig?',opts:['Nei, kun tilsiktet','Ja, også utilsiktet','Bare for brennevin','Bare på sosiale medier'],c:1,e:'Selv utilsiktet reklame der alkohol er fremtredende kan vurderes som ulovlig.',h:['r12']},
+  {q:'Er utendørsreklame for alkohol tillatt?',opts:['Ja','Nei','Bare diskret','Bare nær skjenkesteder'],c:1,e:'Utendørsreklame for alkohol er forbudt.',h:['r2']},
+  {q:'Kan et skjenkested vise firmaets logo utad?',opts:['Nei, ingenting','Ja – logo ok, men ikke alkohol reklamemessig','Ja, alt tillatt','Bare inne'],c:1,e:'Firmanavn og logo kan vises, men alkohol skal ikke fremheves reklamemessig.',h:['r6']},
+  {q:'Er alkoholfri øl unntatt fra reklameforbudet?',opts:['Nei, all øl forbudt','Ja – alkoholfri øl er ikke alkohol','Bare i fagpresse','Bare internt'],c:1,e:'Alkoholfri øl (under 0,7%) er ikke alkohol og kan annonseres.',h:['r4']},
+  {q:'Er alkoholreklame på TikTok tillatt?',opts:['Ja','Nei','Bare for øl','Bare voksne kontoer'],c:1,e:'TikTok er en markedsføringskanal – alkoholreklame er forbudt.',h:['r8']},
+  {q:'Er TV-reklame for alkohol tillatt i Norge?',opts:['Ja, etter kl. 23','Nei','Bare for øl og vin','Ja, om diskret'],c:1,e:'TV-reklame for alkohol er forbudt.',h:['r2']},
+  {q:'Er sponsing av idrettsarrangementer med alkoholmerker tillatt?',opts:['Tillatt','Forbudt som indirekte reklame','Tillatt for øl','Tillatt om diskret'],c:1,e:'Sponsing med alkoholmerker er forbudt som indirekte alkoholreklame.',h:['r7']},
+  {q:'Er faglig informasjon om alkohol rettet mot bransjen tillatt?',opts:['Nei, alt er forbudt','Ja, det er tillatt','Bare på engelsk','Kun for Vinmonopolet'],c:1,e:'Faglige publikasjoner rettet mot bransjen – ikke forbrukere – er tillatt.',h:['r5']},
+  {q:'Hva er forbudt på emballasje for alkohol?',opts:['Å vise alkoholinnholdet','Villedende merking om produktets art eller styrke','Å vise produksjonsland','Å vise ingredienser'],c:1,e:'Villedende merking som kan føre forbrukeren bak lyset om produktet er forbudt.',h:['r6b','r6c']},
+],
+};
+
+let cat='',queue=[],rQ=[],score=0,lrn=0,rps=0,ans=false;
+let eksamenMode=false,eksamenQ=[],eksamenIdx=0,eksamenScore=0,eksamenCatScores={};
+
+function setHdrStyle(isEk,col){
+  document.getElementById('q-hdr').style.background=col;
+  document.getElementById('ql-hdr').style.background=col;
+  const dk=isEk;
+  ['bk-main','restart-btn'].forEach(id=>{document.getElementById(id).className='bk-btn '+(dk?'dark':'light');});
+  document.getElementById('ql-bk').className='bk-btn '+(dk?'dark':'light');
+  document.getElementById('s-pill').className='s-pill '+(dk?'dark':'light');
+  document.getElementById('pg-bar').className='pg-bar '+(dk?'dark':'light');
+  document.getElementById('pg-fill').className='pg-fill '+(dk?'dark':'light');
+  document.getElementById('q-ctag').className='q-ctag '+(dk?'dark':'light');
+  document.getElementById('ql-ttl').style.color=dk?'#1a1a1a':'#fff';
+}
+
+const STORE={
+  set(k,v){try{if(typeof window!=='undefined'&&window.storage&&window.storage.set)return window.storage.set(k,v);}catch(e){}try{localStorage.setItem(k,v);}catch(e){}return null;},
+  get(k){try{if(typeof window!=='undefined'&&window.storage&&window.storage.get)return window.storage.get(k);}catch(e){}try{const v=localStorage.getItem(k);return v===null?null:{key:k,value:v};}catch(e){return null;}},
+  delete(k){try{if(typeof window!=='undefined'&&window.storage&&window.storage.delete)return window.storage.delete(k);}catch(e){}try{localStorage.removeItem(k);}catch(e){}return null;}
+};
+async function saveState(){if(!cat||eksamenMode)return;const s={q:queue.map(q=>QUESTIONS[cat].indexOf(q)).filter(i=>i>=0),r:rQ.map(q=>QUESTIONS[cat].indexOf(q)).filter(i=>i>=0),score,lrn,rps};try{await STORE.set('qs-'+cat,JSON.stringify(s));}catch(e){}}
+async function loadSaved(c){try{const r=await STORE.get('qs-'+c);if(!r)return null;const s=JSON.parse(r.value);if(!s.q.length&&!s.r.length)return null;return{queue:s.q.map(i=>QUESTIONS[c][i]).filter(Boolean),rQ:s.r.map(i=>QUESTIONS[c][i]).filter(Boolean),score:s.score||0,lrn:s.lrn||0,rps:s.rps||0};}catch(e){return null;}}
+async function clearState(c){try{await STORE.delete('qs-'+c);}catch(e){}updateCatUI(c,0,QUESTIONS[c].length,false);}
+async function refreshAllProgress(){for(const c of Object.keys(C)){try{const r=await STORE.get('qs-'+c);if(r){const s=JSON.parse(r.value);const rem=(s.q||[]).length+(s.r||[]).length;const tot=QUESTIONS[c].length;const done=tot-s.q.length;if(rem>0&&done>0)updateCatUI(c,done,tot,true);else updateCatUI(c,0,tot,false);}else updateCatUI(c,0,QUESTIONS[c].length,false);}catch(e){updateCatUI(c,0,QUESTIONS[c].length,false);}}}
+function updateCatUI(c,done,total,ip){const p=document.getElementById('cp-'+c),f=document.getElementById('cpf-'+c),t=document.getElementById('cpt-'+c),b=document.getElementById('rb-'+c);if(ip&&done>0&&done<total){p.style.display='block';f.style.width=(done/total*100)+'%';t.textContent=done+' av '+total+' gjennomgått';b.style.display='block';}else{p.style.display='none';b.style.display='none';}}
+
+function showScreen(id){['s-home','s-nav','s-result','s-other','s-links'].forEach(s=>{document.getElementById(s).style.display='none';});document.getElementById(id).style.display=id==='s-result'?'flex':'block';}
+function goHome(){showScreen('s-home');replayHomeAnim();}
+function replayHomeAnim(){const el=document.querySelector('.hb-w-ttl');if(!el)return;el.style.animation='none';el.offsetHeight;el.style.animation='';}
+function showOtherQuizzes(){showScreen('s-other');}
+function showLinks(){showScreen('s-links');}
+function goToCats(){showScreen('s-nav');navTo('cats');refreshAllProgress();}
+function navTo(p){document.getElementById('nav-sl').style.transform=p==='quiz'?'translateX(0%)':p==='cats'?'translateX(-33.333%)':'translateX(-66.666%)';}
+
+function openRead(c){cat=c;const col=C[c].col;document.getElementById('read-hdr').style.background=col;document.getElementById('read-ttl').textContent=C[c].name;document.getElementById('read-qbtn').style.background=col;buildPensum('read-body',PENSUM[c],[],true);showScreen('s-nav');navTo('read');}
+function startQuizFromRead(){startQuizOrResume(cat);}
+
+async function startQuizOrResume(c){const saved=await loadSaved(c);if(saved){cat=c;queue=saved.queue;rQ=saved.rQ;score=saved.score;lrn=saved.lrn;rps=saved.rps;eksamenMode=false;setHdrStyle(false,C[c].col);document.getElementById('ql-ttl').textContent=C[c].name+' – pensum';showScreen('s-nav');navTo('quiz');renderQ();toast('↩ Fortsetter der du slapp');}else startQuiz(c);}
+function startQuiz(c){cat=c;eksamenMode=false;queue=[...QUESTIONS[c]].sort(()=>Math.random()-.5);rQ=[];score=0;lrn=0;rps=0;setHdrStyle(false,C[c].col);document.getElementById('ql-ttl').textContent=C[c].name+' – pensum';showScreen('s-nav');navTo('quiz');renderQ();}
+function confirmFreshStart(){if(confirm('Starte '+(eksamenMode?'eksamen':C[cat].name+'-quizz')+'en på nytt?')){if(eksamenMode)startEksamen();else freshStart();}}
+async function freshStart(){await clearState(cat);startQuiz(cat);}
+function curQ(){return queue.length?queue[0]:rQ[0];}
+
+function startEksamen(){
+  eksamenMode=true;eksamenScore=0;eksamenIdx=0;
+  eksamenCatScores={};Object.keys(C).forEach(c=>{eksamenCatScores[c]={r:0,t:0};});
+  eksamenQ=[];
+  Object.keys(QUESTIONS).forEach(c=>{[...QUESTIONS[c]].sort(()=>Math.random()-.5).slice(0,7).forEach(q=>eksamenQ.push({...q,_cat:c}));});
+  eksamenQ.sort(()=>Math.random()-.5);
+  setHdrStyle(true,EKSAMEN_COL);
+  document.getElementById('ql-ttl').textContent='Skjenkeprøven – pensum';
+  showScreen('s-nav');navTo('quiz');renderEksamenQ();
+}
+
+function renderEksamenQ(){
+  ans=false;closeQles();
+  if(eksamenIdx>=eksamenQ.length){showEksamenResult();return;}
+  const q=eksamenQ[eksamenIdx];
+  document.getElementById('pg-fill').style.width=(eksamenIdx/eksamenQ.length*100)+'%';
+  document.getElementById('q-ctag').textContent='Eksamen · '+(eksamenIdx+1)+' av '+eksamenQ.length;
+  document.getElementById('s-pill').textContent=eksamenScore+' riktige';
+  document.getElementById('q-text').textContent=q.q;
+  const fb=document.getElementById('fb');fb.style.display='none';fb.className='fb';
+  document.getElementById('swipe-zone').style.display='none';
+  document.getElementById('next-bar').style.display='none';
+  cat=q._cat;buildPensum('ql-body',PENSUM[q._cat],q.h,false);
+  const opts=document.getElementById('opts');opts.innerHTML='';
+  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt o'+i;b.textContent=o;b.onclick=()=>pickEk(i,q);opts.appendChild(b);});
+}
+function pickEk(idx,q){
+  if(ans)return;ans=true;eksamenCatScores[q._cat].t++;
+  document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add(idx===q.c?'correct':'reveal');else if(i===idx)b.classList.add('wrong');});
+  if(idx===q.c){eksamenScore++;eksamenCatScores[q._cat].r++;}
+  document.getElementById('s-pill').textContent=eksamenScore+' riktige';
+  const fb=document.getElementById('fb');fb.textContent=(idx===q.c?'✓ Riktig! ':'✗ Feil. ')+q.e;fb.className='fb '+(idx===q.c?'ok':'err');fb.style.display='block';
+  const nb=document.getElementById('next-bar');nb.style.display='block';
+  document.querySelector('.next-btn').textContent=eksamenIdx+1<eksamenQ.length?'Neste spørsmål →':'Se resultat →';
+}
+function eksamenNext(){eksamenIdx++;if(eksamenIdx>=eksamenQ.length)showEksamenResult();else renderEksamenQ();}
+
+async function showEksamenResult(){
+  const tot=eksamenQ.length,pct=Math.round(eksamenScore/tot*100),passed=pct>=75;
+  if(passed){
+    await playFireworks(12000,true);
+  }
+  showScreen('s-result');
+  document.getElementById('res-hdr').style.background=EKSAMEN_COL;
+  document.getElementById('res-cat').style.color='rgba(0,0,0,.45)';
+  document.getElementById('res-sc').style.color='#1a1a1a';
+  document.getElementById('res-sub').style.color='rgba(0,0,0,.45)';
+  document.getElementById('res-cat').textContent='Full eksamen';
+  document.getElementById('res-sc').textContent=eksamenScore+'/'+tot;
+  document.getElementById('sr').textContent=eksamenScore;
+  document.getElementById('sl').textContent=tot-eksamenScore;
+  document.getElementById('sp').textContent=pct+'%';
+  document.querySelector('#stat-grid .sc:nth-child(2) .slab').textContent='Feil';
+  document.querySelector('#stat-grid .sc:nth-child(3) .slab').textContent='Resultat';
+  const gw=document.getElementById('grade-wrap');gw.style.display='block';
+  gw.innerHTML=`<span class="grade-badge ${passed?'grade-pass':'grade-fail'}">${passed?'✓ Bestått':'✗ Ikke bestått'}</span>`;
+  document.getElementById('res-msg').textContent=passed?'Bra jobbet! Du er klar for skjenkeprøven.':'Du trenger litt mer øving. 75% kreves for å bestå.';
+  const bd=document.getElementById('cat-breakdown');bd.style.display='block';bd.innerHTML='';
+  Object.keys(eksamenCatScores).forEach(c=>{if(!eksamenCatScores[c].t)return;const{r,t}=eksamenCatScores[c];const p=Math.round(r/t*100);const row=document.createElement('div');row.className='cat-row';row.style.background=C[c].col+'22';row.innerHTML=`<span class="cat-row-name">${C[c].name}</span><span class="cat-row-score" style="color:${C[c].col}">${r}/${t} (${p}%)</span>`;bd.appendChild(row);});
+  document.getElementById('rb1-rep').style.display='none';
+  document.getElementById('rb1-eks').style.background='#1B4F7A';document.getElementById('rb1-eks').style.display='block';
+  document.getElementById('rb3-fresh').style.display='none';
+}
+
+function renderQ(){
+  if(eksamenMode){renderEksamenQ();return;}
+  ans=false;closeQles();
+  const all=[...queue,...rQ];if(!all.length){showResult();return;}
+  const q=curQ(),tot=QUESTIONS[cat].length,done=lrn+rps;
+  document.getElementById('pg-fill').style.width=Math.min(done/tot*100,100)+'%';
+  document.getElementById('q-ctag').textContent=C[cat].name+' · '+all.length+' igjen';
+  document.getElementById('s-pill').textContent='Poeng: '+score;
+  document.getElementById('q-text').textContent=q.q;
+  const fb=document.getElementById('fb');fb.style.display='none';fb.className='fb';
+  document.getElementById('swipe-zone').style.display='none';document.getElementById('next-bar').style.display='none';
+  buildPensum('ql-body',PENSUM[cat],q.h,false);
+  const opts=document.getElementById('opts');opts.innerHTML='';
+  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt o'+i;b.textContent=o;b.onclick=()=>pick(i,q);opts.appendChild(b);});
+}
+function pick(idx,q){
+  if(ans)return;ans=true;
+  document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add(idx===q.c?'correct':'reveal');else if(i===idx)b.classList.add('wrong');});
+  if(idx===q.c)score++;
+  document.getElementById('s-pill').textContent='Poeng: '+score;
+  const fb=document.getElementById('fb');fb.textContent=(idx===q.c?'✓ Riktig! ':'✗ Feil. ')+q.e;fb.className='fb '+(idx===q.c?'ok':'err');fb.style.display='block';
+  document.getElementById('swipe-zone').style.display='block';
+}
+function rem(q){let i=queue.indexOf(q);if(i>-1)queue.splice(i,1);let j=rQ.indexOf(q);if(j>-1)rQ.splice(j,1);}
+function doLaert(){rem(curQ());lrn++;saveState();toast('✓ Lært!');nxt();}
+function doRep(){const q=curQ();rem(q);rQ.push(q);rps++;saveState();toast('↺ Repeter');nxt();}
+function nxt(){if(![...queue,...rQ].length)showResult();else renderQ();}
+function openQles(){document.getElementById('q-sl').classList.add('show-les');setTimeout(()=>{const f=document.querySelector('#ql-body .hl');if(f){f.classList.add('hlp');f.scrollIntoView({behavior:'smooth',block:'center'});}},420);}
+
+// ===== Swipe gesture handling =====
+(function initSwipe(){
+  const zone=document.getElementById('swipe-zone');
+  if(!zone)return;
+  const radial=document.getElementById('radial');
+  const center=document.getElementById('radial-center');
+  const opts={up:radial.querySelector('.ro-up'),down:radial.querySelector('.ro-down'),left:radial.querySelector('.ro-left'),right:radial.querySelector('.ro-right')};
+  let active=false,startX=0,startY=0,curDir=null;
+  const THRESHOLD=55,RADIUS=80;
+  function dirFromDelta(dx,dy){
+    const adx=Math.abs(dx),ady=Math.abs(dy);
+    if(Math.max(adx,ady)<THRESHOLD)return null;
+    if(adx>ady)return dx>0?'right':'left';
+    return dy>0?'down':'up';
+  }
+  function positionRadial(x,y){
+    center.style.left=x+'px';center.style.top=y+'px';
+    opts.up.style.left=x+'px';opts.up.style.top=(y-RADIUS)+'px';
+    opts.down.style.left=x+'px';opts.down.style.top=(y+RADIUS)+'px';
+    opts.left.style.left=(x-RADIUS)+'px';opts.left.style.top=y+'px';
+    opts.right.style.left=(x+RADIUS)+'px';opts.right.style.top=y+'px';
+  }
+  function highlight(dir){
+    Object.values(opts).forEach(o=>o.classList.remove('active'));
+    if(dir==='up'||dir==='down'){opts.up.classList.add('active');opts.down.classList.add('active');}
+    else if(dir&&opts[dir])opts[dir].classList.add('active');
+  }
+  function start(x,y){
+    active=true;startX=x;startY=y;curDir=null;
+    positionRadial(x,y);highlight(null);
+    radial.classList.add('show');
+  }
+  function move(x,y){
+    if(!active)return;
+    curDir=dirFromDelta(x-startX,y-startY);
+    highlight(curDir);
+  }
+  function end(){
+    if(!active)return;active=false;
+    radial.classList.remove('show');
+    const dir=curDir;curDir=null;
+    if(dir==='right')doLaert();
+    else if(dir==='left')doRep();
+    else if(dir==='up'||dir==='down')openQles();
+    // no swipe -> menu disappears, nothing happens
+  }
+  zone.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);e.preventDefault();},{passive:false});
+  zone.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault();},{passive:false});
+  zone.addEventListener('touchend',e=>{end();e.preventDefault();},{passive:false});
+  zone.addEventListener('touchcancel',()=>{active=false;radial.classList.remove('show');});
+  zone.addEventListener('mousedown',e=>{start(e.clientX,e.clientY);e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(active)move(e.clientX,e.clientY);});
+  window.addEventListener('mouseup',()=>{if(active)end();});
+})();
+function closeQles(){document.getElementById('q-sl').classList.remove('show-les');const b=document.getElementById('les-btn');if(b)b.classList.remove('on');}
+
+function buildPensum(targetId,sections,hlIds,includeLov=false){
+  const body=document.getElementById(targetId);body.innerHTML='';
+  const col=C[cat]?C[cat].col:'#1B4F7A';
+  sections.forEach(sec=>{const d=document.createElement('div');d.className='psec';const h=document.createElement('div');h.className='psec-h';h.style.color=col;h.style.borderColor=col;h.textContent=sec.h;d.appendChild(h);sec.paras.forEach(p=>{const el=document.createElement('div');el.className='pp'+(hlIds.includes(p.id)?' hl':'');el.textContent=p.t;d.appendChild(el);});body.appendChild(d);});
+  if(includeLov&&LOV_CAT[cat]){
+    const hr=document.createElement('hr');hr.className='lov-divider';body.appendChild(hr);
+    const hdr=document.createElement('div');hdr.className='lov-header';hdr.innerHTML=`<span class="lov-badge">Lov</span><span class="lov-title">Alkoholloven – relevante paragrafer</span>`;body.appendChild(hdr);
+    LOV_CAT[cat].forEach(p=>{const w=document.createElement('div');w.className='lov-para';w.innerHTML=`<div class="lov-para-head"><span class="lov-para-num">${p.num}</span><span class="lov-para-title">${p.title}</span></div><div class="lov-para-body">${p.body}</div>`;body.appendChild(w);});
+  }
+}
+
+function playFireworks(duration=12000,withBanner=false){
+  const cvs=document.getElementById('fw-canvas');if(!cvs)return Promise.resolve();
+  const fadeIn=500,fadeOut=500;
+  cvs.classList.add('show');
+  requestAnimationFrame(()=>{cvs.classList.add('visible');});
+  const dpr=window.devicePixelRatio||1;
+  const W=cvs.clientWidth,H=cvs.clientHeight;
+  cvs.width=W*dpr;cvs.height=H*dpr;
+  const ctx=cvs.getContext('2d');ctx.scale(dpr,dpr);
+  const COLORS=['#E8B84B','#C8376A','#1A7A6E','#1B4F7A','#6B3FA0','#B55A00'];
+  const BUILDING_COLORS=['#C8376A','#1A7A6E','#1B4F7A','#6B3FA0','#B55A00','#8B2A52'];
+  const FONT={
+    H:[[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
+    U:[[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1]],
+    R:[[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,1,0,0],[1,0,0,1,1]],
+    A:[[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
+    ' ':[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+  };
+  const MSG='HURRA   ',LETTER_W=5,LETTER_H=5,LETTER_GAP=1;
+  const MSG_WIDTH=MSG.length*(LETTER_W+LETTER_GAP);
+  const SUPERMAN_RIGHT=[
+    [0,0,0,0,4,4,4,3,0,0,0,0],
+    [0,0,0,4,3,3,3,3,0,0,0,0],
+    [0,0,0,3,3,3,3,3,0,0,0,0],
+    [1,1,2,2,2,2,2,2,3,3,0,0],
+    [1,1,2,5,5,5,2,2,2,2,3,0],
+    [1,1,2,2,5,2,2,2,2,2,2,3],
+    [1,1,2,2,2,2,2,2,2,2,0,0],
+    [0,1,1,2,2,2,2,2,0,0,0,0],
+    [0,0,0,2,2,0,2,2,0,0,0,0]
+  ];
+  const SUPERMAN_LEFT=SUPERMAN_RIGHT.map(row=>[...row].reverse());
+  const SUPER_PAL={1:'#C8376A',2:'#1B4F7A',3:'#F5C9A8',4:'#1a1a1a',5:'#E8B84B'};
+  const CITY_ROWS=5;
+  const SCROLL_SPEED=8;
+  const SUPER_SCALE=3;
+  const SUPER_W=SUPERMAN_RIGHT[0].length*SUPER_SCALE;
+  const SUPER_H=SUPERMAN_RIGHT.length*SUPER_SCALE;
+  const BANNER_W=200,BANNER_H=70,BANNER_GAP=18;
+  // For banner mode: superman flies right-to-left, banner trailing right
+  // For non-banner mode: superman flies left-to-right, smaller window
+  const SUPER_START_DELAY=withBanner?1500:7000;
+  const SUPER_FLIGHT_DURATION=withBanner?10000:4000;
+  const SUPER_Y=H*0.18;
+
+  const buildings=[];
+  let bx=0,bi=0,colCounter=0;
+  while(bx<W){
+    const w=30+Math.random()*36,h=80+Math.random()*100;
+    const color=BUILDING_COLORS[bi%BUILDING_COLORS.length];
+    const cols=Math.max(3,Math.min(6,Math.floor(w/11)));
+    const padX=4,padY=8;
+    const winW=(w-padX*2)/cols-2,winH=(h-padY*2)/CITY_ROWS-2;
+    buildings.push({x:bx,w,h,color,cols,padX,padY,winW,winH,colStart:colCounter,roof:Math.floor(bx*0.13)%3});
+    colCounter+=cols;bx+=w;bi++;
+  }
+  function marqueePixel(col,row,offset){
+    const wrapped=(((col+offset)%MSG_WIDTH)+MSG_WIDTH)%MSG_WIDTH;
+    const li=Math.floor(wrapped/(LETTER_W+LETTER_GAP));
+    const cl=wrapped%(LETTER_W+LETTER_GAP);
+    if(cl>=LETTER_W)return 0;
+    const bm=FONT[MSG[li]];
+    if(!bm||row<0||row>=LETTER_H)return 0;
+    return bm[row][cl];
+  }
+  function drawCity(scrollOffset){
+    buildings.forEach(b=>{
+      const baseY=H-b.h;
+      ctx.fillStyle=b.color;ctx.fillRect(b.x,baseY,b.w,b.h);
+      for(let r=0;r<CITY_ROWS;r++){
+        for(let c=0;c<b.cols;c++){
+          const textRow=r-Math.floor((CITY_ROWS-LETTER_H)/2);
+          const lit=marqueePixel(b.colStart+c,textRow,scrollOffset);
+          const wx=b.x+b.padX+c*(b.winW+2),wy=baseY+b.padY+r*(b.winH+2);
+          ctx.fillStyle=lit?'#E8B84B':'#1a1a1a';ctx.fillRect(wx,wy,b.winW,b.winH);
+          if(lit){ctx.fillStyle='rgba(232,184,75,0.3)';ctx.fillRect(wx-1,wy-1,b.winW+2,b.winH+2);}
+        }
+      }
+      ctx.fillStyle=b.color;
+      if(b.roof===0){ctx.fillRect(b.x+b.w*0.4,baseY-8,b.w*0.2,8);}
+      else if(b.roof===1){ctx.beginPath();ctx.moveTo(b.x,baseY);ctx.lineTo(b.x+b.w/2,baseY-12);ctx.lineTo(b.x+b.w,baseY);ctx.closePath();ctx.fill();}
+    });
+  }
+  function drawSuperman(sx,sy,bob,sprite){
+    const px=SUPER_SCALE;
+    for(let r=0;r<sprite.length;r++){
+      for(let c=0;c<sprite[0].length;c++){
+        const code=sprite[r][c];if(code===0)continue;
+        ctx.fillStyle=SUPER_PAL[code];
+        ctx.fillRect(Math.round(sx+c*px),Math.round(sy+r*px+bob),px,px);
+      }
+    }
+  }
+  function drawBanner(superX,superY,bob){
+    const ropeStartX=superX+SUPER_W-3;
+    const ropeStartY=superY+bob+SUPER_H*0.45;
+    const bannerLeftX=ropeStartX+BANNER_GAP;
+    const bannerTopY=ropeStartY-BANNER_H/2;
+    ctx.strokeStyle='#1a1a1a';ctx.lineWidth=1.2;
+    ctx.beginPath();
+    ctx.moveTo(ropeStartX,ropeStartY);ctx.lineTo(bannerLeftX,bannerTopY);
+    ctx.moveTo(ropeStartX,ropeStartY);ctx.lineTo(bannerLeftX+BANNER_W,bannerTopY);
+    ctx.stroke();
+    ctx.fillStyle='#fff';ctx.fillRect(bannerLeftX,bannerTopY,BANNER_W,BANNER_H);
+    ctx.strokeStyle='#C8376A';ctx.lineWidth=1.5;ctx.strokeRect(bannerLeftX,bannerTopY,BANNER_W,BANNER_H);
+    ctx.fillStyle='#1B4F7A';
+    ctx.font='900 14px "Barlow Condensed","Arial Narrow",sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    const cx=bannerLeftX+BANNER_W/2,cy=bannerTopY+BANNER_H/2;
+    ctx.fillText('DU ER KLAR FOR',cx,cy-10);
+    ctx.fillText('SKJENKEPRØVEN',cx,cy+10);
+  }
+
+  const particles=[],rockets=[];
+  const start=performance.now();
+  const launchUntil=duration-fadeOut;
+  function launch(){
+    const lx=W*(.15+Math.random()*.7);
+    const targetY=H*(.1+Math.random()*.35);
+    const color=COLORS[Math.floor(Math.random()*COLORS.length)];
+    rockets.push({x:lx,y:H+10,vy:-(8+Math.random()*3),targetY,color,trail:[]});
+  }
+  function burst(bbx,bby,color){
+    const n=40+Math.floor(Math.random()*20);
+    for(let i=0;i<n;i++){
+      const a=Math.random()*Math.PI*2,sp=2+Math.random()*4;
+      particles.push({x:bbx,y:bby,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color,size:1.5+Math.random()*1.5});
+    }
+  }
+  let lastLaunch=0;
+  function frame(now){
+    const elapsed=now-start;
+    const scrollOffset=Math.floor(elapsed/1000*SCROLL_SPEED);
+    ctx.fillStyle='rgba(27,79,122,0.18)';ctx.fillRect(0,0,W,H);
+    drawCity(scrollOffset);
+    if(elapsed<launchUntil&&now-lastLaunch>180+Math.random()*220){launch();lastLaunch=now;}
+    for(let i=rockets.length-1;i>=0;i--){
+      const r=rockets[i];
+      r.trail.push({x:r.x,y:r.y});if(r.trail.length>8)r.trail.shift();
+      r.x+=Math.sin(now*0.003+i)*0.3;r.y+=r.vy;r.vy+=0.08;
+      r.trail.forEach((t,j)=>{const a=j/r.trail.length*0.7;ctx.fillStyle=r.color;ctx.globalAlpha=a;ctx.beginPath();ctx.arc(t.x,t.y,1.5,0,Math.PI*2);ctx.fill();});
+      ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(r.x,r.y,2.5,0,Math.PI*2);ctx.fill();
+      if(r.y<=r.targetY||r.vy>=0){burst(r.x,r.y,r.color);rockets.splice(i,1);}
+    }
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.vx*=0.99;p.vy*=0.99;p.life-=0.012;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    const superElapsed=elapsed-SUPER_START_DELAY;
+    if(superElapsed>=0&&superElapsed<=SUPER_FLIGHT_DURATION){
+      const t=superElapsed/SUPER_FLIGHT_DURATION;
+      const bob=Math.sin(superElapsed*0.012)*4;
+      if(withBanner){
+        const extra=BANNER_W+BANNER_GAP+20;
+        const sx=W+extra-(W+SUPER_W*2+extra+50)*t;
+        drawBanner(sx,SUPER_Y,bob);
+        drawSuperman(sx,SUPER_Y,bob,SUPERMAN_LEFT);
+      }else{
+        const sx=-SUPER_W-10+(W+SUPER_W*2+20)*t;
+        drawSuperman(sx,SUPER_Y,bob,SUPERMAN_RIGHT);
+      }
+    }
+    if(elapsed<duration){requestAnimationFrame(frame);}
+  }
+  return new Promise(resolve=>{
+    requestAnimationFrame(frame);
+    setTimeout(()=>{cvs.classList.remove('visible');},duration-fadeOut);
+    setTimeout(()=>{cvs.classList.remove('show');ctx.clearRect(0,0,W,H);resolve();},duration);
+  });
+}
+
+async function showResult(){
+  const tot=QUESTIONS[cat].length;
+  const allCorrect=(score>=tot&&rps===0);
+  await clearState(cat);
+  if(allCorrect){
+    await playFireworks(12000,false);
+  }
+  goToCats();
+}
+function startRepeat(){queue=[...rQ];rQ=[];score=0;lrn=0;rps=0;eksamenMode=false;showScreen('s-nav');navTo('quiz');renderQ();}
+async function resetAll(){
+  if(!confirm('Nullstille ALL fremdrift?'))return;
+  for(const c of Object.keys(C)){try{await STORE.delete('qs-'+c);}catch(e){}}
+  try{const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('qs-'))keys.push(k);}keys.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}catch(e){}
+  refreshAllProgress();
+  toast('Alt nullstilt');
+}
+function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+(async()=>{await refreshAllProgress();})();
+</script>
+</body>
+</html>
