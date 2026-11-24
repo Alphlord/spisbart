@@ -127,8 +127,11 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .shotrow figure{margin:0;flex:0 0 auto;width:min-content}
 .shotrow img{display:block;height:clamp(200px,calc((100vw - 64px) / 3.3),270px);width:auto;max-width:none;border-radius:8px;border:1px solid var(--line)}
 .shotrow figcaption{margin-top:8px;font-size:15px;color:var(--muted)}
-.demo-btn{display:inline-block;padding:10px 18px;border-radius:999px;background:var(--accent,#1A7A6E);color:#fff;font-weight:600;text-decoration:none}
+.demo-btn{display:inline-block;padding:10px 18px;border-radius:999px;background:var(--accent,#1A7A6E);color:var(--on-accent,#fff);font-weight:600;text-decoration:none}
 .demo-btn:hover{filter:brightness(1.1)}
+.cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.buy-btn{display:inline-block;padding:8px 18px;border-radius:999px;border:2px solid var(--accent,#1A7A6E);color:var(--accent,#1A7A6E);font-weight:600;text-decoration:none}
+.buy-btn:hover{background:var(--accent,#1A7A6E);color:var(--on-accent,#fff)}
 </style>
 
 </head><body><main>
@@ -167,7 +170,7 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
           <li>Ukespakker, bestilling og matboks</li>
           <li>Eksport av ferdig månedsmeny</li>
         </ul>
-        <p style="margin-top:16px"><a class="demo-btn" href="barnemat/?demo=1">Prøv demo →</a></p>
+        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="barnemat/?demo=1">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Bare%20Barnemat">Kjøp</a></p>
       </article>
       <article class="app">
         <span class="status s-live">Demo</span>
@@ -180,19 +183,19 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
           <li>Marginrapport og allergenkort</li>
           <li>Meny som plakat med produkter og priser</li>
         </ul>
-        <p style="margin-top:16px"><a class="demo-btn" href="automat/">Prøv demo →</a></p>
+        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="automat/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Auto%C2%B7Mat">Kjøp</a></p>
       </article>
       <article class="app">
         <span class="status s-live">Demo</span>
         <h3>QuizzMeg Skjenkeprøven</h3>
         <p>Øv til skjenkeprøven med quiz og pensum samlet i én app.</p>
-        <p style="margin-top:16px"><a class="demo-btn" href="skjenkeprove/">Prøv demo →</a></p>
+        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="skjenkeprove/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven">Kjøp</a></p>
       </article>
       <article class="app">
         <span class="status s-live">Demo</span>
         <h3>QuizzMeg Etablererprøven</h3>
         <p>Et hjelpemiddel for å bestå etablererprøven. Les pensum, ta quiz per tema og prøv eksamen.</p>
-        <p style="margin-top:16px"><a class="demo-btn" href="etablerer/">Prøv demo →</a></p>
+        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="etablerer/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven">Kjøp</a></p>
       </article>
     </div>
   </div>
