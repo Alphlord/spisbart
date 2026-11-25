@@ -277,6 +277,7 @@ html,body{overflow-x:clip}
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html">Quizzapp</a></li><li><a href="om.html" aria-current="page">Om oss</a></li></ul></nav></div>
 <noscript><style>.menu-panel{display:block;position:static}.burger{display:none}</style></noscript>
 <main>
+<section class="band">
   <div class="wrap">
     <h2>Nå ut til kjøkken som planlegger</h2>
     <p>Er du grossist eller produsent og vil at varene dine skal finnes der menyene lages? Ta kontakt, så forteller vi hva som er mulig.</p>
@@ -290,14 +291,13 @@ html,body{overflow-x:clip}
     <dl class="facts">
       <dt>Drives av</dt><dd>MONARK JOHANSEN, org.nr. 925 412 309</dd>
       <dt>Kontakt</dt><dd><a href="mailto:post@spisbart.no">post@spisbart.no</a></dd>
-      <dt>Prøv først</dt><dd>Alle appene har en gratis demo uten innlogging.</dd>
+      <dt>Pris</dt><dd>Fullversjon, pris og betalingsmåte avtales skriftlig før kjøp. Priser oppgis med og uten mva.</dd>
       <dt>Dataene dine</dt><dd>Det du legger inn tilhører deg. Ved avvikling kan du hente dem ut.</dd>
       <dt>Vilkår</dt><dd><a href="vilkar.html">Les vilkårene</a></dd>
     </dl>
   </div>
 </section>
 
-<section>
 </main>
 <footer class="sitefoot"><div class="wrap">
 <ul class="trust-row"><li>Data lagres i EU</li><li>Ingen sporingsinfokapsler</li><li>Databehandleravtale før bruk</li><li>Norsk virksomhet, org.nr. 925 412 309</li></ul>
@@ -317,6 +317,7 @@ document.getElementById('copy').addEventListener('click',function(){
   try{navigator.clipboard.writeText(t.textContent).then(ok,sel)}catch(e){sel()}
 });
 </script>
+document.getElementById('copy').addEventListener('click',function(){
   var b=this,t=document.getElementById('addr');
   function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
   function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
@@ -328,5 +329,4 @@ document.getElementById('copy').addEventListener('click',function(){
 (function(){
   var U='https://kvwhiuwbnkmybenvaejj.supabase.co/rest/v1/usage_events',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
   function app(h){h=h||'';return h.indexOf('barnemat')>-1?'barnemat':h.indexOf('automat')>-1?'automat':h.indexOf('skjenkeprove')>-1?'skjenkeprove':h.indexOf('etablerer')>-1?'etablerer':/Bare%20Barnemat/.test(h)?'barnemat':/Auto%C2%B7Mat/.test(h)?'automat':/Skjenke/i.test(h)?'skjenkeprove':/Etablerer/i.test(h)?'etablerer':'ukjent'}
-  document.addEventListener('click',function(e){
 </body></html>

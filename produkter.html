@@ -290,6 +290,7 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))set(false
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);b.focus()}});})();
 </script>
 
+document.getElementById('copy').addEventListener('click',function(){
   var b=this,t=document.getElementById('addr');
   function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
   function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
@@ -301,5 +302,4 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);
 (function(){
   var U='https://kvwhiuwbnkmybenvaejj.supabase.co/rest/v1/usage_events',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
   function app(h){h=h||'';return h.indexOf('barnemat')>-1?'barnemat':h.indexOf('automat')>-1?'automat':h.indexOf('skjenkeprove')>-1?'skjenkeprove':h.indexOf('etablerer')>-1?'etablerer':/Bare%20Barnemat/.test(h)?'barnemat':/Auto%C2%B7Mat/.test(h)?'automat':/Skjenke/i.test(h)?'skjenkeprove':/Etablerer/i.test(h)?'etablerer':'ukjent'}
-  document.addEventListener('click',function(e){
 </body></html>

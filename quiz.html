@@ -285,6 +285,7 @@ html,body{overflow-x:clip}
       <div class="card"><h3>Lært</h3><p>Du kan den. Spørsmålet legges bort fra køen, så du bruker tiden på resten.</p></div>
       <div class="card"><h3>Repeter</h3><p>Du er usikker. Spørsmålet kommer tilbake senere i runden, helt til du kan det.</p></div>
       <div class="card"><h3>Les</h3><p>Du vil forstå hvorfor. Åpne pensumteksten ved siden av spørsmålet og gå tilbake når du er klar.</p></div>
+      <div class="card"><h3>Lytt</h3><p>Pensum kan leses opp for deg som en lydbok, tema for tema. Du velger hastighet og kan hoppe mellom avsnitt.</p></div>
     </div>
     <p class="pitch" style="margin-top:26px">Det er lett å gi mest oppmerksomhet til det man allerede kan. Her får det du ikke kan mest plass. Når du føler deg klar, tar du en skikkelig test med full eksamen. Fremgangen din lagres i nettleseren.</p>
 
@@ -319,7 +320,6 @@ html,body{overflow-x:clip}
       <figure><img src="bilder/quizz-kategorier.webp" width="520" height="900" alt="Liste over temaer som serveringsloven, daglig leder, mva, regnskap, arbeidsmiljø og alkoholloven" loading="lazy"><figcaption>Velg tema og se hvor langt du har kommet.</figcaption></figure>
       <figure><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="Quizspørsmål med fire svaralternativer" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
       <figure><img src="bilder/quizz-svar.webp" width="520" height="900" alt="Riktig svar markert og forklaring på hvorfor et alternativ er feil" loading="lazy"><figcaption>Svar med forklaring.</figcaption></figure>
-      <figure><img src="bilder/quizz-pensum.webp" width="520" height="900" alt="Pensumtekst om serveringsloven ved siden av spørsmålet" loading="lazy"><figcaption>Les pensum når du står fast.</figcaption></figure>
 </main>
 <footer class="sitefoot"><div class="wrap">
 <ul class="trust-row"><li>Data lagres i EU</li><li>Ingen sporingsinfokapsler</li><li>Databehandleravtale før bruk</li><li>Norsk virksomhet, org.nr. 925 412 309</li></ul>
@@ -332,6 +332,7 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))set(false
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);b.focus()}});})();
 </script>
 
+document.getElementById('copy').addEventListener('click',function(){
   var b=this,t=document.getElementById('addr');
   function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
   function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
@@ -343,5 +344,4 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);
 (function(){
   var U='https://kvwhiuwbnkmybenvaejj.supabase.co/rest/v1/usage_events',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
   function app(h){h=h||'';return h.indexOf('barnemat')>-1?'barnemat':h.indexOf('automat')>-1?'automat':h.indexOf('skjenkeprove')>-1?'skjenkeprove':h.indexOf('etablerer')>-1?'etablerer':/Bare%20Barnemat/.test(h)?'barnemat':/Auto%C2%B7Mat/.test(h)?'automat':/Skjenke/i.test(h)?'skjenkeprove':/Etablerer/i.test(h)?'etablerer':'ukjent'}
-  document.addEventListener('click',function(e){
 </body></html>
