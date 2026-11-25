@@ -156,7 +156,7 @@ sb.auth.onAuthStateChange(function (ev, session) {
 
 async function afterLogin() {
   try {
-    var r = await sb.from('members').select('org_id, role, display_name, organizations(id, name, orgnr, address, business_type, has_alcohol)').eq('user_id', S.user.id);
+    var r = await sb.from('members').select('org_id, role, display_name, organizations(id, name, orgnr, address, business_type, has_alcohol, created_at)').eq('user_id', S.user.id);
     if (r.error) throw r.error;
     S.mems = r.data || [];
     if (!S.mems.length) { S.org = null; go('start'); return; }
