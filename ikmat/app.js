@@ -933,21 +933,17 @@ function drawWiz() {
     D.steps.forEach(function (s) { c.appendChild(checkRow(s[1], null, W.steps.indexOf(s[0]) >= 0, function (on) { toggleIn(W.steps, s[0], on); }, 's-' + s[0])); });
     b.appendChild(c);
   } else if (W.step === 3) {
-    b.appendChild(h('p', { class: 'muted' }, 'Hva kan gå galt i hvert steg? Fjern det som ikke passer. For hver fare velger du hvor ofte den skjer og hvor ille den blir. Vi har satt forslag du kan endre.'));
+    b.appendChild(h('p', { class: 'muted' }, 'Hva kan gå galt i hvert steg? Fjern det som ikke passer. For hver fare trykker du i matrisen: raden for hvor ofte den skjer, kolonnen for hvor ille den blir. Feltet vi har valgt på forhånd er et forslag. Endre det hvis det ikke stemmer for dere.'));
     D.steps.filter(function (s) { return W.steps.indexOf(s[0]) >= 0; }).forEach(function (s) {
       var sel = hzDefault(s[0]), c2 = h('div', { class: 'card' }, h('h3', null, s[1]));
       D.hazards[s[0]].forEach(function (x, i) {
         var key = s[0] + i, wrap = h('div', { class: 'hzr' });
         wrap.appendChild(checkRow(x[0], D.hazardTypes[x[1]], sel.indexOf(i) >= 0, function (on) { toggleIn(sel, i, on); drawWiz(); }, 'h-' + s[0] + i));
         if (sel.indexOf(i) >= 0) {
-          var open = W.openRisk === key, cur = W.risk[key] || null;
-          wrap.appendChild(h('div', { class: 'rline' }, rkTag(rkCls(cur)),
-            h('button', { class: 'btn soft small', type: 'button', 'aria-expanded': open ? 'true' : 'false', onclick: function () { W.openRisk = open ? null : key; drawWiz(); } }, open ? 'Lukk' : (cur ? 'Endre vurdering' : 'Vurder')),));
-          if (open) {
-            wrap.appendChild(h('p', { class: 'small muted' }, 'Trykk der raden (hvor ofte) og kolonnen (hvor ille) møtes. Feltet forteller hva du skal gjøre med faren.'));
-            wrap.appendChild(riskMatrix(cur, function (p) { W.risk[key] = p; drawWiz(); }));
-            wrap.appendChild(riskResult(cur));
-          }
+          var cur = W.risk[key] || null;
+          wrap.appendChild(h('div', { class: 'rline' }, rkTag(rkCls(cur))));
+          wrap.appendChild(riskMatrix(cur, function (p) { W.risk[key] = p; drawWiz(); }));
+          wrap.appendChild(riskResult(cur));
         }
         c2.appendChild(wrap);
       });
