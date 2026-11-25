@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spisbart – Apper for matkontroll</title><meta name="description" content="Spisbart lager enkle apper for matkontroll og kunnskapsprøver. Bare Barnemat, Auto·Mat og QuizzMeg.">
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spisbart – Verktøy for matkontroll</title><meta name="description" content="Spisbart lager enkle apper for matkontroll og kunnskapsprøver. Bare Barnemat, Auto·Mat og QuizzMeg.">
 <link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: sentrert logo-hero, deretter appkort, leverandørstripe og kontakt */
@@ -245,6 +245,11 @@ a{text-underline-offset:3px}
 
 .chapter h1::before,.chapter h2::before{display:none}
 .brand{display:inline-flex;align-items:center}
+.txt{flex-direction:row;align-items:stretch;gap:clamp(12px,2.6vw,22px)}
+.tw{display:flex;flex-direction:column;align-items:flex-start}
+.sqs{display:flex;flex-direction:column;gap:clamp(4px,.9vw,7px);width:clamp(30px,6vw,46px)}
+.sqs i{flex:1;display:block}
+.sqs i:nth-child(1){background:#E8B84B}.sqs i:nth-child(2){background:#C8376A}.sqs i:nth-child(3){background:#5C7A39}.sqs i:nth-child(4){background:#1B4F7A}
 .bartlogo{width:56px;height:auto;margin-right:10px;flex:none}
 .pg-barn #bart{animation:none;fill:#E8B84B}.pg-kafe #bart{animation:none;fill:#5C7A39}.pg-prove #bart{animation:none;fill:#C8376A}
 @media (prefers-reduced-motion:reduce){.pg-barn #bart,.pg-kafe #bart,.pg-prove #bart{animation:none}}
@@ -274,9 +279,9 @@ html,body{overflow-x:clip}
 <main>
 <header class="wrap hero">
   <div class="logo">
-    <div class="txt"><div class="word" id="w">Spisbart</div><div class="sub" id="s">Apper for matkontroll</div></div>
+    <div class="txt"><div class="tw"><div class="word" id="w">Spisbart</div><div class="sub" id="s">Verktøy for matkontroll</div></div><div class="sqs" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
   </div>
-  <p class="lead">Verktøy for kjøkken og barnehager som vil vite hva som serveres, hva det inneholder og hva det koster. Alle appene kan prøves her på siden.</p>
+  <p class="lead">Til kjøkken og barnehager som vil vite hva som serveres, hva det inneholder og hva det koster. Alle appene kan prøves her på siden.</p>
 </header>
 <nav class="chapters" aria-label="Velg område">
   <a class="tile t-barn" href="barnehage.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-5"/></svg><strong>For barnehage</strong><span>Planlegg månedens måltider</span></a>

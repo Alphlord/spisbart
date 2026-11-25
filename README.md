@@ -1,6 +1,6 @@
 # Spisbart
 
-Apper for matkontroll. Nettsted lagt ut med GitHub Pages på spisbart.no.
+Verktøy for matkontroll. Nettsted lagt ut med GitHub Pages på spisbart.no.
 
 ## Struktur
 - `index.html` – landingsside (spisbart.no)
