@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Spisbart backoffice</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#F6F3EA;--fg:#1B1A17;--muted:#6A665A;--line:#DDD7C6;--card:#fff;--teal:#1A7A6E;--pink:#C8376A;--blue:#1B4F7A;--yellow:#E8B84B;--red:#B3261E;--green:#2E7D32}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+header.top{background:var(--teal);color:#fff;display:flex;align-items:center;gap:16px;padding:10px 20px;flex-wrap:wrap}
+header.top h1{font-size:18px;margin:0;letter-spacing:.02em}
+header.top .sp{flex:1}
+nav.tabs{display:flex;gap:4px;padding:10px 20px 0;border-bottom:1px solid var(--line);background:#fff;overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:10px 16px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+nav.tabs button.on{color:var(--fg);border-bottom-color:var(--pink)}
+main{padding:20px;max-width:1100px;margin:0 auto}
+h2{font-size:22px;margin:0 0 14px} h3{font-size:16px;margin:22px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px}
+tr.click{cursor:pointer} tr.click:hover{background:#faf7ef}
+.tw{overflow-x:auto}
+button,.btn{font:inherit;border-radius:8px;border:1.5px solid var(--fg);background:#fff;color:var(--fg);padding:7px 14px;cursor:pointer;font-weight:600}
+button.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+button.dan{border-color:var(--red);color:var(--red)} button.dan.fill{background:var(--red);color:#fff}
+button.sm{padding:3px 10px;font-size:13px}
+button:disabled{opacity:.5;cursor:default}
+input,select,textarea{font:inherit;border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff;color:var(--fg);max-width:100%}
+textarea{width:100%;min-height:110px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:10px 0 3px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px}
+.badge{display:inline-block;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;border:1.5px solid currentColor}
+.b-trial{color:var(--blue)} .b-active{color:var(--green)} .b-suspended,.b-cancelled{color:var(--red)} .b-pub{color:var(--green)} .b-draft{color:var(--muted)} .b-src{color:var(--pink)}
+.muted{color:var(--muted)} .err{color:var(--red);font-weight:600} .ok{color:var(--green);font-weight:600}
+.login{max-width:360px;margin:12vh auto;padding:0 16px}
+.login .card input{width:100%;margin-bottom:10px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:12px;max-width:760px;width:100%;padding:20px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips label{display:inline-flex;align-items:center;gap:5px;margin:0;font-weight:500;color:var(--fg);border:1.5px solid var(--line);border-radius:99px;padding:3px 10px;cursor:pointer}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:99px;z-index:99;display:none}
+.toast.show{display:block}
+pre{background:#f1eee3;border-radius:8px;padding:10px;overflow:auto;font-size:12px;max-height:300px}
+.hidden{display:none!important}
+</style></head><body>
+
+<div id="login" class="login hidden">
+  <h2>Spisbart backoffice</h2>
+  <div class="card">
+    <form id="loginForm">
+      <label for="em">E-post</label><input id="em" type="email" autocomplete="username" required>
+      <label for="pw">Passord</label><input id="pw" type="password" autocomplete="current-password" required>
+      <p id="loginMsg" class="err"></p>
+      <button class="pri" type="submit" style="width:100%">Logg inn</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top"><h1>Spisbart backoffice</h1><span class="sp"></span><span id="who"></span><button class="sm" id="logout" style="background:transparent;color:#fff;border-color:#fff">Logg ut</button></header>
+  <nav class="tabs" id="tabs">
+    <button data-t="kunder" class="on">Kunder</button><button data-t="retter">Retter</button><button data-t="pakker">Pakker</button><button data-t="priser">Priser</button><button data-t="logg">Logg</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://kvwhiuwbnkmybenvaejj.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'spisbart-admin-auth'}});
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=d=>d?new Date(d).toLocaleString('nb-NO',{dateStyle:'short',timeStyle:'short'}):'–';
+const fmtD=d=>d?new Date(d).toLocaleDateString('nb-NO'):'–';
+let me=null, tab='kunder';
+const ALLERGENS=[['milk','Melk'],['gluten','Gluten'],['eggs','Egg'],['fish','Fisk'],['shellfish','Skalldyr'],['nuts','Nøtter'],['peanuts','Peanøtt'],['soy','Soya'],['sesame','Sesam']];
+const DIETS=[['vegetarian','Vegetar'],['vegan','Vegan'],['halal','Halal'],['kosher','Kosher'],['porkfree','Uten svin']];
+const CATS=['Brødmat','Fisk','Kjøtt','Vegetar','Suppe','Lunsj','Festmat','Annet','Ettermiddagsmat','Matboksen'];
+const STATUS={trial:'Prøveperiode',active:'Betalt',suspended:'Sperret',cancelled:'Avsluttet'};
+
+function toast(m,bad){const t=$('#toast');t.textContent=m;t.style.background=bad?'#B3261E':'#222';t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800)}
+function openModal(html){$('#modalBox').innerHTML=html;$('#modal').classList.add('show')}
+function closeModal(){$('#modal').classList.remove('show');$('#modalBox').innerHTML=''}
+$('#modal').addEventListener('mousedown',e=>{if(e.target.id==='modal')closeModal()});
+async function log(action,kg,target,details){await sb.from('audit_log').insert({action,kindergarten_id:kg||null,target:target||null,details:details||null})}
+async function fn(action,payload){
+  const {data,error}=await sb.functions.invoke('admin-action',{body:{action,...payload}});
+  if(error){let m=error.message;try{const j=await error.context.json();m=j.error||m}catch(e){} throw new Error(m)}
+  if(data&&data.error)throw new Error(data.error);return data
+}
+function download(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+
+/* ───────── innlogging ───────── */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){show('login');return}
+  const {data:ok,error}=await sb.rpc('is_platform_admin');
+  if(error||!ok){await sb.auth.signOut();show('login');$('#loginMsg').textContent='Denne brukeren har ikke tilgang til backoffice.';return}
+  me=session.user;$('#who').textContent=me.email;show('app');render();
+}
+function show(w){$('#login').classList.toggle('hidden',w!=='login');$('#app').classList.toggle('hidden',w!=='app')}
+$('#loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('#loginMsg').textContent='';
+  const {error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
+  if(error){$('#loginMsg').textContent='Feil e-post eller passord.';return}
+  $('#pw').value='';boot();
+});
+$('#logout').onclick=async()=>{await sb.auth.signOut();location.reload()};
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;[...$('#tabs').children].forEach(x=>x.classList.toggle('on',x===b));render()});
+function render(){({kunder:viewKunder,retter:viewRetter,pakker:viewPakker,priser:viewPriser,logg:viewLogg})[tab]()}
+
+/* ───────── kunder ───────── */
+async function viewKunder(){
+  $('#view').innerHTML='<h2>Kunder</h2><p class="muted">Laster …</p>';
+  const {data,error}=await sb.rpc('admin_overview');
+  if(error){$('#view').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  $('#view').innerHTML='<h2>Kunder</h2><div class="card tw"><table><tr><th>Barnehage</th><th>Status</th><th>Brukere</th><th>Prøve til</th><th>Betalt til</th><th>Sist aktiv</th><th>Opprettet</th></tr>'+
+    data.map(k=>`<tr class="click" data-id="${esc(k.id)}"><td><b>${esc(k.name)}</b></td><td><span class="badge b-${esc(k.status)}">${esc(STATUS[k.status]||k.status||'–')}</span></td><td>${k.members}</td><td>${fmtD(k.trial_ends_at)}</td><td>${fmtD(k.paid_until)}</td><td>${fmt(k.last_activity)}</td><td>${fmtD(k.created_at)}</td></tr>`).join('')+'</table></div>'+(data.length?'':'<p class="muted">Ingen kunder ennå.</p>');
+  $('#view').querySelectorAll('tr.click').forEach(r=>r.onclick=()=>viewKunde(data.find(k=>k.id===r.dataset.id)));
+}
+async function viewKunde(k){
+  const v=$('#view');
+  const {data:mem,error}=await sb.rpc('admin_members',{kg:k.id});
+  if(error){toast(error.message,1);return}
+  v.innerHTML=`<p><button class="sm" id="back">← Alle kunder</button></p><h2>${esc(k.name)}</h2>
+  <div class="card"><h3 style="margin-top:0">Abonnement</h3><div class="grid2">
+   <div><label>Status</label><select id="s_status">${Object.entries(STATUS).map(([v,l])=>`<option value="${v}" ${k.status===v?'selected':''}>${l}</option>`).join('')}</select></div>
+   <div><label>Plan</label><input id="s_plan" value="${esc(k.plan||'')}" placeholder="f.eks. Barnehage 1 år"></div>
+   <div><label>Prøveperiode til</label><input id="s_trial" type="date" value="${k.trial_ends_at?k.trial_ends_at.slice(0,10):''}"></div>
+   <div><label>Betalt til</label><input id="s_paid" type="date" value="${k.paid_until||''}"></div></div>
+   <label>Notater (intern, ikke synlig for kunden)</label><textarea id="s_notes" style="min-height:70px;font-family:inherit">${esc(k.notes||'')}</textarea>
+   <p class="muted">Sperret og avsluttet: kunden kan fortsatt se og laste ned dataene sine, men ikke lagre nytt.</p>
+   <button class="pri" id="saveSub">Lagre abonnement</button></div>
+  <div class="card"><h3 style="margin-top:0">Brukere</h3><div class="tw"><table><tr><th>E-post</th><th>Rolle</th><th>Sist innlogget</th><th>Status</th><th></th></tr>${mem.map(m=>`<tr><td>${esc(m.email)}</td><td>${esc(m.role==='admin'?'Admin':'Ansatt')}</td><td>${fmt(m.last_sign_in_at)}</td><td>${m.banned_until&&new Date(m.banned_until)>new Date()?'<span class="badge b-suspended">Sperret</span>':'<span class="badge b-active">Aktiv</span>'}</td>
+   <td class="row"><button class="sm" data-a="reset" data-u="${esc(m.user_id)}" data-e="${esc(m.email)}">Tilbakestill passord</button><button class="sm" data-a="role" data-u="${esc(m.user_id)}" data-r="${m.role==='admin'?'staff':'admin'}">Gjør til ${m.role==='admin'?'ansatt':'admin'}</button><button class="sm" data-a="ban" data-u="${esc(m.user_id)}" data-b="${m.banned_until&&new Date(m.banned_until)>new Date()?0:1}">${m.banned_until&&new Date(m.banned_until)>new Date()?'Åpne':'Sperr'}</button><button class="sm dan" data-a="rm" data-u="${esc(m.user_id)}" data-e="${esc(m.email)}">Fjern</button></td></tr>`).join('')}</table></div>
+   <h3>Inviter bruker</h3><div class="row"><input id="inv" type="email" placeholder="e-post" style="min-width:240px"><select id="invRole"><option value="staff">Ansatt</option><option value="admin">Admin</option></select><button class="pri" id="invBtn">Send invitasjon</button></div></div>
+  <div class="card"><h3 style="margin-top:0">Data og kundehjelp</h3>
+   <p class="muted">Alt du åpner her loggføres. Barnedata (navn, allergier) er helseopplysninger: åpne dem bare når kunden har bedt om hjelp.</p>
+   <div class="row"><button id="sum">Vis oversikt</button><button id="kids">Vis barnedata …</button><button id="exp">Last ned alt (JSON)</button><label class="btn" style="margin:0">Gjenopprett fra fil<input id="rest" type="file" accept="application/json" class="hidden"></label></div>
+   <div id="dataOut"></div></div>
+  <div class="card"><h3 style="margin-top:0;color:var(--red)">Slett barnehage</h3><p class="muted">Sletter barnehagen, alle data, medlemskap og kvitteringer for godt. Brukes ved GDPR-krav om sletting. Brukerkontoene beholdes.</p><button class="dan" id="del">Slett barnehage …</button></div>`;
+  $('#back').onclick=viewKunder;
+  $('#saveSub').onclick=async()=>{
+    const row={kindergarten_id:k.id,status:$('#s_status').value,plan:$('#s_plan').value||null,trial_ends_at:$('#s_trial').value||null,paid_until:$('#s_paid').value||null,notes:$('#s_notes').value||null,updated_at:new Date().toISOString()};
+    const {error}=await sb.from('subscriptions').upsert(row);
+    if(error)return toast(error.message,1);await log('subscription_update',k.id,null,{status:row.status,plan:row.plan,paid_until:row.paid_until});toast('Lagret');Object.assign(k,{status:row.status,plan:row.plan,paid_until:row.paid_until,notes:row.notes})};
+  v.querySelectorAll('button[data-a]').forEach(b=>b.onclick=async()=>{
+    const a=b.dataset.a,u=b.dataset.u;
+    try{
+      if(a==='reset'){if(!confirm('Sende e-post om nytt passord til '+b.dataset.e+'?'))return;await fn('reset_password',{kindergarten_id:k.id,user_id:u});toast('Sendt')}
+      if(a==='role'){await fn('set_role',{kindergarten_id:k.id,user_id:u,role:b.dataset.r});toast('Rolle endret');viewKunde(k)}
+      if(a==='ban'){await fn('set_ban',{kindergarten_id:k.id,user_id:u,ban:b.dataset.b==='1'});toast('Oppdatert');viewKunde(k)}
+      if(a==='rm'){if(!confirm('Fjerne '+b.dataset.e+' fra barnehagen? Brukerkontoen beholdes.'))return;await fn('remove_member',{kindergarten_id:k.id,user_id:u});toast('Fjernet');viewKunde(k)}
+    }catch(e){toast(e.message,1)}});
+  $('#invBtn').onclick=async()=>{const em=$('#inv').value.trim();if(!em)return;try{await fn('invite',{kindergarten_id:k.id,email:em,role:$('#invRole').value});toast('Invitasjon sendt');viewKunde(k)}catch(e){toast(e.message,1)}};
+  const loadState=async()=>{const {data,error}=await sb.from('app_state').select('key,value,updated_at').eq('kindergarten_id',k.id);if(error)throw error;return data};
+  $('#sum').onclick=async()=>{try{const rows=await loadState();await log('view_summary',k.id);const m=Object.fromEntries(rows.map(r=>[r.key,r.value]));const n=x=>Array.isArray(x)?x.length:(x&&typeof x==='object'?Object.keys(x).length:'–');
+    $('#dataOut').innerHTML=`<table style="margin-top:12px"><tr><th>Egne retter</th><td>${n(m.customRecipes)}</td><th>Planlagte dager</th><td>${n(m.plan)}</td></tr><tr><th>Barn registrert</th><td>${n(m.children)}</td><th>Bestillinger</th><td>${n(m.orderHistory)}</td></tr><tr><th>Nøkler lagret</th><td colspan="3">${rows.map(r=>esc(r.key)+' ('+fmt(r.updated_at)+')').join(', ')||'ingen'}</td></tr></table>`}catch(e){toast(e.message,1)}};
+  $('#kids').onclick=async()=>{const why=prompt('Hvorfor åpner du barnedata? (loggføres)\nF.eks. «kundehenvendelse om allergivarsel»');if(!why)return;try{const rows=await loadState();await log('view_children',k.id,null,{reason:why});const ch=(rows.find(r=>r.key==='children')||{}).value||[];
+    $('#dataOut').innerHTML='<table style="margin-top:12px"><tr><th>Navn</th><th>Gruppe</th><th>Allergier</th><th>Kosthold</th></tr>'+ch.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.group)}</td><td>${esc((c.allergens||[]).join(', '))}</td><td>${esc((c.diets||[]).join(', '))}</td></tr>`).join('')+'</table>'}catch(e){toast(e.message,1)}};
+  $('#exp').onclick=async()=>{try{const rows=await loadState();await log('export',k.id);download('spisbart-'+k.name.replace(/\W+/g,'_')+'-'+new Date().toISOString().slice(0,10)+'.json',{kindergarten:k.name,exported_at:new Date().toISOString(),state:Object.fromEntries(rows.map(r=>[r.key,r.value]))})}catch(e){toast(e.message,1)}};
+  $('#rest').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j.state||typeof j.state!=='object')throw new Error('Filen mangler «state».');if(!confirm('Gjenopprette '+Object.keys(j.state).length+' nøkler til «'+k.name+'»? Eksisterende verdier med samme nøkkel overskrives.'))return;await fn('restore',{kindergarten_id:k.id,state:j.state});toast('Gjenopprettet')}catch(er){toast(er.message,1)}e.target.value=''};
+  $('#del').onclick=async()=>{const t=prompt('Dette kan ikke angres. Skriv navnet på barnehagen for å bekrefte:\n'+k.name);if(t!==k.name)return t!==null&&toast('Navnet stemte ikke',1);try{await fn('delete_kindergarten',{kindergarten_id:k.id,name:k.name});toast('Slettet');viewKunder()}catch(e){toast(e.message,1)}};
+}
+
+/* ───────── retter ───────── */
+let recipeFilter={q:'',st:'all'};
+async function viewRetter(){
+  $('#view').innerHTML='<h2>Retter</h2><p class="muted">Laster …</p>';
+  const {data,error}=await sb.from('catalog_recipes').select('*').order('name');
+  if(error){$('#view').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const draw=()=>{
+    const q=recipeFilter.q.toLowerCase(),f=recipeFilter.st;
+    const list=data.filter(r=>(!q||r.name.toLowerCase().includes(q)||(r.tags||[]).join(' ').toLowerCase().includes(q))&&(f==='all'||(f==='pub'&&r.published)||(f==='draft'&&!r.published)||(f==='kg'&&r.source==='kindergarten')));
+    $('#rlist').innerHTML=list.map(r=>`<tr><td><b>${esc(r.name)}</b><div class="muted">${esc(r.category||'')} ${(r.tags||[]).map(t=>'· '+esc(t)).join(' ')}</div></td><td>${r.source==='kindergarten'?'<span class="badge b-src">Fra barnehage</span>':''}</td><td><label class="row" style="margin:0;color:var(--fg)"><input type="checkbox" data-pub="${r.id}" ${r.published?'checked':''}> Publisert</label></td><td>v${r.version}</td><td><button class="sm" data-edit="${r.id}">Rediger</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">Ingen retter.</td></tr>';
+    $('#rlist').querySelectorAll('[data-pub]').forEach(c=>c.onchange=async()=>{const {error}=await sb.from('catalog_recipes').update({published:c.checked,updated_at:new Date().toISOString()}).eq('id',c.dataset.pub);if(error){toast(error.message,1);c.checked=!c.checked;return}await log(c.checked?'recipe_publish':'recipe_unpublish',null,c.dataset.pub);data.find(r=>r.id===c.dataset.pub).published=c.checked;toast(c.checked?'Publisert':'Tatt ned')});
+    $('#rlist').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editRecipe(data.find(r=>r.id===b.dataset.edit),viewRetter));
+  };
+  $('#view').innerHTML=`<h2>Retter</h2><div class="row" style="margin-bottom:12px"><input id="rq" placeholder="Søk navn eller tagg" value="${esc(recipeFilter.q)}"><select id="rf"><option value="all">Alle</option><option value="pub">Publisert</option><option value="draft">Utkast</option><option value="kg">Fra barnehager</option></select><span class="sp" style="flex:1"></span><button id="collect">Innsamlet fra barnehager</button><button class="pri" id="newR">Ny rett</button></div><div class="card tw"><table><tbody id="rlist"></tbody></table></div><p class="muted">Publiserte retter vises i alle barnehagers app, merket «Spisbart». Barnehagene kopierer dem inn og kan endre sin egen versjon. Du overstyrer aldri deres endringer.</p>`;
+  $('#rf').value=recipeFilter.st;$('#rq').oninput=e=>{recipeFilter.q=e.target.value;draw()};$('#rf').onchange=e=>{recipeFilter.st=e.target.value;draw()};
+  $('#newR').onclick=()=>editRecipe(null,viewRetter);$('#collect').onclick=()=>viewCollected(data);draw();
+}
+function parseIng(t){return t.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(';').map(x=>x.trim());return [p[0],Number(String(p[1]||'0').replace(',','.'))||0,p[2]||'g']})}
+function parseSteps(t){return t.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return [p[0],p[1]||'']})}
+function editRecipe(r,done){
+  const d=(r&&r.data)||{};const al=d.allergens||[],di=d.diets||[];
+  openModal(`<h2>${r?'Rediger rett':'Ny rett'}</h2>
+  <label>Navn</label><input id="e_name" style="width:100%" value="${esc(r?r.name:'')}">
+  <div class="grid2"><div><label>Kategori</label><select id="e_cat">${CATS.map(c=>`<option ${((r&&r.category)||d.cat)===c?'selected':''}>${c}</option>`).join('')}</select></div>
+   <div><label>Tid</label><input id="e_time" value="${esc(d.time||'')}" placeholder="40 min"></div>
+   <div><label>Alder</label><input id="e_age" value="${esc(d.age||'')}" placeholder="Fra 1 år"></div>
+   <div><label>Porsjoner oppskriften gjelder for</label><input id="e_base" type="number" min="1" value="${esc(d.basePortions||20)}"></div></div>
+  <label>Allergener</label><div class="chips">${ALLERGENS.map(([v,l])=>`<label><input type="checkbox" name="al" value="${v}" ${al.includes(v)?'checked':''}>${l}</label>`).join('')}</div>
+  <label>Kosthold rettene passer for</label><div class="chips">${DIETS.map(([v,l])=>`<label><input type="checkbox" name="di" value="${v}" ${di.includes(v)?'checked':''}>${l}</label>`).join('')}</div>
+  <label>Tagger (kommaseparert, f.eks. økologisk, sesong)</label><input id="e_tags" style="width:100%" value="${esc((r&&r.tags||[]).join(', '))}">
+  <label>Ingredienser, én per linje: navn; mengde; enhet (g, ml, stk)</label><textarea id="e_ing" placeholder="Torskefilet; 1600; g">${esc((d.ingredients||[]).map(i=>i.join('; ')).join('\n'))}</textarea>
+  <label>Fremgangsmåte, ett steg per linje: tekst | tips (valgfritt)</label><textarea id="e_steps">${esc((d.steps||[]).map(s=>Array.isArray(s)?s.join(' | '):s).join('\n'))}</textarea>
+  <label class="row" style="color:var(--fg)"><input type="checkbox" id="e_pub" ${r&&r.published?'checked':''}> Publisert (synlig for alle barnehager)</label>
+  <div class="row" style="margin-top:16px"><button class="pri" id="e_save">Lagre</button><button id="e_cancel">Avbryt</button>${r?'<span style="flex:1"></span><button class="dan" id="e_del">Slett</button>':''}</div>`);
+  $('#e_cancel').onclick=closeModal;
+  if(r)$('#e_del').onclick=async()=>{if(!confirm('Slette «'+r.name+'» fra katalogen? Barnehager som allerede har kopiert den beholder sin kopi.'))return;const {error}=await sb.from('catalog_recipes').delete().eq('id',r.id);if(error)return toast(error.message,1);await log('recipe_delete',null,r.id,{name:r.name});closeModal();done()};
+  $('#e_save').onclick=async()=>{
+    const name=$('#e_name').value.trim();if(!name)return toast('Gi retten et navn',1);
+    const ing=parseIng($('#e_ing').value);if(!ing.length)return toast('Legg til minst én ingrediens',1);
+    const data={...d,name,cat:$('#e_cat').value,time:$('#e_time').value.trim(),age:$('#e_age').value.trim(),basePortions:Number($('#e_base').value)||20,
+      allergens:[...document.querySelectorAll('input[name=al]:checked')].map(x=>x.value),diets:[...document.querySelectorAll('input[name=di]:checked')].map(x=>x.value),ingredients:ing,steps:parseSteps($('#e_steps').value)};
+    const tags=$('#e_tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+    const row={name,category:data.cat,tags,data,published:$('#e_pub').checked,updated_at:new Date().toISOString()};
+    let res;if(r){row.version=r.version+1;res=await sb.from('catalog_recipes').update(row).eq('id',r.id)}else res=await sb.from('catalog_recipes').insert(row);
+    if(res.error)return toast(res.error.message,1);await log(r?'recipe_update':'recipe_create',null,r?r.id:null,{name});toast('Lagret');closeModal();done()};
+}
+async function viewCollected(existing){
+  $('#view').innerHTML='<p><button class="sm" id="back">← Retter</button></p><h2>Innsamlet fra barnehager</h2><p class="muted">Laster …</p>';$('#back').onclick=viewRetter;
+  const [{data:rows,error},{data:kgs}]=await Promise.all([sb.from('app_state').select('kindergarten_id,value').eq('key','customRecipes'),sb.from('kindergartens').select('id,name')]);
+  if(error){toast(error.message,1);return}
+  const name=Object.fromEntries((kgs||[]).map(k=>[k.id,k.name]));
+  const have=new Set(existing.filter(r=>r.source==='kindergarten').map(r=>r.source_kindergarten_id+'|'+(r.data&&r.data.origin_id)));
+  const items=[];rows.forEach(r=>(r.value||[]).forEach(x=>items.push({kg:r.kindergarten_id,r:x})));
+  $('#view').innerHTML='<p><button class="sm" id="back">← Retter</button></p><h2>Innsamlet fra barnehager</h2><p class="muted">Retter barnehager har laget selv. «Ta med» legger en kopi i katalogen som utkast. Gå gjennom den før du publiserer: fjern det som er personlig, og sjekk allergener.</p><div class="card tw"><table><tbody>'+
+   (items.map((it,i)=>`<tr><td><b>${esc(it.r.name)}</b><div class="muted">${esc(it.r.cat||'')} · ${(it.r.ingredients||[]).length} ingredienser · ${esc(name[it.kg]||'')}</div></td><td>${have.has(it.kg+'|'+it.r.id)?'<span class="muted">I katalogen</span>':`<button class="sm pri" data-i="${i}">Ta med som utkast</button>`}</td></tr>`).join('')||'<tr><td class="muted">Ingen egne retter funnet.</td></tr>')+'</tbody></table></div>';
+  $('#back').onclick=viewRetter;
+  $('#view').querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{const it=items[+b.dataset.i];const {id,...rest}=it.r;
+    const {error}=await sb.from('catalog_recipes').insert({name:it.r.name,category:it.r.cat||null,tags:[],data:{...rest,origin_id:id},published:false,source:'kindergarten',source_kindergarten_id:it.kg});
+    if(error)return toast(error.message,1);await log('recipe_collect',it.kg,null,{name:it.r.name});b.outerHTML='<span class="ok">Lagt til som utkast</span>'});
+}
+
+/* ───────── pakker ───────── */
+async function viewPakker(){
+  $('#view').innerHTML='<h2>Pakker</h2><p class="muted">Laster …</p>';
+  const [{data:packs,error},{data:items},{data:recipes}]=await Promise.all([sb.from('catalog_packs').select('*').order('name'),sb.from('catalog_pack_items').select('*'),sb.from('catalog_recipes').select('id,name,category,tags,published,data').order('name')]);
+  if(error){$('#view').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const cnt=id=>items.filter(i=>i.pack_id===id).length;
+  $('#view').innerHTML=`<h2>Pakker</h2><p class="muted">En pakke er et sett retter, for eksempel «Økologisk», «Vegetar» eller «Halal», som barnehagene kan laste ned med ett trykk.</p><div class="row" style="margin-bottom:12px"><button class="pri" id="newP">Ny pakke</button></div><div class="card tw"><table>${packs.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.description||'')}</div></td><td>${cnt(p.id)} retter</td><td><label class="row" style="margin:0;color:var(--fg)"><input type="checkbox" data-pub="${p.id}" ${p.published?'checked':''}> Publisert</label></td><td><button class="sm" data-e="${p.id}">Rediger</button></td></tr>`).join('')||'<tr><td class="muted">Ingen pakker ennå.</td></tr>'}</table></div>`;
+  $('#newP').onclick=()=>editPack(null,[],recipes);
+  $('#view').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>editPack(packs.find(p=>p.id===b.dataset.e),items.filter(i=>i.pack_id===b.dataset.e).map(i=>i.recipe_id),recipes));
+  $('#view').querySelectorAll('[data-pub]').forEach(c=>c.onchange=async()=>{const {error}=await sb.from('catalog_packs').update({published:c.checked,updated_at:new Date().toISOString()}).eq('id',c.dataset.pub);if(error){toast(error.message,1);c.checked=!c.checked;return}await log(c.checked?'pack_publish':'pack_unpublish',null,c.dataset.pub);toast(c.checked?'Publisert':'Tatt ned')});
+}
+function editPack(p,sel,recipes){
+  const S=new Set(sel);
+  const rows=()=>recipes.map(r=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--fg);margin:2px 0"><input type="checkbox" data-r="${r.id}" ${S.has(r.id)?'checked':''}> ${esc(r.name)} <span class="muted">${esc(r.category||'')}${r.published?'':' · utkast'}</span></label>`).join('')||'<p class="muted">Ingen retter i katalogen ennå.</p>';
+  openModal(`<h2>${p?'Rediger pakke':'Ny pakke'}</h2><label>Navn</label><input id="p_name" style="width:100%" value="${esc(p?p.name:'')}"><label>Beskrivelse</label><input id="p_desc" style="width:100%" value="${esc(p?p.description||'':'')}"><label>Tagger</label><input id="p_tags" style="width:100%" value="${esc(p?(p.tags||[]).join(', '):'')}">
+  <div class="row" style="margin-top:12px"><b>Velg retter</b><span class="muted">Hurtigvalg:</span><button class="sm" data-q="vegetarian">Vegetar</button><button class="sm" data-q="vegan">Vegan</button><button class="sm" data-q="halal">Halal</button><button class="sm" data-q="porkfree">Uten svin</button><button class="sm" data-q="økologisk">Økologisk</button><button class="sm" data-q="none">Fjern alle</button></div>
+  <div id="p_list" style="max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:8px">${rows()}</div>
+  <div class="row" style="margin-top:16px"><button class="pri" id="p_save">Lagre</button><button id="p_cancel">Avbryt</button>${p?'<span style="flex:1"></span><button class="dan" id="p_del">Slett pakke</button>':''}</div>`);
+  $('#p_cancel').onclick=closeModal;
+  const bind=()=>document.querySelectorAll('#p_list input').forEach(c=>c.onchange=()=>c.checked?S.add(c.dataset.r):S.delete(c.dataset.r));bind();
+  document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=b.dataset.q;if(q==='none')S.clear();else recipes.forEach(r=>{if((r.data&&(r.data.diets||[]).includes(q))||(r.tags||[]).includes(q))S.add(r.id)});$('#p_list').innerHTML=rows();bind()});
+  if(p)$('#p_del').onclick=async()=>{if(!confirm('Slette pakken «'+p.name+'»? Rettene beholdes.'))return;const {error}=await sb.from('catalog_packs').delete().eq('id',p.id);if(error)return toast(error.message,1);await log('pack_delete',null,p.id,{name:p.name});closeModal();viewPakker()};
+  $('#p_save').onclick=async()=>{
+    const name=$('#p_name').value.trim();if(!name)return toast('Gi pakken et navn',1);
+    const row={name,description:$('#p_desc').value.trim()||null,tags:$('#p_tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean),updated_at:new Date().toISOString()};
+    let id=p&&p.id;
+    if(p){const {error}=await sb.from('catalog_packs').update(row).eq('id',id);if(error)return toast(error.message,1)}
+    else{const {data,error}=await sb.from('catalog_packs').insert(row).select('id').single();if(error)return toast(error.message,1);id=data.id}
+    const del=await sb.from('catalog_pack_items').delete().eq('pack_id',id);if(del.error)return toast(del.error.message,1);
+    if(S.size){const ins=await sb.from('catalog_pack_items').insert([...S].map(rid=>({pack_id:id,recipe_id:rid})));if(ins.error)return toast(ins.error.message,1)}
+    await log(p?'pack_update':'pack_create',null,id,{name,recipes:S.size});toast('Lagret');closeModal();viewPakker()};
+}
+
+/* ───────── priser (kommer) ───────── */
+function viewPriser(){$('#view').innerHTML='<h2>Priser</h2><div class="card"><p>Innsamling av priser fra kvitteringer er under bygging. Databasen er klar (kvitteringer, prisobservasjoner og prisindeks), men opplasting i appen og kontrollkøen kommer i neste steg.</p></div>'}
+
+/* ───────── logg ───────── */
+async function viewLogg(){
+  $('#view').innerHTML='<h2>Logg</h2><p class="muted">Laster …</p>';
+  const [{data,error},{data:kgs}]=await Promise.all([sb.from('audit_log').select('*').order('at',{ascending:false}).limit(300),sb.from('kindergartens').select('id,name')]);
+  if(error){$('#view').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const name=Object.fromEntries((kgs||[]).map(k=>[k.id,k.name]));
+  $('#view').innerHTML='<h2>Logg</h2><p class="muted">Alt som gjøres i backoffice, nyeste først. Loggen kan ikke endres.</p><div class="card tw"><table><tr><th>Tid</th><th>Handling</th><th>Barnehage</th><th>Detaljer</th></tr>'+data.map(l=>`<tr><td>${fmt(l.at)}</td><td>${esc(l.action)}</td><td>${esc(name[l.kindergarten_id]||'')}</td><td class="muted">${esc(l.details?JSON.stringify(l.details):'')}${l.target&&!l.details?esc(l.target):''}</td></tr>`).join('')+'</table></div>';
+}
+boot();
+</script></body></html>
