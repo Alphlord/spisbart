@@ -2,8 +2,8 @@
 (function () {
 'use strict';
 
-var SB_URL = 'https://wfgsjlsrrefuadxgpnwy.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZ3NqbHNycmVmdWFkeGdwbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMTg2MjIsImV4cCI6MjEwMTU5NDYyMn0.wQnrQsB8HnZVnIn78m2eu8mbWmUuJ6rID308z5stMys';
+var SB_URL = 'https://bcdcmjsewvztnnamwrfh.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjZGNtanNld3Z6dG5uYW13cmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MjQ5NzYsImV4cCI6MjExMTIwMDk3Nn0.FWrro76-j56Cm3BKkv6AtY1WHP4z8OGH1AVCTSJqdJU';
 if (!window.supabase) {
   document.addEventListener('DOMContentLoaded', function () {
     var a = document.getElementById('s-auth'); a.classList.add('on');
