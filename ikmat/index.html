@@ -254,6 +254,7 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
   <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
   <div class="muted small" id="progTxt"></div>
   <div class="chips" id="areaChips" role="group" aria-label="Avdeling"></div>
+  <div id="hmsToday"></div>
   <div id="overdue"></div>
   <div id="taskList" class="stack"></div>
   <div id="closeBox"></div>
@@ -285,8 +286,14 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
   <h1 id="modTitle"></h1>
   <p class="muted" id="modInfo"></p>
   <div class="stack" id="modLinks"></div>
-  <div class="row"><h2 class="grow">Rutiner</h2><button class="btn small" id="modAdd" type="button">Ny rutine</button></div>
-  <div class="stack" id="modTasks"></div>
+  <div id="modTasksWrap"><div class="row"><h2 class="grow">Rutiner</h2><button class="btn small" id="modAdd" type="button">Ny rutine</button></div>
+  <div class="stack" id="modTasks"></div></div>
+</section>
+
+<section class="screen" id="s-sub">
+  <div class="row noprint"><button class="btn alt small" id="subBack" type="button">Tilbake</button></div>
+  <h1 id="subTitle"></h1>
+  <div class="stack" id="subBody"></div>
 </section>
 
 <section class="screen" id="s-more">
@@ -308,6 +315,6 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="data.js?v=17"></script>
-<script src="app.js?v=17"></script>
+<script src="data.js?v=18"></script>
+<script src="app.js?v=18"></script>
 </body></html>

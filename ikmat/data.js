@@ -162,3 +162,78 @@ window.DATA = {
   // Hvilke temperaturoppgaver fra malene hører til hvilket kritisk styringspunkt (for å oppdatere grensene)
   limitTaskMatch: { kjol: /^Temperatur i (kjøl|vitrin og kjøl)/i, frys: /^Temperatur i frys/i }
 };
+
+/* ---------- HMS-modul: forslag og standardtekster (internkontrollforskriften § 5) ---------- */
+window.DATA.hms = {
+  bad: ['Ingen skade', 'Førstehjelp', 'Skade med fravær', 'Alvorlig skade', 'Dødsfall eller varig men'],
+  badLong: ['Ingen blir skadet', 'Liten skade som løses med førstehjelp', 'Skade som gir fravær fra jobb', 'Alvorlig skade', 'Dødsfall eller varig men'],
+  label: { PRP: 'Lav', CP: 'Middels', OPRP: 'Høy', CCP: 'Svært høy', NONE: 'Ikke vurdert' },
+  text: {
+    PRP: 'Lav risiko. Følg vanlige rutiner. Tiltak er valgfritt.',
+    CP: 'Middels risiko. Bør ha et tiltak, og tiltaket bør følges opp.',
+    OPRP: 'Høy risiko. Må ha tiltak med ansvarlig og frist, og vises i I dag-listen til det er gjort.',
+    CCP: 'Svært høy risiko. Stopp og gjør tiltak før arbeidet fortsetter. Ansvarlig og frist er et must.'
+  },
+  goals: [
+    'Ingen arbeidsulykker som gir fravær.',
+    'Alle nye ansatte får HMS- og brannopplæring før første vakt.',
+    'Farer, nestenulykker og skader meldes og følges opp innen 14 dager.',
+    'Ingen trakassering, vold eller trusler på arbeidsplassen. Alle vet hvordan de varsler.',
+    'Gode vaktplaner med nok hvile og pauser.'
+  ],
+  roles: [
+    ['Arbeidsgiver / daglig leder', 'Har det overordnede ansvaret for HMS og internkontroll, setter mål, gir ressurser og godkjenner risikovurderingen.'],
+    ['Verneombud', 'Ivaretar de ansattes interesser i HMS-arbeidet, deltar i vernerunder og risikovurdering.'],
+    ['Brannansvarlig', 'Passer på slukkeutstyr, rømningsveier, brannøvelse og opplæring.'],
+    ['Førstehjelpsansvarlig', 'Passer på førstehjelpsutstyr og at noen på hver vakt kan førstehjelp.'],
+    ['Mottaker av varsling', 'Tar imot og følger opp varsler om kritikkverdige forhold.']
+  ],
+  participation: 'Ansatte tas med i kartleggingen av farer og i vernerunden. Alle kan melde farlige forhold, nestenulykker og skader i appen eller muntlig til leder. HMS er fast tema på personalmøte. Verneombud og tillitsvalgte får se og kommentere risikovurderingen og tiltaksplanen før den godkjennes.',
+  avvik: 'Alle ansatte melder farlige forhold, nestenulykker og skader til leder så snart som mulig, i appen eller muntlig. Leder registrerer hendelsen, finner årsaken, bestemmer tiltak og følger opp til saken er lukket. Åpne hendelser og tiltak vises i leders I dag-liste. Vernerunden avdekker mangler som registreres som tiltak med ansvarlig og frist. Gjentatte avvik tas opp på personalmøte og i den årlige gjennomgangen.',
+  // [område, fare, sannsynlighet 0-4, konsekvens 0-4, tiltak]
+  hazards: [
+    ['Kjøkken', 'Kutt fra kniver og skjæremaskiner', 3, 1, 'Skarpe kniver og opplæring i bruk. Kuttsikre hansker ved mandolin. Verneutstyr på maskiner skal ikke fjernes.'],
+    ['Kjøkken', 'Brannskader og skålding (varm olje, damp, ovner)', 3, 2, 'Riktig arbeidstøy, varsle når du bærer varmt, ikke bær varm væske gjennom trange rom. Brannskadekit og kjølegel er lett tilgjengelig.'],
+    ['Kjøkken', 'Fettbrann', 1, 3, 'Brannteppe og slukkeutstyr på plass. Frityr og avtrekk rengjøres etter plan. Alle vet at fettbrann ikke slukkes med vann.'],
+    ['Hele stedet', 'Fall og snubling på glatte eller rotete gulv', 3, 2, 'Tørk opp søl med en gang. Sklisikre sko. Hold gulv og ganger frie for kasser og slanger. God belysning.'],
+    ['Lager', 'Tunge løft og belastning', 3, 2, 'Opplæring i løfteteknikk. Bruk tralle. Del opp tunge kolli. Tunge varer lagres lavt.'],
+    ['Lager', 'Fall fra stige og trapp', 1, 3, 'Godkjent stige, ikke stå øverst. Ingen kasser i trapper. To personer ved høye løft.'],
+    ['Hele stedet', 'Elektrisk utstyr og ledninger', 1, 3, 'Skadet utstyr tas ut av bruk og meldes. Regelmessig el-kontroll. Ingen skjøteledninger som fast løsning.'],
+    ['Hele stedet', 'Brann og evakuering', 1, 4, 'Branndetektorer og slukkeutstyr kontrolleres. Rømningsveier holdes frie. Brannøvelse minst én gang i året. Alle kjenner møteplass.'],
+    ['Hele stedet', 'Kjemikalier (rengjøring, avkalking)', 3, 2, 'Sikkerhetsdatablad tilgjengelig. Riktig merking, hansker og vernebriller. Ikke bland produkter. Opplæring i bruk.'],
+    ['Bar', 'Knust glass og kutt', 3, 1, 'Fast rutine for knust glass. Bruk ikke glass til isskuff. Hansker og kost ved opprydding.'],
+    ['Bar', 'Trusler og vold fra gjester', 2, 2, 'Rutine for å håndtere beruset eller aggressiv gjest. Ikke vær alene ved stenging. Avklar hvem som tilkaller hjelp og politi. Snakk om hendelsen etterpå.'],
+    ['Hele stedet', 'Trakassering og uønsket seksuell oppmerksomhet (kolleger og gjester)', 2, 2, 'Nulltoleranse, tydelig varslingsrutine, tema på personalmøte. Ansatte skal ikke stå alene med plagsomme gjester.'],
+    ['Hele stedet', 'Stress, høyt tempo, lange vakter og nattarbeid', 4, 1, 'Vaktplan i god tid. Pauser og hviledøgn etter arbeidsmiljøloven. Medarbeidersamtaler og åpen dialog om belastning.'],
+    ['Hele stedet', 'Støy og dårlig innemiljø (musikk, avtrekk, temperatur)', 3, 1, 'Kontroll av ventilasjon og lydnivå. God pauserom og mulighet til å hvile ørene.'],
+    ['Hele stedet', 'Alenearbeid (åpning eller stenging)', 3, 2, 'Rutine for alenearbeid. Mobil tilgjengelig. Noen vet når du går, og at du har kommet frem.'],
+    ['Hele stedet', 'Førstehjelp ikke tilgjengelig', 1, 3, 'Førstehjelpsutstyr er komplett og merket. Minst én med førstehjelpskurs på hver vakt. Nødnumre henger synlig.']
+  ],
+  round: [
+    'Nødutganger og rømningsveier er frie',
+    'Slukkeutstyr på plass og kontrollert',
+    'Brannvarslere er testet',
+    'Førstehjelpsutstyr er komplett og ikke utgått',
+    'Gulv er rene, sklisikre og uten hindre',
+    'Belysning er god nok',
+    'Ledninger og elektrisk utstyr er uten skader',
+    'Kniver og verneutstyr på maskiner er i orden',
+    'Kjemikalier er merket og sikkerhetsdatablad er tilgjengelig',
+    'Hyller er stabile og tunge varer lagres lavt',
+    'Stiger og trapper er i orden',
+    'Garderobe, pauserom og toalett er i orden',
+    'Ventilasjon og temperatur er greit',
+    'Verneutstyr (hansker, forkle, briller) er tilgjengelig'
+  ],
+  topics: ['HMS-opplæring ved ansettelse', 'Brannvern og evakuering', 'Førstehjelp', 'Kniv og maskiner', 'Kjemikalier', 'Verneombud (HMS-kurs, 40 timer)', 'HMS for ledere', 'Ansvarlig alkoholservering', 'Håndtering av trusler og vold'],
+  kinds: { ulykke: 'Ulykke / skade', nestenulykke: 'Nestenulykke / farlig forhold', sykdom: 'Arbeidsrelatert sykdom', trusler_vold: 'Trusler, vold eller trakassering', annet: 'Annet' },
+  laws: [
+    ['Arbeidsmiljøloven', 'Hovedloven for arbeidsmiljø: arbeidsgivers plikter, verneombud, arbeidstid, varsling, medvirkning.'],
+    ['Internkontrollforskriften', 'Krav til systematisk HMS-arbeid og skriftlig dokumentasjon (§ 5).'],
+    ['Forskrift om organisering, ledelse og medvirkning', 'Verneombud, arbeidsmiljøutvalg og bedriftshelsetjeneste.'],
+    ['Forskrift om utførelse av arbeid', 'Krav til arbeidsplass, kjemikalier, støy, løft og verneutstyr.'],
+    ['Forskrift om brannforebygging', 'Brannvern, slukkeutstyr, rømningsveier og opplæring.'],
+    ['Forskrift om elektriske forsyningsanlegg og lavspenningsanlegg', 'Krav til elektrisk anlegg og kontroll.'],
+    ['Forskrift om arbeidsplasser og arbeidslokaler', 'Innemiljø, lys, ventilasjon, garderobe, toalett og pauserom.']
+  ]
+};

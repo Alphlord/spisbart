@@ -73,7 +73,7 @@ function isLeder() { return S.role === 'leder'; }
 function nameOf(id) { return (id && S.names[id]) || 'Ukjent'; }
 
 /* ---------- navigasjon ---------- */
-var TABS = ['today', 'cal', 'dev', 'more', 'mod'];
+var TABS = ['today', 'cal', 'dev', 'more', 'mod', 'sub'];
 function go(name) {
   S.screen = name;
   $$('.screen').forEach(function (s) { s.classList.remove('on'); s.classList.remove('printing'); });
@@ -83,7 +83,7 @@ function go(name) {
   $('#addNav').hidden = !(S.org && isLeder());
   $('#top').hidden = !(S.org || name === 'start' || name === 'wiz');
   $$('#tabs button').forEach(function (b) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  $$('#mods button').forEach(function (b) { b.setAttribute('aria-current', name === 'mod' && S.mod === b.dataset.mod ? 'true' : 'false'); });
+  $$('#mods button').forEach(function (b) { b.setAttribute('aria-current', (name === 'mod' || name === 'sub') && S.mod === b.dataset.mod ? 'true' : 'false'); });
   window.scrollTo(0, 0);
   if (name === 'mod') renderMod();
   if (name === 'today') renderToday();
@@ -287,6 +287,8 @@ async function renderToday() {
       var prev = applyQueue(await fetchDay(addDays(day, -1)), addDays(day, -1));
       S.overdue = prev.filter(function (r) { return !r.run_status; }).map(function (r) { r.overdueDay = addDays(day, -1); return r; });
     } else S.overdue = [];
+    S.hmsItems = [];
+    if (day === today && isLeder()) { try { S.hmsItems = await hmsTodayItems(); } catch (e) { S.hmsItems = []; } }
   } catch (e) { clear($('#taskList')).appendChild(h('div', { class: 'err' }, errText(e))); return; }
   drawToday();
 }
@@ -298,6 +300,7 @@ function drawToday() {
   $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
   $('#progTxt').textContent = rows.length ? done + ' av ' + rows.length + ' oppgaver er kvittert' : 'Ingen oppgaver denne dagen.';
 
+  drawHmsToday();
   var od = clear($('#overdue'));
   var odRows = S.overdue.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
   if (odRows.length) {
@@ -741,7 +744,8 @@ function renderMod() {
   var m = S.mod || 'mat';
   $('#modTitle').textContent = MOD[m][0]; $('#modInfo').textContent = MOD[m][1] + ' Alle rutinene vises også i I dag-listen.';
   var l = clear($('#modLinks'));
-  if (m === 'mat') {
+  if (m === 'hms') { $('#modTasksWrap').hidden = false; renderHms(l); }
+  else if (m === 'mat') {
     l.appendChild(moreItem('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
     l.appendChild(moreItem('Tilsynsmappe', 'Plan, kvitteringer og avvik for en periode', showFolder));
     if (isLeder()) l.appendChild(moreItem('Kjøleskap og frysere', 'Gi dem navn og mål hver for seg', unitsDialog));
@@ -828,7 +832,8 @@ function docScreen(nodes, csv) {
   $('#docCsv').hidden = !csv; $('#docCsv').onclick = csv || null;
   go('doc'); $('#s-doc').classList.add('printing'); $('#top').hidden = false; $('#tabs').hidden = true;
 }
-$('#docBack').addEventListener('click', function () { go('more'); });
+$('#docBack').addEventListener('click', function () { var b = S.docBack || 'more'; S.docBack = null; go(b); });
+$('#subBack').addEventListener('click', function () { go('mod'); });
 $('#docPrint').addEventListener('click', function () { window.print(); });
 function downloadCsv(name, rows) {
   var text = '﻿' + rows.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n');
@@ -1117,6 +1122,376 @@ async function finishWizard() {
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
 }
+/* ---------- HMS-MODUL ---------- */
+var HMSL = null;
+function hms() { return window.DATA.hms; }
+function hd(s) { if (!s) return ''; var d = parseYmd(String(s).slice(0, 10)); return d.getDate() + '. ' + MON[d.getMonth()].toLowerCase() + ' ' + d.getFullYear(); }
+function hCls(o, b) { if (o == null || b == null) return 'NONE'; var sc = (o + 1) * (b + 1); return sc <= 4 ? 'PRP' : sc <= 9 ? 'CP' : sc <= 15 ? 'OPRP' : 'CCP'; }
+function hTag(c) { return h('span', { class: 'rk ' + c }, hms().label[c]); }
+var HRANK = { CCP: 4, OPRP: 3, CP: 2, PRP: 1, NONE: 0 };
+function hMatrix(sel, pick) {
+  var R = window.DATA.risk, H = hms(), g = h('div', { class: 'rmx', role: 'group', 'aria-label': 'Matrise: hvor ofte det skjer mot hvor ille det kan gå' });
+  g.appendChild(h('div', { class: 'corner' }));
+  g.appendChild(h('div', { class: 'xt' }, 'Hvor ille kan det gå?  →'));
+  g.appendChild(h('div', { class: 'yt' }, h('span', null, 'Hvor ofte skjer det?  →')));
+  g.appendChild(h('div', { class: 'sp' }));
+  H.bad.forEach(function (c, ci) { g.appendChild(h('div', { class: 'hc' + (sel && sel[1] === ci ? ' on' : '') }, c)); });
+  for (var r = 4; r >= 0; r--) {
+    g.appendChild(h('div', { class: 'hr' + (sel && sel[0] === r ? ' on' : '') }, R.often[r]));
+    for (var c = 0; c < 5; c++) (function (r, c) {
+      var cls = hCls(r, c), on = !!sel && sel[0] === r && sel[1] === c;
+      g.appendChild(h('button', { class: 'cell ' + cls, type: 'button', 'aria-pressed': on ? 'true' : 'false',
+        'aria-label': R.often[r] + ', ' + H.bad[c].toLowerCase() + ': ' + H.label[cls], onclick: function () { pick([r, c]); } }, H.label[cls]));
+    })(r, c);
+  }
+  return g;
+}
+function hResult(sel) {
+  var R = window.DATA.risk, H = hms();
+  if (!sel) return h('div', { class: 'note' }, 'Trykk på et felt i matrisen.');
+  var c = hCls(sel[0], sel[1]);
+  return h('div', { class: 'rres ' + c }, h('b', null, H.label[c] + ' risiko'),
+    h('p', { style: 'font-weight:600' }, R.oftenLong[sel[0]] + '. Hvis det skjer: ' + H.badLong[sel[1]].toLowerCase() + '.'), h('p', null, H.text[c]));
+}
+async function loadHms() {
+  var o = S.org.id;
+  function q(t, c, asc) { return sb.from(t).select('*').eq('org_id', o).order(c, { ascending: !!asc }); }
+  var r = await Promise.all([sb.from('hms_settings').select('*').eq('org_id', o).maybeSingle(), q('hms_risks', 'created_at', true), q('hms_incidents', 'occurred_at'), q('hms_training', 'done_on'), q('hms_rounds', 'done_on'), q('hms_reviews', 'done_on')]);
+  r.forEach(function (x) { if (x.error) throw x.error; });
+  S.hms = { settings: r[0].data || null, risks: r[1].data || [], incidents: r[2].data || [], training: r[3].data || [], rounds: r[4].data || [], reviews: r[5].data || [] };
+  return S.hms;
+}
+function hmsStatus() {
+  var H = S.hms, st = H.settings || {}, goals = st.goals || [], roles = (st.roles || []).filter(function (x) { return x.name; });
+  var rs = H.risks.filter(function (x) { return x.status !== 'fjernet' && x.source !== 'vernerunde'; });
+  var unassessed = rs.filter(function (x) { return x.often == null; }).length;
+  var noMeasure = rs.filter(function (x) { return HRANK[hCls(x.often, x.bad)] >= 3 && !x.measure; }).length;
+  var rv = H.reviews[0], yearAgo = addDays(ymd(new Date()), -365);
+  return [
+    ['1. Oversikt over lover og forskrifter', true, 'Følger med i HMS-mappen.'],
+    ['2. Kompetanse og opplæring', H.training.length > 0, 'Registrer opplæring under «Opplæring».'],
+    ['3. Medvirkning fra ansatte', !!(st.participation && st.participation.trim()), 'Fyll ut under «Mål og ansvar».'],
+    ['4. Mål for HMS', goals.length > 0, 'Legg inn mål under «Mål og ansvar».'],
+    ['5. Organisasjon og ansvar', roles.length > 0, 'Sett navn på roller under «Mål og ansvar».'],
+    ['6. Farer, risiko og tiltak', rs.length > 0 && !unassessed && !noMeasure, rs.length ? (unassessed ? unassessed + ' fare(r) mangler vurdering. ' : '') + (noMeasure ? noMeasure + ' høy risiko mangler tiltak.' : '') : 'Lag risikovurdering under «Farer og tiltak».'],
+    ['7. Rutiner for avvik og hendelser', true, 'Standardrutine følger med i HMS-mappen.'],
+    ['8. Årlig gjennomgang', !!(rv && rv.done_on >= yearAgo), 'Gjør årlig gjennomgang. Siste: ' + (rv ? hd(rv.done_on) : 'aldri') + '.']
+  ];
+}
+function hmsMember(id) { return id ? nameOf(id) : ''; }
+function memberSelect(val) {
+  var s = h('select', null, h('option', { value: '' }, 'Ikke satt'), (S.members || []).map(function (m) { return h('option', { value: m.user_id }, m.display_name || 'Uten navn'); }));
+  s.value = val || ''; return s;
+}
+function areaSelect(val) {
+  var names = ['Hele stedet'].concat(S.areas.map(function (a) { return a.name; }));
+  if (val && names.indexOf(val) < 0) names.push(val);
+  var s = h('select', null, names.map(function (n) { return h('option', { value: n }, n); })); s.value = val || 'Hele stedet'; return s;
+}
+function openSub(title, fn) {
+  S.subFn = fn; $('#subTitle').textContent = title;
+  go('sub'); refreshSub();
+}
+async function refreshSub() {
+  var b = clear($('#subBody'));
+  try { await loadHms(); S.subFn(b); } catch (e) { b.appendChild(h('div', { class: 'err' }, errText(e))); }
+}
+function renderHms(box) {
+  var l = clear(box);
+  l.appendChild(h('div', { class: 'note' }, 'Laster ...'));
+  loadHms().then(function () {
+    clear(l);
+    var H = S.hms, stt = hmsStatus(), okN = stt.filter(function (x) { return x[1]; }).length;
+    var openRisks = H.risks.filter(function (x) { return x.status === 'apen' || x.status === 'pagar'; }).length;
+    var openInc = H.incidents.filter(function (x) { return x.status !== 'lukket'; }).length;
+    if (isLeder()) {
+      var card = h('div', { class: 'card stack' }, h('div', { class: 'row' }, h('h2', { class: 'grow' }, 'Klar for tilsyn?'), h('span', { class: 'pill ' + (okN === 8 ? 'g' : 'a') }, okN + ' av 8')),
+        h('p', { class: 'small muted' }, 'Internkontrollforskriften § 5 krever skriftlig dokumentasjon av mål, ansvar, risikovurdering, avviksrutiner og årlig gjennomgang.'));
+      stt.forEach(function (x) { card.appendChild(h('div', { class: 'row', style: 'align-items:flex-start;gap:8px' }, h('span', { 'aria-hidden': 'true', style: 'font-weight:800;color:var(' + (x[1] ? '--green' : '--red') + ')' }, x[1] ? '✓' : '✗'), h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, x[0]), x[1] && x[2].indexOf('Siste') !== 0 ? null : h('div', { class: 'small muted' }, x[2])))); });
+      l.appendChild(card);
+      if (!H.risks.length && !H.settings) l.appendChild(h('button', { class: 'btn', onclick: hmsSeed }, 'Lag HMS-grunnlaget automatisk'));
+      if (!H.risks.length && !H.settings) l.appendChild(h('p', { class: 'small muted' }, 'Fyller inn forslag til mål, roller, medvirkning og 16 vanlige farer for serveringssteder med vurdering og tiltak. Du gjennomgår og retter det selv etterpå.'));
+    }
+    l.appendChild(moreItem('Farer og tiltak', openRisks + ' åpne tiltak. Risikovurdering med matrise.', function () { openSub('Farer og tiltak', hmsRisks); }));
+    l.appendChild(moreItem('Hendelser og avvik', openInc + ' åpne. Meld ulykke, nestenulykke eller farlig forhold.', function () { openSub('Hendelser', hmsIncidents); }));
+    if (isLeder()) l.appendChild(moreItem('Vernerunde', H.rounds[0] ? 'Siste: ' + hd(H.rounds[0].done_on) : 'Ingen gjennomført ennå', function () { openSub('Vernerunde', hmsRound); }));
+    l.appendChild(moreItem('Opplæring', H.training.length + ' registrert', function () { openSub('Opplæring', hmsTraining); }));
+    l.appendChild(moreItem('Mål og ansvar', 'HMS-mål, roller og medvirkning', function () { openSub('Mål og ansvar', hmsGoals); }));
+    if (isLeder()) l.appendChild(moreItem('Årlig gjennomgang', H.reviews[0] ? 'Siste: ' + hd(H.reviews[0].done_on) : 'Ikke gjort ennå', function () { openSub('Årlig gjennomgang', hmsReview); }));
+    l.appendChild(h('button', { class: 'btn', onclick: buildHmsDoc }, 'Hent frem HMS-mappen'));
+  }).catch(function (e) { clear(l).appendChild(h('div', { class: 'err' }, errText(e))); });
+}
+async function hmsSeed() {
+  if (!isLeder()) return;
+  var H = hms(), me = S.user.id, due = addDays(ymd(new Date()), 30);
+  var roles = H.roles.map(function (x, i) { return { role: x[0], duties: x[1], name: i === 0 ? nameOf(me) : '' }; });
+  var r1 = await sb.from('hms_settings').upsert({ org_id: S.org.id, goals: H.goals, roles: roles, participation: H.participation, updated_by: me, updated_at: new Date().toISOString() }, { onConflict: 'org_id' });
+  if (r1.error) { toast(errText(r1.error)); return; }
+  var rows = H.hazards.map(function (x) {
+    var c = hCls(x[2], x[3]);
+    return { org_id: S.org.id, area: x[0], hazard: x[1], often: x[2], bad: x[3], measure: x[4], status: 'apen', source: 'forslag', due: HRANK[c] >= 3 ? due : null };
+  });
+  var r2 = await sb.from('hms_risks').insert(rows);
+  if (r2.error) { toast(errText(r2.error)); return; }
+  toast('Grunnlaget er laget. Gå gjennom og rett det som ikke stemmer.');
+  renderHms($('#modLinks'));
+}
+/* Farer og tiltak */
+function hmsRisks(box) {
+  var H = S.hms, leder = isLeder();
+  if (leder) box.appendChild(h('button', { class: 'btn', onclick: function () { riskDialog(null); } }, 'Ny fare'));
+  var act = H.risks.filter(function (x) { return x.status === 'apen' || x.status === 'pagar'; });
+  var done = H.risks.filter(function (x) { return x.status === 'ferdig'; });
+  if (!H.risks.length) box.appendChild(h('div', { class: 'note' }, 'Ingen farer registrert. ' + (leder ? 'Gå til HMS-siden og trykk «Lag HMS-grunnlaget automatisk», eller legg inn selv.' : '')));
+  function row(x) {
+    var c = hCls(x.often, x.bad), today = ymd(new Date()), late = x.due && x.due < today && (x.status === 'apen' || x.status === 'pagar');
+    var el = h('div', { class: 'card stack' },
+      h('div', { class: 'row', style: 'align-items:flex-start' }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, x.hazard), h('div', { class: 'small muted' }, [x.area || 'Hele stedet', x.source === 'vernerunde' ? 'Fra vernerunde' : null].filter(Boolean).join(' · '))), hTag(c)),
+      x.measure ? h('div', { class: 'small' }, x.measure) : h('div', { class: 'small muted' }, 'Ingen tiltak beskrevet.'),
+      h('div', { class: 'small muted' }, [x.responsible ? 'Ansvarlig: ' + hmsMember(x.responsible) : null, x.due ? (late ? 'Forfalt ' : 'Frist ') + hd(x.due) : null, x.status === 'pagar' ? 'Pågår' : null, x.status === 'ferdig' ? 'Gjort ' + hd(x.done_at) : null].filter(Boolean).join(' · ')));
+    if (leder) el.appendChild(h('div', { class: 'row' }, h('button', { class: 'btn soft small', type: 'button', onclick: function () { riskDialog(x); } }, 'Endre'),
+      x.status !== 'ferdig' ? h('button', { class: 'btn soft small', type: 'button', onclick: async function () { await hmsDone(x.id); refreshSub(); } }, 'Marker som gjort') : null));
+    return el;
+  }
+  act.sort(function (a, b) { return HRANK[hCls(b.often, b.bad)] - HRANK[hCls(a.often, a.bad)]; });
+  if (act.length) { box.appendChild(h('h2', null, 'Åpne')); act.forEach(function (x) { box.appendChild(row(x)); }); }
+  if (done.length) { box.appendChild(h('h2', null, 'Gjort')); done.forEach(function (x) { box.appendChild(row(x)); }); }
+}
+async function hmsDone(id) {
+  var r = await sb.from('hms_risks').update({ status: 'ferdig', done_at: new Date().toISOString() }).eq('id', id);
+  if (r.error) toast(errText(r.error)); else toast('Tiltaket er markert som gjort');
+}
+function riskDialog(x) {
+  var isNew = !x; x = x || { area: 'Hele stedet', hazard: '', often: null, bad: null, measure: '', status: 'apen', due: null, responsible: null };
+  var sel = x.often == null ? null : [x.often, x.bad];
+  var area = areaSelect(x.area), hz = h('input', { type: 'text', value: x.hazard, maxlength: 300, id: 'r-hz' });
+  var ms = h('textarea', { id: 'r-ms' }, x.measure || ''), resp = memberSelect(x.responsible), due = h('input', { type: 'date', value: x.due || '' });
+  var st = h('select', null, [['apen', 'Åpen'], ['pagar', 'Pågår'], ['ferdig', 'Gjort'], ['fjernet', 'Ikke aktuell']].map(function (o) { return h('option', { value: o[0] }, o[1]); })); st.value = x.status;
+  var mxBox = h('div', { class: 'stack' }), out = h('div', { role: 'status' });
+  function draw() { clear(mxBox); mxBox.appendChild(hMatrix(sel, function (p) { sel = p; draw(); })); mxBox.appendChild(hResult(sel)); }
+  draw();
+  openDlg([h('h2', null, isNew ? 'Ny fare' : 'Fare og tiltak'), h('label', { class: 'f' }, 'Hva kan gå galt?', hz), h('label', { class: 'f' }, 'Hvor', area),
+    h('div', { class: 'f' }, 'Vurdering', mxBox), h('label', { class: 'f' }, 'Hva gjør vi for å hindre det? (tiltak)', ms),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Ansvarlig', resp), h('label', { class: 'f grow' }, 'Frist', due)), h('label', { class: 'f' }, 'Status', st), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!hz.value.trim()) { msg(out, 'err', 'Beskriv hva som kan gå galt.'); return; }
+      if (!sel) { msg(out, 'err', 'Trykk på et felt i matrisen.'); return; }
+      var c = hCls(sel[0], sel[1]);
+      if (HRANK[c] >= 3 && st.value !== 'fjernet' && !ms.value.trim()) { msg(out, 'err', 'Høy risiko må ha et tiltak.'); return; }
+      var row = { area: area.value, hazard: hz.value.trim(), often: sel[0], bad: sel[1], measure: ms.value.trim() || null, responsible: resp.value || null, due: due.value || null, status: st.value, done_at: st.value === 'ferdig' ? (x.done_at || new Date().toISOString()) : null };
+      ev.target.disabled = true;
+      var r = isNew ? await sb.from('hms_risks').insert(Object.assign(row, { org_id: S.org.id })) : await sb.from('hms_risks').update(row).eq('id', x.id);
+      if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+      closeDlg(); toast('Lagret'); refreshSub();
+    } }, 'Lagre'))]);
+}
+/* Hendelser */
+function hmsIncidents(box) {
+  var H = S.hms, K = hms().kinds;
+  box.appendChild(h('button', { class: 'btn', onclick: function () { incDialog(null); } }, 'Meld hendelse'));
+  if (!H.incidents.length) box.appendChild(h('div', { class: 'note' }, 'Ingen hendelser registrert.'));
+  H.incidents.forEach(function (x) {
+    box.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { incDialog(x); } },
+      h('div', { class: 't' }, x.description.slice(0, 90) + (x.description.length > 90 ? '…' : '')),
+      h('div', { class: 'row small' }, h('span', { class: 'pill ' + (x.status === 'lukket' ? 'g' : x.status === 'apen' ? 'r' : 'a') }, DEV_STATUS[x.status]), h('span', { class: 'pill' }, K[x.kind]), h('span', { class: 'muted' }, fmtTs(x.occurred_at) + (x.place ? ' · ' + x.place : '')))));
+  });
+}
+function incDialog(x) {
+  var isNew = !x, leder = isLeder(), ro = !isNew && !leder;
+  x = x || { kind: 'nestenulykke', occurred_at: new Date().toISOString(), place: '', description: '', injured: '', cause: '', action: '', reported: '', status: 'apen' };
+  var K = hms().kinds, kind = h('select', { disabled: ro }, Object.keys(K).map(function (k) { return h('option', { value: k }, K[k]); })); kind.value = x.kind;
+  var dt = new Date(x.occurred_at), when = h('input', { type: 'datetime-local', value: ymd(dt) + 'T' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), disabled: ro });
+  var place = h('input', { type: 'text', value: x.place || '', maxlength: 200, disabled: ro }), desc = h('textarea', { disabled: ro }, x.description);
+  var inj = h('input', { type: 'text', value: x.injured || '', maxlength: 500, disabled: ro, placeholder: 'Navn og hva slags skade, hvis noen' });
+  var cause = h('textarea', { disabled: !leder }, x.cause || ''), act = h('textarea', { disabled: !leder }, x.action || '');
+  var rep = h('input', { type: 'text', value: x.reported || '', maxlength: 500, disabled: !leder, placeholder: 'F.eks. NAV skademelding sendt, Arbeidstilsynet varslet' });
+  var resp = memberSelect(x.responsible); resp.disabled = !leder;
+  var status = h('select', { disabled: !leder }, Object.keys(DEV_STATUS).map(function (k) { return h('option', { value: k }, DEV_STATUS[k]); })); status.value = x.status;
+  var out = h('div', { role: 'status' });
+  var info = h('div', { class: 'note' }, 'Alvorlige ulykker og dødsfall skal meldes straks til Arbeidstilsynet og politiet, og skade i arbeid kan også skal meldes til NAV. Sjekk gjeldende regler hos Arbeidstilsynet og skriv hva som er meldt under.');
+  info.textContent = 'Alvorlige ulykker og dødsfall skal etter det vi vet meldes straks til Arbeidstilsynet og politiet, og arbeidsskade meldes til NAV. Sjekk gjeldende regler hos Arbeidstilsynet, og skriv under hva som er meldt.';
+  openDlg([h('h2', null, isNew ? 'Meld hendelse' : 'Hendelse'), h('label', { class: 'f' }, 'Type', kind), h('label', { class: 'f' }, 'Når', when), h('label', { class: 'f' }, 'Hvor', place),
+    h('label', { class: 'f' }, 'Hva skjedde?', desc), h('label', { class: 'f' }, 'Skadet person', inj),
+    leder ? [h('label', { class: 'f' }, 'Årsak', cause), h('label', { class: 'f' }, 'Tiltak så det ikke skjer igjen', act), info, h('label', { class: 'f' }, 'Meldt til', rep), h('label', { class: 'f' }, 'Ansvarlig', resp), h('label', { class: 'f' }, 'Status', status)] : null, out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Lukk'), ro ? null : h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!desc.value.trim()) { msg(out, 'err', 'Beskriv hva som skjedde.'); return; }
+      var row = { kind: kind.value, occurred_at: new Date(when.value || Date.now()).toISOString(), place: place.value.trim() || null, description: desc.value.trim(), injured: inj.value.trim() || null };
+      if (leder) Object.assign(row, { cause: cause.value.trim() || null, action: act.value.trim() || null, reported: rep.value.trim() || null, responsible: resp.value || null, status: status.value, closed_at: status.value === 'lukket' ? (x.closed_at || new Date().toISOString()) : null });
+      ev.target.disabled = true;
+      var r = isNew ? await sb.from('hms_incidents').insert(Object.assign(row, { org_id: S.org.id })) : await sb.from('hms_incidents').update(row).eq('id', x.id);
+      if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+      closeDlg(); toast('Lagret'); refreshSub();
+    } }, 'Lagre'))]);
+}
+/* Vernerunde */
+function hmsRound(box) {
+  var items = hms().round.map(function (q) { return { q: q, ok: true, note: '' }; });
+  var area = areaSelect('Hele stedet'), out = h('div', { role: 'status' }), note = h('textarea', null, '');
+  box.appendChild(h('p', { class: 'muted' }, 'Gå gjennom stedet sammen med verneombud. Alt er satt til «I orden». Trykk «Avvik» der noe mangler. Hvert avvik blir et tiltak med frist om 14 dager.'));
+  box.appendChild(h('label', { class: 'f' }, 'Hvor', area));
+  items.forEach(function (it) {
+    var nt = h('input', { type: 'text', placeholder: 'Hva mangler?', maxlength: 300, hidden: true, oninput: function () { it.note = nt.value; } });
+    var ok = h('button', { class: 'chip', type: 'button', 'aria-pressed': 'true' }, 'I orden'), bad = h('button', { class: 'chip', type: 'button', 'aria-pressed': 'false' }, 'Avvik');
+    function set(v) { it.ok = v; ok.setAttribute('aria-pressed', v ? 'true' : 'false'); bad.setAttribute('aria-pressed', v ? 'false' : 'true'); nt.hidden = v; }
+    ok.onclick = function () { set(true); }; bad.onclick = function () { set(false); nt.focus(); };
+    box.appendChild(h('div', { class: 'card stack' }, h('div', { style: 'font-weight:600' }, it.q), h('div', { class: 'row' }, ok, bad), nt));
+  });
+  box.appendChild(h('label', { class: 'f' }, 'Kommentar', note)); box.appendChild(out);
+  box.appendChild(h('button', { class: 'btn', onclick: async function (ev) {
+    ev.target.disabled = true;
+    var r = await sb.from('hms_rounds').insert({ org_id: S.org.id, area: area.value, items: items, note: note.value.trim() || null });
+    if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+    var bads = items.filter(function (i) { return !i.ok; }), due = addDays(ymd(new Date()), 14);
+    if (bads.length) {
+      var r2 = await sb.from('hms_risks').insert(bads.map(function (i) { return { org_id: S.org.id, area: area.value, hazard: i.q.replace(/ er | på plass.*$/, ' ').trim() + ': avvik', measure: i.note || null, status: 'apen', source: 'vernerunde', due: due }; }));
+      if (r2.error) { msg(out, 'err', errText(r2.error)); ev.target.disabled = false; return; }
+    }
+    toast(bads.length ? bads.length + ' avvik er lagt inn som tiltak' : 'Vernerunden er lagret'); openSub('Farer og tiltak', hmsRisks);
+  } }, 'Lagre vernerunde'));
+  if (S.hms.rounds.length) {
+    box.appendChild(h('h2', null, 'Tidligere vernerunder'));
+    S.hms.rounds.forEach(function (x) { var n = (x.items || []).filter(function (i) { return !i.ok; }).length; box.appendChild(h('div', { class: 'trow' }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, hd(x.done_on) + ' · ' + (x.area || 'Hele stedet')), h('div', { class: 'small muted' }, n ? n + ' avvik' : 'Ingen avvik')))); });
+  }
+}
+/* Opplæring */
+function hmsTraining(box) {
+  var H = S.hms, leder = isLeder(), today = ymd(new Date()), soon = addDays(today, 30);
+  if (leder) box.appendChild(h('button', { class: 'btn', onclick: function () { trainDialog(null); } }, 'Registrer opplæring'));
+  if (!H.training.length) box.appendChild(h('div', { class: 'note' }, 'Ingen opplæring registrert.'));
+  H.training.forEach(function (x) {
+    var exp = x.valid_until && x.valid_until < today, near = x.valid_until && !exp && x.valid_until <= soon;
+    box.appendChild(h('div', { class: 'trow' }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, x.person_name + ' · ' + x.topic),
+      h('div', { class: 'small muted' }, hd(x.done_on) + (x.valid_until ? ' · gyldig til ' + hd(x.valid_until) : ''))), exp ? h('span', { class: 'pill r' }, 'Utløpt') : near ? h('span', { class: 'pill a' }, 'Utløper snart') : null,
+      leder ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { trainDialog(x); } }, 'Endre') : null));
+  });
+}
+function trainDialog(x) {
+  var isNew = !x; x = x || { person_name: '', topic: '', done_on: ymd(new Date()), valid_until: null, note: '' };
+  var dl = h('datalist', { id: 'tp-list' }, hms().topics.map(function (t) { return h('option', { value: t }); })), dn = h('datalist', { id: 'pn-list' }, (S.members || []).map(function (m) { return h('option', { value: m.display_name || '' }); }));
+  var who = h('input', { type: 'text', value: x.person_name, maxlength: 120, setAttribute: null }), topic = h('input', { type: 'text', value: x.topic, maxlength: 200 });
+  who.setAttribute('list', 'pn-list'); topic.setAttribute('list', 'tp-list');
+  var on = h('input', { type: 'date', value: x.done_on }), until = h('input', { type: 'date', value: x.valid_until || '' }), nt = h('input', { type: 'text', value: x.note || '', maxlength: 1000 }), out = h('div', { role: 'status' });
+  openDlg([h('h2', null, isNew ? 'Registrer opplæring' : 'Opplæring'), dl, dn, h('label', { class: 'f' }, 'Hvem', who), h('label', { class: 'f' }, 'Hva (kurs eller opplæring)', topic),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Dato', on), h('label', { class: 'f grow' }, 'Gyldig til (valgfritt)', until)), h('label', { class: 'f' }, 'Merknad', nt), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'),
+      isNew ? null : h('button', { class: 'btn alt', onclick: async function () { var r = await sb.from('hms_training').delete().eq('id', x.id); if (r.error) { msg(out, 'err', errText(r.error)); return; } closeDlg(); refreshSub(); } }, 'Slett'),
+      h('button', { class: 'btn grow', onclick: async function (ev) {
+        if (!who.value.trim() || !topic.value.trim()) { msg(out, 'err', 'Fyll ut hvem og hva.'); return; }
+        var row = { person_name: who.value.trim(), topic: topic.value.trim(), done_on: on.value || ymd(new Date()), valid_until: until.value || null, note: nt.value.trim() || null };
+        ev.target.disabled = true;
+        var r = isNew ? await sb.from('hms_training').insert(Object.assign(row, { org_id: S.org.id })) : await sb.from('hms_training').update(row).eq('id', x.id);
+        if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+        closeDlg(); toast('Lagret'); refreshSub();
+      } }, 'Lagre'))]);
+}
+/* Mål, ansvar og medvirkning */
+function hmsGoals(box) {
+  var st = S.hms.settings || {}, leder = isLeder();
+  var goals = h('textarea', { rows: 6, disabled: !leder }, (st.goals || []).join('\n'));
+  var part = h('textarea', { rows: 6, disabled: !leder }, st.participation || '');
+  var roles = (st.roles && st.roles.length ? st.roles : hms().roles.map(function (r) { return { role: r[0], duties: r[1], name: '' }; })).map(function (r) { return { role: r.role, duties: r.duties, name: r.name || '' }; });
+  var rbox = h('div', { class: 'stack' }), out = h('div', { role: 'status' });
+  function draw() {
+    clear(rbox);
+    roles.forEach(function (r, i) {
+      var nm = h('input', { type: 'text', value: r.name, maxlength: 120, disabled: !leder, placeholder: 'Navn', oninput: function () { r.name = nm.value; } });
+      nm.setAttribute('list', 'pn-list2');
+      var ds = h('input', { type: 'text', value: r.duties, maxlength: 500, disabled: !leder, oninput: function () { r.duties = ds.value; } });
+      rbox.appendChild(h('div', { class: 'card stack' }, h('div', { style: 'font-weight:600' }, r.role), h('label', { class: 'f' }, 'Navn', nm), h('label', { class: 'f' }, 'Oppgaver og myndighet', ds)));
+    });
+  }
+  draw();
+  box.appendChild(h('datalist', { id: 'pn-list2' }, (S.members || []).map(function (m) { return h('option', { value: m.display_name || '' }); })));
+  box.appendChild(h('p', { class: 'muted' }, 'Mål, ansvar og medvirkning skal dokumenteres skriftlig (internkontrollforskriften § 5 punkt 4, 5 og 3). Forslagene kan du endre fritt.'));
+  box.appendChild(h('label', { class: 'f' }, 'HMS-mål (ett per linje)', goals));
+  box.appendChild(h('h2', null, 'Ansvar og roller')); box.appendChild(rbox);
+  box.appendChild(h('label', { class: 'f' }, 'Hvordan de ansatte medvirker', part)); box.appendChild(out);
+  if (leder) box.appendChild(h('button', { class: 'btn', onclick: async function (ev) {
+    ev.target.disabled = true;
+    var r = await sb.from('hms_settings').upsert({ org_id: S.org.id, goals: goals.value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean), roles: roles, participation: part.value.trim() || null, updated_by: S.user.id, updated_at: new Date().toISOString() }, { onConflict: 'org_id' });
+    ev.target.disabled = false;
+    if (r.error) { msg(out, 'err', errText(r.error)); return; }
+    toast('Lagret'); refreshSub();
+  } }, 'Lagre'));
+}
+/* Årlig gjennomgang */
+function hmsStats() {
+  var H = S.hms, ya = addDays(ymd(new Date()), -365);
+  return { hendelser: H.incidents.filter(function (x) { return x.occurred_at.slice(0, 10) >= ya; }).length,
+    ulykker: H.incidents.filter(function (x) { return x.occurred_at.slice(0, 10) >= ya && x.kind === 'ulykke'; }).length,
+    apneTiltak: H.risks.filter(function (x) { return x.status === 'apen' || x.status === 'pagar'; }).length,
+    gjorteTiltak: H.risks.filter(function (x) { return x.status === 'ferdig' && x.done_at && x.done_at.slice(0, 10) >= ya; }).length,
+    vernerunder: H.rounds.filter(function (x) { return x.done_on >= ya; }).length, opplaering: H.training.filter(function (x) { return x.done_on >= ya; }).length };
+}
+function hmsReview(box) {
+  var s = hmsStats(), H = S.hms;
+  box.appendChild(h('p', { class: 'muted' }, 'Gå gjennom HMS-arbeidet minst én gang i året (internkontrollforskriften § 5 punkt 8). Tallene under er hentet automatisk fra siste 12 måneder.'));
+  box.appendChild(h('div', { class: 'card stack' }, h('h3', null, 'Siste 12 måneder'), table(['', 'Antall'], [['Hendelser', s.hendelser], ['Hvorav ulykker', s.ulykker], ['Tiltak gjort', s.gjorteTiltak], ['Åpne tiltak nå', s.apneTiltak], ['Vernerunder', s.vernerunder], ['Opplæring registrert', s.opplaering]])));
+  var goalsTxt = ((H.settings && H.settings.goals) || []).map(function (g) { return '• ' + g; }).join('\n');
+  if (goalsTxt) box.appendChild(h('div', { class: 'card stack' }, h('h3', null, 'Målene våre'), h('div', { style: 'white-space:pre-line' }, goalsTxt)));
+  var gm = h('textarea', { rows: 4 }, ''), cc = h('textarea', { rows: 4 }, ''), na = h('textarea', { rows: 4 }, ''), out = h('div', { role: 'status' });
+  box.appendChild(h('label', { class: 'f' }, 'Er målene nådd?', gm)); box.appendChild(h('label', { class: 'f' }, 'Konklusjon. Fungerer HMS-arbeidet?', cc));
+  box.appendChild(h('label', { class: 'f' }, 'Hva skal vi gjøre fremover?', na)); box.appendChild(out);
+  box.appendChild(h('button', { class: 'btn', onclick: async function (ev) {
+    ev.target.disabled = true;
+    var r = await sb.from('hms_reviews').insert({ org_id: S.org.id, goals_met: gm.value.trim() || null, conclusion: cc.value.trim() || null, next_actions: na.value.trim() || null, snapshot: s });
+    if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+    toast('Gjennomgangen er lagret'); refreshSub();
+  } }, 'Lagre gjennomgang'));
+  if (H.reviews.length) {
+    box.appendChild(h('h2', null, 'Tidligere gjennomganger'));
+    H.reviews.forEach(function (x) { box.appendChild(h('div', { class: 'card stack' }, h('div', { style: 'font-weight:600' }, hd(x.done_on)), x.conclusion ? h('div', { class: 'small' }, x.conclusion) : null, x.next_actions ? h('div', { class: 'small muted' }, 'Fremover: ' + x.next_actions) : null)); });
+  }
+}
+/* HMS-mappen */
+async function buildHmsDoc() {
+  try { await loadHms(); } catch (e) { toast(errText(e)); return; }
+  var H = S.hms, D = hms(), st = H.settings || {}, K = D.kinds, nodes = [], stt = hmsStatus(), okN = stt.filter(function (x) { return x[1]; }).length;
+  nodes.push(h('div', { class: 'card stack' }, h('h2', null, 'HMS-mappe'), h('div', null, S.org.name + (S.org.orgnr ? ' · org.nr. ' + S.org.orgnr : '')),
+    h('div', { class: 'small muted' }, 'Utarbeidet ' + hd(ymd(new Date())) + ' etter internkontrollforskriften § 5. ' + okN + ' av 8 punkter er dekket.')));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '1. Lover og forskrifter'), h('p', { class: 'small muted' }, 'De viktigste kravene for et serveringssted. Oversikten er ikke uttømmende. Gjeldende tekst finnes på lovdata.no og arbeidstilsynet.no.'), table(['Regelverk', 'Gjelder'], D.laws)));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '2. Kompetanse og opplæring'), H.training.length ? table(['Hvem', 'Hva', 'Dato', 'Gyldig til'], H.training.slice().reverse().map(function (x) { return [x.person_name, x.topic, hd(x.done_on), hd(x.valid_until)]; })) : h('p', null, 'Ingen opplæring registrert.')));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '3. Medvirkning fra de ansatte'), h('p', null, st.participation || 'Ikke fylt ut.')));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '4. Mål for helse, miljø og sikkerhet'), (st.goals || []).length ? h('ul', null, st.goals.map(function (g) { return h('li', null, g); })) : h('p', null, 'Ingen mål satt.')));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '5. Organisasjon, ansvar og myndighet'), (st.roles || []).length ? table(['Rolle', 'Navn', 'Oppgaver og myndighet'], st.roles.map(function (r) { return [r.role, r.name, r.duties]; })) : h('p', null, 'Ikke fylt ut.')));
+  var rs = H.risks.filter(function (x) { return x.status !== 'fjernet'; }).sort(function (a, b) { return HRANK[hCls(b.often, b.bad)] - HRANK[hCls(a.often, a.bad)]; });
+  var R = window.DATA.risk;
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '6. Kartlegging av farer, risikovurdering og tiltaksplan'),
+    h('p', { class: 'small muted' }, 'Risiko er vurdert ut fra hvor ofte det skjer og hvor ille det kan gå.'),
+    rs.length ? table(['Hvor', 'Fare', 'Risiko', 'Tiltak', 'Ansvarlig', 'Frist', 'Status'], rs.map(function (x) {
+      return [x.area || 'Hele stedet', x.hazard, x.often == null ? 'Ikke vurdert' : D.label[hCls(x.often, x.bad)] + ' (' + R.often[x.often].toLowerCase() + ', ' + D.bad[x.bad].toLowerCase() + ')', x.measure || '', hmsMember(x.responsible), hd(x.due), { apen: 'Åpen', pagar: 'Pågår', ferdig: 'Gjort ' + hd(x.done_at) }[x.status]];
+    })) : h('p', null, 'Ingen farer registrert.')));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '7. Rutiner for å avdekke, rette opp og forebygge brudd'), h('p', null, D.avvik),
+    H.incidents.length ? table(['Når', 'Type', 'Hendelse', 'Årsak', 'Tiltak', 'Meldt til', 'Status'], H.incidents.map(function (x) { return [fmtTs(x.occurred_at), K[x.kind], x.description, x.cause || '', x.action || '', x.reported || '', DEV_STATUS[x.status]]; })) : h('p', { class: 'muted' }, 'Ingen hendelser registrert.'),
+    H.rounds.length ? h('div', null, h('h4', null, 'Vernerunder'), table(['Dato', 'Hvor', 'Avvik'], H.rounds.map(function (x) { return [hd(x.done_on), x.area || 'Hele stedet', (x.items || []).filter(function (i) { return !i.ok; }).map(function (i) { return i.q + (i.note ? ' (' + i.note + ')' : ''); }).join('; ') || 'Ingen']; }))) : null));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, '8. Overvåking og årlig gjennomgang'), H.reviews.length ? H.reviews.map(function (x) {
+    return h('div', { class: 'stack' }, h('b', null, hd(x.done_on)), h('div', null, 'Mål nådd: ' + (x.goals_met || '–')), h('div', null, 'Konklusjon: ' + (x.conclusion || '–')), h('div', null, 'Fremover: ' + (x.next_actions || '–')));
+  }) : h('p', null, 'Ingen gjennomgang er gjort ennå.')));
+  S.docBack = 'mod';
+  docScreen(nodes, function () {
+    downloadCsv('hms-farer-og-tiltak.csv', [['Hvor', 'Fare', 'Risiko', 'Tiltak', 'Ansvarlig', 'Frist', 'Status']].concat(rs.map(function (x) { return [x.area, x.hazard, D.label[hCls(x.often, x.bad)], x.measure || '', hmsMember(x.responsible), x.due || '', x.status]; })));
+  });
+}
+/* HMS i leders I dag-liste */
+async function hmsTodayItems() {
+  var o = S.org.id, today = ymd(new Date()), week = addDays(today, 14), soon = addDays(today, 30), items = [];
+  var r = await Promise.all([sb.from('hms_risks').select('*').eq('org_id', o).in('status', ['apen', 'pagar']).not('due', 'is', null).lte('due', week), sb.from('hms_incidents').select('*').eq('org_id', o).neq('status', 'lukket'), sb.from('hms_training').select('*').eq('org_id', o).not('valid_until', 'is', null).lte('valid_until', soon)]);
+  (r[0].data || []).forEach(function (x) { items.push({ title: x.hazard, sub: (x.due < today ? 'Forfalt ' : 'Frist ') + hd(x.due) + (x.responsible ? ' · ' + hmsMember(x.responsible) : ''), late: x.due < today, kind: 'Tiltak', go: function () { S.mod = 'hms'; go('mod'); openSub('Farer og tiltak', hmsRisks); }, done: async function () { await hmsDone(x.id); } }); });
+  (r[1].data || []).forEach(function (x) { items.push({ title: x.description.slice(0, 80), sub: 'Åpen hendelse fra ' + hd(x.occurred_at), late: false, kind: 'Hendelse', go: function () { S.mod = 'hms'; go('mod'); openSub('Hendelser', hmsIncidents); } }); });
+  (r[2].data || []).forEach(function (x) { items.push({ title: x.person_name + ': ' + x.topic, sub: (x.valid_until < today ? 'Utløpt ' : 'Utløper ') + hd(x.valid_until), late: x.valid_until < today, kind: 'Opplæring', go: function () { S.mod = 'hms'; go('mod'); openSub('Opplæring', hmsTraining); } }); });
+  return items;
+}
+function drawHmsToday() {
+  var b = clear($('#hmsToday')), it = S.hmsItems || [];
+  if (!it.length || !isLeder()) return;
+  var box = h('div', { class: 'group' }, h('header', null, h('h3', null, 'HMS · må følges opp'), h('span', { class: 'pill ' + (it.some(function (x) { return x.late; }) ? 'r' : 'a') }, it.length)));
+  it.forEach(function (x) {
+    box.appendChild(h('div', { class: 'trow' }, h('button', { class: 'dev grow', type: 'button', onclick: x.go, style: 'border:0;padding:0;text-align:left;background:none' }, h('div', { class: 't' }, x.title), h('div', { class: 'small ' + (x.late ? '' : 'muted'), style: x.late ? 'color:var(--red)' : '' }, x.kind + ' · ' + x.sub)),
+      x.done ? h('button', { class: 'btn soft small', type: 'button', onclick: async function () { await x.done(); S.hmsItems = await hmsTodayItems(); drawHmsToday(); } }, 'Gjort') : null));
+  });
+  b.appendChild(box);
+}
+
 $('#orgName').addEventListener('click', function () { if (S.org && S.mems.length > 1) orgSwitch(); });
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
