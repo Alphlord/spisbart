@@ -652,7 +652,7 @@ async function createUnits(orgId, list, limits) {
   if (ins.error) throw ins.error;
   var rows = [];
   ins.data.forEach(function (u, i) {
-    [false, true].forEach(function (closing) {
+    [false].forEach(function (closing) {
       rows.push({ org_id: orgId, area_id: u.area_id, unit_id: u.id, domain: 'mat', routine: closing ? 'stenging' : 'apning', title: unitTitle(u.kind, u.name, closing),
         hint: 'Mål og skriv inn. Grensen kommer fra HACCP-planen.', kind: 'measure', unit: '°C', max_value: lim[u.kind], recurrence: { freq: 'daily' }, source: 'haccp', sort: 1000 + i * 2 + (closing ? 1 : 0) });
     });
@@ -909,7 +909,7 @@ function drawWiz() {
   } else if (W.step === 4) {
     b.appendChild(h('p', { class: 'muted' }, 'Grunnrutiner som alle trenger. De blir en del av planen.'));
     var c3 = h('div', { class: 'card' });
-    D.ghp.forEach(function (g, i) { c3.appendChild(checkRow(g[0], g[1], W.ghp.indexOf(i) >= 0, function (on) { toggleIn(W.ghp, i, on); }, 'g-' + i)); });
+    D.ghp.forEach(function (g, i) { if (g[2] === 'alk' && !W.alk) return; c3.appendChild(checkRow(g[0], g[1], W.ghp.indexOf(i) >= 0, function (on) { toggleIn(W.ghp, i, on); }, 'g-' + i)); });
     b.appendChild(c3);
   } else if (W.step === 5) {
     b.appendChild(h('div', { class: 'note' }, 'Dette er forslag. Du er ansvarlig for at grensene passer driften. Kontroller mot Mattilsynets veiledning.'));
@@ -947,7 +947,7 @@ function drawWiz() {
   } else {
     var a2 = W.areas.map(function (x) { return D.areas.filter(function (y) { return y[0] === x; })[0][1]; });
     b.appendChild(h('div', { class: 'card stack' }, h('div', null, h('b', null, W.name || 'Uten navn')), h('div', { class: 'muted' }, D.businessTypes.filter(function (x) { return x[0] === W.btype; })[0][1] + ' · ' + (a2.join(', ') || 'ingen avdelinger') + (W.alk ? ' · skjenkebevilling' : '') + (W.units.filter(function (u) { return u.name.trim(); }).length ? ' · ' + W.units.filter(function (u) { return u.name.trim(); }).length + ' kjøle- og fryseenheter' : '')),
-      h('div', null, W.steps.length + ' steg, ' + W.ghp.length + ' hygienerutiner og ' + D.ccps.filter(function (c) { return W.steps.indexOf(c.step) >= 0; }).length + ' styringspunkter.')));
+      h('div', null, W.steps.length + ' steg, ' + W.ghp.filter(function (i) { return D.ghp[i][2] !== 'alk' || W.alk; }).length + ' hygienerutiner og ' + D.ccps.filter(function (c) { return W.steps.indexOf(c.step) >= 0; }).length + ' styringspunkter.')));
     b.appendChild(h('div', { class: 'note' }, 'Når du oppretter, lages planen som utkast, og kalenderen fylles med åpne- og stengerutiner for hver avdeling. Du kan endre alt etterpå.'));
   }
 }
@@ -973,7 +973,7 @@ async function finishWizard() {
   var orgId = cr.data;
   var plan = { businessType: W.btype, areas: W.areas, alcohol: W.alk, steps: W.steps, hazards: {}, ghp: [], ccps: [], created: new Date().toISOString() };
   W.steps.forEach(function (s) { plan.hazards[s] = hzDefault(s).map(function (i) { return { text: D.hazards[s][i][0], type: D.hazards[s][i][1] }; }); });
-  plan.ghp = W.ghp.slice().sort(function (a, b) { return a - b; }).map(function (i) { return { title: D.ghp[i][0], text: D.ghp[i][1] }; });
+  plan.ghp = W.ghp.filter(function (i) { return D.ghp[i][2] !== 'alk' || W.alk; }).sort(function (a, b) { return a - b; }).map(function (i) { return { title: D.ghp[i][0], text: D.ghp[i][1] }; });
   D.ccps.forEach(function (c) {
     if (W.steps.indexOf(c.step) < 0) return;
     var s = W.ccp[c.id]; plan.ccps.push({ id: c.id, title: c.title, kind: c.kind, value: s.value, unit: c.unit, monitor: s.monitor, action: s.action, verify: s.verify });
