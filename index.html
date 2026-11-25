@@ -132,6 +132,38 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .cta-row{display:flex;gap:10px;flex-wrap:wrap}
 .buy-btn{display:inline-block;padding:8px 18px;border-radius:999px;border:2px solid var(--accent,#1A7A6E);color:var(--accent,#1A7A6E);font-weight:600;text-decoration:none}
 .buy-btn:hover{background:var(--accent,#1A7A6E);color:var(--on-accent,#fff)}
+
+/* kapitler: tre store fargeflater, én per målgruppe */
+.chapters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.tile{display:block;padding:30px 22px 34px;color:#fff;text-decoration:none}
+.tile strong{display:block;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(28px,4.4vw,44px);line-height:1}
+.tile span{display:block;margin-top:10px;font-size:17px;max-width:20em}
+.tile:hover{filter:brightness(1.08)}
+.tile.t-barn,.ch-barn{background:#1A7A6E}
+.tile.t-kafe,.ch-kafe{background:#1B4F7A}
+.tile.t-prove,.ch-prove{background:#C8376A}
+@media (max-width:700px){.chapters{grid-template-columns:1fr}}
+.chapter{padding-block:clamp(56px,9vw,104px);color:#fff;scroll-margin-top:0}
+.chapter h2{font-size:clamp(40px,9vw,96px);line-height:.95;color:#fff;max-width:11em;margin:0;overflow-wrap:break-word}
+.chapter a:focus-visible{outline-color:#fff}
+.ch-top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:32px 56px;margin-top:36px;align-items:start}
+@media (max-width:760px){.ch-top{grid-template-columns:1fr}}
+.pitch{font-size:clamp(18px,2.2vw,22px);line-height:1.5;max-width:28em}
+.panel{background:#fff;color:#1B1A17;border-radius:10px;padding:22px 26px}
+.panel h3{font-size:24px;margin-bottom:10px}
+.panel ul{margin:0;padding-left:1.1em}
+.panel li+li{margin-top:8px}
+.ch-note{margin-top:18px;font-size:16px;opacity:.92;max-width:30em}
+.ch-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.ch-btn{display:inline-block;padding:12px 24px;border-radius:999px;background:#fff;color:#1B1A17;font-weight:700;text-decoration:none;border:2px solid #fff}
+.ch-btn.alt{background:transparent;color:#fff}
+.ch-btn:hover{filter:brightness(.94)}.ch-btn.alt:hover{background:rgba(255,255,255,.14);filter:none}
+.chapter .phones,.chapter .shotrow{margin-top:36px}
+.chapter .phones img,.chapter .shotrow img{border:0;box-shadow:0 14px 34px rgba(0,0,0,.28)}
+.chapter figcaption{color:rgba(255,255,255,.9)}
+.sub-app{margin-top:56px;padding-top:36px;border-top:2px solid rgba(255,255,255,.35)}
+.sub-app h3{font-size:clamp(32px,5vw,48px);color:#fff}
+.sub-app .ch-top{margin-top:20px}
 </style>
 
 </head><body><main>
@@ -150,61 +182,36 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
     </svg>
     <div class="txt"><div class="word" id="w">Spisbart</div><div class="sub" id="s">Apper for matkontroll</div></div>
   </div>
-  <p class="lead">Enkle verktøy som gir kjøkken og barnehager kontroll på hva som serveres, hva det inneholder og hva det koster.</p>
-  <a class="cta" href="#apper">Se appene</a>
+  <p class="lead">Verktøy for kjøkken og barnehager som vil vite hva som serveres, hva det inneholder og hva det koster. Alle appene kan prøves her på siden.</p>
 </header>
 
-<section id="apper">
-  <div class="wrap">
-    <div class="eyebrow">Appene våre</div>
-    <h2>Én app for hvert behov</h2>
-    <div class="apps">
-      <article class="app">
-        <span class="status s-live">Under utvikling</span>
-        <h3>Bare Barnemat</h3>
-        <p>Matplanlegging for barnehager. Lag månedsmenyen, se kostnaden per barn og hold orden på allergener.</p>
-        <ul>
-          <li>Månedsplan med dra og slipp</li>
-          <li>Allergener og kosthold synlig på hver rett</li>
-          <li>Budsjett og kostnad per barn</li>
-          <li>Ukespakker, bestilling og matboks</li>
-          <li>Eksport av ferdig månedsmeny</li>
-        </ul>
-        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="barnemat/?demo=1">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Bare%20Barnemat">Kjøp</a></p>
-      </article>
-      <article class="app">
-        <span class="status s-live">Demo</span>
-        <h3>Auto·Mat</h3>
-        <p>Beregnemaskin for kjøkken og servering. Se hva hver rett koster og hva du tjener på den.</p>
-        <ul>
-          <li>Varekost, påslag og fortjeneste per produkt</li>
-          <li>Bestilling og handleliste</li>
-          <li>Svinn mot regnskapet</li>
-          <li>Marginrapport og allergenkort</li>
-          <li>Meny som plakat med produkter og priser</li>
-        </ul>
-        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="automat/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Auto%C2%B7Mat">Kjøp</a></p>
-      </article>
-      <article class="app">
-        <span class="status s-live">Demo</span>
-        <h3>QuizzMeg Skjenkeprøven</h3>
-        <p>Øv til skjenkeprøven med quiz og pensum samlet i én app.</p>
-        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="skjenkeprove/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven">Kjøp</a></p>
-      </article>
-      <article class="app">
-        <span class="status s-live">Demo</span>
-        <h3>QuizzMeg Etablererprøven</h3>
-        <p>Et hjelpemiddel for å bestå etablererprøven. Les pensum, ta quiz per tema og prøv eksamen.</p>
-        <p class="cta-row" style="margin-top:16px"><a class="demo-btn" href="etablerer/">Prøv demo →</a> <a class="buy-btn" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven">Kjøp</a></p>
-      </article>
-    </div>
-  </div>
-</section>
+<nav class="chapters" aria-label="Velg område">
+  <a class="tile t-barn" href="#barnehage"><strong>Barnehage</strong><span>Planlegg månedens måltider</span></a>
+  <a class="tile t-kafe" href="#kafe"><strong>Kafé og kjøkken</strong><span>Se hva hver rett koster og tjener</span></a>
+  <a class="tile t-prove" href="#prover"><strong>Prøver</strong><span>Øv til skjenke- og etablererprøven</span></a>
+</nav>
 
-<section class="band">
+<section class="chapter ch-barn" id="barnehage">
   <div class="wrap">
-    <div class="eyebrow">Bare Barnemat</div>
-    <h2>Slik ser det ut</h2>
+    <h2>Matplan som passer alle barna</h2>
+    <div class="ch-top">
+      <div>
+        <p class="pitch"><b>Bare Barnemat</b> er kalenderen der du planlegger månedens måltider. Dra rettene inn på dagene. Appen sier fra når en rett ikke passer for et barn med allergi eller spesialkost, og viser hva måneden koster.</p>
+        <div class="ch-btns"><a class="ch-btn" href="barnemat/?demo=1">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Bare%20Barnemat">Kjøp</a></div>
+        <p class="ch-note">Demoen starter med en ferdig plan, og du slipper å logge inn. Appen er under utvikling. Vil din barnehage teste den, send oss en e-post.</p>
+      </div>
+      <div class="panel">
+        <h3>Dette kan du</h3>
+        <ul>
+          <li>Planlegge to uker om gangen, med rettene fargekodet etter type</li>
+          <li>Få varsel når en rett ikke passer for et barn med allergi eller kosthold</li>
+          <li>Se budsjett og kostnad per barn, og skjule tallene med ett trykk</li>
+          <li>Bestille for en valgfri periode</li>
+          <li>Bruke ukespakker og matboks</li>
+          <li>Eksportere ferdig månedsmeny</li>
+        </ul>
+      </div>
+    </div>
     <div class="shotrow">
       <figure><img src="bilder/skrivebord.webp" width="1400" height="877" alt="Bare Barnemat på skjerm: månedsplan med retter per dag og en liste med retter til høyre" loading="lazy"><figcaption>Månedsplanen på skjerm, med rettene klare til å dras inn.</figcaption></figure>
       <figure><img src="bilder/ukevisning.webp" width="1320" height="1318" alt="To ukers oversikt med lunsj, ettermiddagsmat og matboks for hver dag" loading="lazy"><figcaption>To uker om gangen, fargekodet etter type mat.</figcaption></figure>
@@ -213,56 +220,84 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
   </div>
 </section>
 
-<section>
+<section class="chapter ch-kafe" id="kafe">
   <div class="wrap">
-    <div class="eyebrow">Auto·Mat</div>
-    <h2>Beregnemaskin for kjøkkenet</h2>
-    <p class="lead2">Verktøyene ligger samlet i én oversikt, fra varekost og bestilling til svinn, fortjeneste og marginrapport.</p>
+    <h2>Vet hva hver rett koster, og hva den gir</h2>
+    <div class="ch-top">
+      <div>
+        <p class="pitch"><b>Auto·Mat</b> regner ut varekost, påslag og margin for hver rett. Bestilling, svinn og allergener ligger i samme app. Laget for proffkjøkken, kafeer og serveringssteder.</p>
+        <div class="ch-btns"><a class="ch-btn" href="automat/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Auto%C2%B7Mat">Kjøp</a></div>
+        <p class="ch-note">Demoen har eksempeldata fra et kjøkken, så du ser alle verktøyene i bruk. Det du legger inn lagres bare i din nettleser.</p>
+      </div>
+      <div class="panel">
+        <h3>Dette kan du</h3>
+        <ul>
+          <li>Se varekost per rett, med pris inne og take away</li>
+          <li>Lage handleliste ut fra retter og antall porsjoner</li>
+          <li>Registrere svinn og stemme det av mot regnskapet</li>
+          <li>Følge fortjenesten måned for måned, og se hvilke retter som gir mest</li>
+          <li>Skrive ut allergenkort til disken og allergenliste til de ansatte</li>
+          <li>Lage menyen som plakat, i Word eller PDF</li>
+        </ul>
+      </div>
+    </div>
     <div class="phones">
-      <figure><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett og verktøy som varekost, bestilling, svinn, fortjeneste, marginrapport, allergener og meny" loading="lazy"><figcaption>Verktøyene samlet i én oversikt.</figcaption></figure>
-      <figure><img src="bilder/automat-varekost.webp" width="520" height="770" alt="Varekost: liste over retter med pris for inne og take away, og allergener på hver rett" loading="lazy"><figcaption>Varekost per rett, med pris inne og take away og allergener.</figcaption></figure>
+      <figure><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett og verktøy som varekost, bestilling, svinn, fortjeneste, marginrapport, allergener og meny" loading="lazy"><figcaption>Alle verktøyene i én oversikt.</figcaption></figure>
+      <figure><img src="bilder/automat-varekost.webp" width="520" height="770" alt="Varekost: liste over retter med pris for inne og take away, og allergener på hver rett" loading="lazy"><figcaption>Varekost per rett, med pris inne og take away.</figcaption></figure>
       <figure><img src="bilder/automat-ravarer.webp" width="520" height="842" alt="Råvarer for håndpillede rekesalat med mengde, pris per kilo og varekost totalt" loading="lazy"><figcaption>Råvarene bak en rett, med kostnad per ingrediens.</figcaption></figure>
-      <figure><img src="bilder/automat-bestilling.webp" width="520" height="842" alt="Velg produkter: retter med antall porsjoner og knapp for å gå til handlelisten" loading="lazy"><figcaption>Velg retter og antall porsjoner, og få handleliste.</figcaption></figure>
-      <figure><img src="bilder/automat-marginrapport.webp" width="520" height="812" alt="Marginrapport med snittfortjeneste, snittmargin og retter rangert etter fortjeneste" loading="lazy"><figcaption>Marginrapport: hvilke retter tjener du mest på.</figcaption></figure>
+      <figure><img src="bilder/automat-bestilling.webp" width="520" height="842" alt="Velg produkter: retter med antall porsjoner og knapp for å gå til handlelisten" loading="lazy"><figcaption>Velg retter og porsjoner, og få handleliste.</figcaption></figure>
+      <figure><img src="bilder/automat-marginrapport.webp" width="520" height="812" alt="Marginrapport med snittfortjeneste, snittmargin og retter rangert etter fortjeneste" loading="lazy"><figcaption>Marginrapport: se hvilke retter du tjener mest på.</figcaption></figure>
       <figure><img src="bilder/automat-allergener.webp" width="520" height="812" alt="Allergener: velg retter og lag kort til disken eller liste til de ansatte" loading="lazy"><figcaption>Allergenkort og allergenliste for utvalgte retter.</figcaption></figure>
       <figure><img src="bilder/automat-meny.webp" width="520" height="812" alt="Meny-bygger med valg av pris, format og tema, og knapper for Word og PDF" loading="lazy"><figcaption>Bygg menyen med tema, format og pris, og eksporter.</figcaption></figure>
     </div>
   </div>
 </section>
 
-<section class="band">
+<section class="chapter ch-prove" id="prover">
   <div class="wrap">
-    <div class="eyebrow">QuizzMeg Etablererprøven</div>
-    <h2>Øv til etablererprøven</h2>
-    <p class="lead2">Et hjelpemiddel for å bestå etablererprøven. Velg tema, les pensum, svar på spørsmål og få forklaring med en gang, og prøv eksamen når du er klar.</p>
-    <div class="phones">
-      <figure><img src="bilder/quizz-start.webp" width="520" height="799" alt="QuizzMeg Etablererprøven, startskjerm" loading="lazy"><figcaption>Startskjermen til Etablererprøven.</figcaption></figure>
-      <figure><img src="bilder/quizz-kategorier.webp" width="520" height="1086" alt="Liste over kategorier som alkoholloven, bevilling, salg og skjenking, tider og kontroll" loading="lazy"><figcaption>Velg kategori, og se hvor langt du har kommet.</figcaption></figure>
+    <h2>Øv til prøvene</h2>
+    <p class="pitch" style="margin-top:28px">Les pensum, ta quiz per tema og få forklaring på hvert svar. Når du er klar, tar du full eksamen. Fremgangen din lagres i nettleseren.</p>
+
+    <div class="sub-app">
+      <h3>QuizzMeg Skjenkeprøven</h3>
+      <div class="ch-top">
+        <div>
+          <p class="pitch">Et hjelpemiddel for å bestå skjenkeprøven. Over 100 spørsmål fordelt på seks temaer: salg, bevilling, skjenketider, kunde, internkontroll og reklame.</p>
+          <div class="ch-btns"><a class="ch-btn" href="skjenkeprove/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven">Kjøp</a></div>
+          <p class="ch-note">I demoen er ett tema åpent. Resten og eksamen får du i fullversjonen.</p>
+        </div>
+      </div>
+      <div class="phones">
+      <figure><img src="bilder/skjenk-start.webp" width="520" height="801" alt="QuizzMeg Skjenkeprøven, startskjerm" loading="lazy"><figcaption>Startskjermen.</figcaption></figure>
+      <figure><img src="bilder/skjenk-sporsmal.webp" width="520" height="801" alt="Quizspørsmål om bevilling" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
+      <figure><img src="bilder/skjenk-pensum.webp" width="520" height="801" alt="Pensum om salg og aldersgrenser" loading="lazy"><figcaption>Les pensum når du står fast.</figcaption></figure>
+      <figure><img src="bilder/skjenk-eksamen.webp" width="520" height="801" alt="Eksamensmodus" loading="lazy"><figcaption>Full eksamen med alle temaer.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="sub-app">
+      <h3>QuizzMeg Etablererprøven</h3>
+      <div class="ch-top">
+        <div>
+          <p class="pitch">Et hjelpemiddel for å bestå etablererprøven. Over 70 spørsmål fordelt på ni temaer: alkoholloven, bevilling, salg og skjenking, tider, kontroll, sanksjoner, internkontroll, avgifter og ansvar.</p>
+          <div class="ch-btns"><a class="ch-btn" href="etablerer/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven">Kjøp</a></div>
+          <p class="ch-note">I demoen er ett tema åpent. Resten og eksamen får du i fullversjonen.</p>
+        </div>
+      </div>
+      <div class="phones">
+      <figure><img src="bilder/quizz-start.webp" width="520" height="799" alt="QuizzMeg Etablererprøven, startskjerm" loading="lazy"><figcaption>Startskjermen.</figcaption></figure>
+      <figure><img src="bilder/quizz-kategorier.webp" width="520" height="1086" alt="Liste over temaer som alkoholloven, bevilling, salg og skjenking, tider og kontroll" loading="lazy"><figcaption>Velg tema og se hvor langt du har kommet.</figcaption></figure>
       <figure><img src="bilder/quizz-sporsmal.webp" width="520" height="1086" alt="Quizspørsmål med fire svaralternativer" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
       <figure><img src="bilder/quizz-svar.webp" width="520" height="849" alt="Riktig svar markert og forklaring på hvorfor et alternativ er feil" loading="lazy"><figcaption>Svar med forklaring.</figcaption></figure>
       <figure><img src="bilder/quizz-pensum.webp" width="520" height="849" alt="Pensumtekst om legitimasjonskontroll" loading="lazy"><figcaption>Les pensum når du står fast.</figcaption></figure>
       <figure><img src="bilder/quizz-eksamen.webp" width="520" height="849" alt="Eksamensmodus med spørsmål 1 av 45" loading="lazy"><figcaption>Eksamensmodus med 45 spørsmål.</figcaption></figure>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="eyebrow">QuizzMeg Skjenkeprøven</div>
-    <h2>Øv til skjenkeprøven</h2>
-    <p class="lead2">Samme måte å øve på som i etablererprøven: quiz med forklaring og pensum samlet i én app for deg som skal ta skjenkeprøven.</p>
-    <div class="phones">
-      <figure><img src="bilder/skjenk-start.webp" width="520" height="801" alt="QuizzMeg Skjenkeprøven, startskjerm" loading="lazy"><figcaption>Startskjermen til Skjenkeprøven.</figcaption></figure>
-      <figure><img src="bilder/skjenk-sporsmal.webp" width="520" height="801" alt="Quizspørsmål om bevilling" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
-      <figure><img src="bilder/skjenk-pensum.webp" width="520" height="801" alt="Pensum om salg og aldersgrenser" loading="lazy"><figcaption>Les pensum før du tar quizzen.</figcaption></figure>
-      <figure><img src="bilder/skjenk-eksamen.webp" width="520" height="801" alt="Eksamensmodus" loading="lazy"><figcaption>Full eksamen med alle kategorier.</figcaption></figure>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="band">
   <div class="wrap">
-    <div class="eyebrow">For leverandører</div>
     <h2>Nå ut til kjøkken som planlegger</h2>
     <p>Er du grossist eller produsent og vil at varene dine skal finnes der menyene lages? Ta kontakt, så forteller vi hva som er mulig.</p>
   </div>
@@ -270,9 +305,8 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 
 <section>
   <div class="wrap">
-    <div class="eyebrow">Kontakt</div>
     <h2>Si fra</h2>
-    <p style="margin-top:14px;max-width:34em;color:var(--muted)">Vil du prøve Bare Barnemat i din barnehage, eller har du spørsmål? Send oss en e-post.</p>
+    <p style="margin-top:14px;max-width:34em;color:var(--muted)">Vil du ha Bare Barnemat i barnehagen, Auto·Mat på kjøkkenet eller en av quizappene? Eller har du spørsmål? Send oss en e-post.</p>
     <div class="mail"><code id="addr">post@spisbart.no</code><button type="button" id="copy">Kopier</button></div>
   </div>
 </section>
