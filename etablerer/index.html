@@ -310,6 +310,12 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
     <div class="npnl" id="np-cats">
       <div class="cats-hdr"><button class="bk-btn light" onclick="goHome()">←</button><div class="cats-ttl">Velg kategori</div></div>
       <div style="overflow-y:auto;max-height:calc(100vh - 120px);">
+        <div class="cat-blk" style="background:#7B4A12;" onclick="startQuizOrResume('servering')"><div class="resume-badge" id="rb-servering">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('servering')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('servering')">QUIZZ</button></div><div class="cat-nm">SERVERINGS&shy;LOVEN</div></div><div class="cat-prog" id="cp-servering"><div class="cpb"><div class="cpf" id="cpf-servering"></div></div><div class="cpt" id="cpt-servering"></div></div></div>
+        <div class="cat-blk" style="background:#A3217F;" onclick="startQuizOrResume('leder')"><div class="resume-badge" id="rb-leder">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('leder')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('leder')">QUIZZ</button></div><div class="cat-nm">DAGLIG LEDER</div></div><div class="cat-prog" id="cp-leder"><div class="cpb"><div class="cpf" id="cpf-leder"></div></div><div class="cpt" id="cpt-leder"></div></div></div>
+        <div class="cat-blk" style="background:#6B7A1E;" onclick="startQuizOrResume('mva')"><div class="resume-badge" id="rb-mva">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('mva')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('mva')">QUIZZ</button></div><div class="cat-nm">MVA & SKATT</div></div><div class="cat-prog" id="cp-mva"><div class="cpb"><div class="cpf" id="cpf-mva"></div></div><div class="cpt" id="cpt-mva"></div></div></div>
+        <div class="cat-blk" style="background:#1F3A93;" onclick="startQuizOrResume('regnskap')"><div class="resume-badge" id="rb-regnskap">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('regnskap')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('regnskap')">QUIZZ</button></div><div class="cat-nm">REGNSKAP</div></div><div class="cat-prog" id="cp-regnskap"><div class="cpb"><div class="cpf" id="cpf-regnskap"></div></div><div class="cpt" id="cpt-regnskap"></div></div></div>
+        <div class="cat-blk" style="background:#0E7C86;" onclick="startQuizOrResume('arbeid')"><div class="resume-badge" id="rb-arbeid">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('arbeid')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('arbeid')">QUIZZ</button></div><div class="cat-nm">ARBEIDS&shy;MILJØ</div></div><div class="cat-prog" id="cp-arbeid"><div class="cpb"><div class="cpf" id="cpf-arbeid"></div></div><div class="cpt" id="cpt-arbeid"></div></div></div>
+        <div class="cat-blk" style="background:#8C5A9E;" onclick="startQuizOrResume('konkurs')"><div class="resume-badge" id="rb-konkurs">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('konkurs')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('konkurs')">QUIZZ</button></div><div class="cat-nm">KONKURS</div></div><div class="cat-prog" id="cp-konkurs"><div class="cpb"><div class="cpf" id="cpf-konkurs"></div></div><div class="cpt" id="cpt-konkurs"></div></div></div>
         <div class="cat-blk" style="background:var(--b);" onclick="startQuizOrResume('alkloven')"><div class="resume-badge" id="rb-alkloven">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('alkloven')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('alkloven')">QUIZZ</button></div><div class="cat-nm">ALKOHOL&shy;LOVEN</div></div><div class="cat-prog" id="cp-alkloven"><div class="cpb"><div class="cpf" id="cpf-alkloven"></div></div><div class="cpt" id="cpt-alkloven"></div></div></div>
         <div class="cat-blk" style="background:var(--p);" onclick="startQuizOrResume('bevilling')"><div class="resume-badge" id="rb-bevilling">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('bevilling')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('bevilling')">QUIZZ</button></div><div class="cat-nm">BEVILLING</div></div><div class="cat-prog" id="cp-bevilling"><div class="cpb"><div class="cpf" id="cpf-bevilling"></div></div><div class="cpt" id="cpt-bevilling"></div></div></div>
         <div class="cat-blk" style="background:var(--y);" onclick="startQuizOrResume('skjenking')"><div class="resume-badge" id="rb-skjenking">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('skjenking')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('skjenking')">QUIZZ</button></div><div class="cat-nm">SALG & SKJENK</div></div><div class="cat-prog" id="cp-skjenking"><div class="cpb"><div class="cpf" id="cpf-skjenking"></div></div><div class="cpt" id="cpt-skjenking"></div></div></div>
@@ -320,7 +326,7 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
         <div class="cat-blk" style="background:var(--c8);" onclick="startQuizOrResume('avgifter')"><div class="resume-badge" id="rb-avgifter">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('avgifter')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('avgifter')">QUIZZ</button></div><div class="cat-nm">AVGIFTER</div></div><div class="cat-prog" id="cp-avgifter"><div class="cpb"><div class="cpf" id="cpf-avgifter"></div></div><div class="cpt" id="cpt-avgifter"></div></div></div>
         <div class="cat-blk" style="background:var(--c9);" onclick="startQuizOrResume('ansvar')"><div class="resume-badge" id="rb-ansvar">FORTSETT</div><div class="cat-main"><div class="cat-acts"><button class="ca" onclick="event.stopPropagation();openRead('ansvar')">LES</button><button class="ca" onclick="event.stopPropagation();startQuizOrResume('ansvar')">QUIZZ</button></div><div class="cat-nm">ANSVAR</div></div><div class="cat-prog" id="cp-ansvar"><div class="cpb"><div class="cpf" id="cpf-ansvar"></div></div><div class="cpt" id="cpt-ansvar"></div></div></div>
         <div class="eksamen-banner" onclick="startEksamen()">
-          <div><div class="eksamen-title">Full eksamen</div><div class="eksamen-sub">45 spørsmål · alle kategorier · ekte prøve</div></div>
+          <div><div class="eksamen-title">Full eksamen</div><div class="eksamen-sub">50 spørsmål · alle kategorier · ekte prøve</div></div>
           <button class="eksamen-btn">Start →</button>
         </div>
       </div>
@@ -363,6 +369,12 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
 <div class="toast" id="toast-el"></div>
 <script>
 const C={
+  servering:{name:"Serveringsloven",col:"#7B4A12"},
+  leder:{name:"Daglig leder & prøven",col:"#A3217F"},
+  mva:{name:"Mva & skatt",col:"#6B7A1E"},
+  regnskap:{name:"Regnskap & kassa",col:"#1F3A93"},
+  arbeid:{name:"Arbeidsmiljø",col:"#0E7C86"},
+  konkurs:{name:"Økonomi & konkurs",col:"#8C5A9E"},
   alkloven:{name:'Alkoholloven',col:'#1B4F7A'},
   bevilling:{name:'Bevillingssystemet',col:'#C8376A'},
   skjenking:{name:'Salg & skjenking',col:'#E8B84B'},
@@ -376,6 +388,132 @@ const C={
 const EKSAMEN_COL='#ffffff';
 
 const PENSUM={
+servering:[
+  {h:"Bevillingsplikt",paras:[
+    {id:"sv1",t:"Serveringsloven regulerer etablering og drift av serveringssteder som drives som næringsvirksomhet. Formålet er forsvarlig drift til nytte for næringen, forbrukerne og samfunnet."},
+    {id:"sv2",t:"Du trenger serveringsbevilling fra kommunen når du driver næring med servering av mat og/eller drikke og gjestene kan innta det på stedet. Kravet gjelder også om du ikke serverer alkohol."},
+    {id:"sv3",t:"Skal det serveres alkohol, kreves skjenkebevilling i tillegg til serveringsbevilling."},
+    {id:"sv4",t:"Bevillingen gjelder bare for det stedet som står i bevillingen."},
+    {id:"sv5",t:"Loven har unntak, for eksempel servering som ikke drives som næring, skolekjøkken og ansattkantiner som drives til selvkost."},
+  ]},
+  {h:"Søknad og saksbehandling",paras:[
+    {id:"sv6",t:"Kommunen må innhente uttalelse fra politiet før den avgjør en søknad om serveringsbevilling."},
+    {id:"sv7",t:"Kommunen skal avgjøre søknaden så raskt som mulig, og senest 60 dager etter at den er komplett. Bevillingen regnes ikke som gitt selv om fristen er gått ut."},
+    {id:"sv8",t:"Søknaden skal alltid ha med skatteattest og bevis for at daglig leder har bestått etablererprøven. Kommunen kan be om mer dokumentasjon, for eksempel leiekontrakt og budsjetter."},
+    {id:"sv9",t:"Serveringsbevillingen har ingen fast utløpsdato. Den gjelder til den faller bort eller kalles tilbake."},
+  ]},
+  {h:"Eierskifte og opphør",paras:[
+    {id:"sv10",t:"Nytt daglig leder eller nye eiere skal meldes til kommunen uten ugrunnet opphold, med samme dokumentasjon som ved søknaden."},
+    {id:"sv11",t:"Ved salg av stedet faller bevillingen bort hvis den nye eieren ikke søker om ny bevilling innen 30 dager. Har den nye eieren søkt i tide, kan driften fortsette til saken er avgjort."},
+    {id:"sv12",t:"Bevillingen faller bort hvis stedet har vært stengt i mer enn ett år, eller ikke har åpnet ett år etter at bevillingen ble gitt."},
+  ]},
+  {h:"Kontroll, stenging og straff",paras:[
+    {id:"sv13",t:"Kommunen og politiet kan kontrollere serveringsstedet. Kommunen kan når som helst kreve dokumentasjon på at kravene til bevilling er oppfylt."},
+    {id:"sv14",t:"Politiet kan stenge et serveringssted i inntil sju dager, for eksempel for å stanse forstyrrelse av ro og orden eller for å ivareta sikkerheten."},
+    {id:"sv15",t:"Gjester som gjentatte ganger bryter ordensreglene eller forstyrrer ro og orden, kan i særlige tilfeller nektes adgang for en periode. Vedtaket må være skriftlig, begrunnet og si hvor lenge det varer."},
+    {id:"sv16",t:"Et serveringssted kan holde tilbake gjenstander en gjest har med seg hvis gjesten ikke betaler. Er gjelden ikke gjort opp innen 60 dager, skal gjenstandene leveres til politiet."},
+    {id:"sv17",t:"Det kan straffes å drive uten serveringsbevilling, å ikke følge åpningstidene eller å ikke følge politiets pålegg. Bevillingen kan kalles tilbake etter varsel."},
+  ]},
+  {h:"Åpningstider og lokaler",paras:[
+    {id:"sv18",t:"Kommunen kan fastsette åpningstider for serveringssteder i forskrift. Reglene varierer fra kommune til kommune."},
+    {id:"sv19",t:"Lokalet må kunne brukes til næringsformål og oppfylle brannforskriftene. Det stilles også krav til sikkerhet, renhold, avfallshåndtering og universell utforming."},
+    {id:"sv20",t:"Matlaging må skje der maten er beskyttet mot forurensning og skadedyr. Kjøkken med fett i avløpet må ha fettutskiller som tømmes regelmessig."},
+  ]},
+],
+leder:[
+  {h:"Daglig leder",paras:[
+    {id:"dl1",t:"Serveringsstedet må ha en daglig leder som har det reelle ansvaret for den daglige driften."},
+    {id:"dl2",t:"Daglig leder må være myndig, altså ha fylt 18 år."},
+    {id:"dl3",t:"Daglig leder må ha bestått etablererprøven og oppfylle kravene til vandel."},
+    {id:"dl4",t:"Eieren kan selv være daglig leder. Ellers må daglig leder være ansatt ved stedet."},
+  ]},
+  {h:"Etablererprøven",paras:[
+    {id:"dl5",t:"Etablererprøven er en flervalgsprøve med 50 spørsmål. Du har 90 minutter og må ha minst 40 riktige (80 prosent) for å bestå."},
+    {id:"dl6",t:"Prøven dekker serveringsloven, skatte- og avgiftslovgivning, regnskapslovgivning, konkurslovgivning, arbeidsmiljølovgivning og alkoholloven, og er bygd på læremateriell for etablererprøven."},
+    {id:"dl7",t:"Kommunen skal holde prøven innen to måneder etter at du har bedt om det. Kommunen kan kreve inntil 400 kroner i forskudd per forsøk."},
+    {id:"dl8",t:"Hvem som helst kan ta etablererprøven. Du trenger ikke ha et serveringssted først."},
+  ]},
+  {h:"Vandel",paras:[
+    {id:"vd1",t:"Bevillingshaver, daglig leder og personer med vesentlig innflytelse må ha uklanderlig vandel."},
+    {id:"vd2",t:"Relevante lovbrudd er brudd på straffeloven, skatte- og avgiftslovgivningen, regnskapslovgivningen og likestillings- og diskrimineringsloven."},
+    {id:"vd3",t:"Kommunen kan ikke legge vekt på forhold som er eldre enn fem år når den vurderer vandelen."},
+    {id:"vd4",t:"Eierandeler hos ektefelle, samboer, foreldre, barn og søsken regnes sammen når kommunen vurderer hvem som har vesentlig innflytelse."},
+    {id:"vd5",t:"Får kommunen opplysninger fra skattemyndighetene om brudd, skal den vurdere å nekte eller kalle tilbake bevillingen. Alvorlighet, hvor lenge siden og antall brudd teller med."},
+  ]},
+],
+mva:[
+  {h:"Merverdiavgift på servering",paras:[
+    {id:"mv1",t:"Normalsatsen for merverdiavgift er 25 prosent."},
+    {id:"mv2",t:"Mellomsatsen er 15 prosent og gjelder næringsmidler, altså mat og drikke."},
+    {id:"mv3",t:"Lav sats er 12 prosent og gjelder blant annet persontransport, kinobilletter og hotellovernatting."},
+    {id:"mv4",t:"Når gjesten spiser eller drikker på serveringsstedet, regnes det som en serveringstjeneste, og du skal beregne 25 prosent merverdiavgift."},
+    {id:"mv5",t:"Mat og drikke som gjesten tar med seg (take-away) har 15 prosent merverdiavgift. Emballasje som poser, kartonger og lokk kan tyde på take-away."},
+    {id:"mv6",t:"Alkoholholdige drikkevarer har alltid 25 prosent merverdiavgift, uansett om de spises på stedet eller tas med."},
+    {id:"mv7",t:"Kioskvarer som sjokolade, tyggegummi, ubehandlet frukt og pakket iskrem har alltid 15 prosent."},
+  ]},
+  {h:"Registrering og innberetning",paras:[
+    {id:"mv8",t:"Du må registrere virksomheten i Merverdiavgiftsregisteret når omsetningen av avgiftspliktige varer og tjenester er over 50 000 kroner i løpet av 12 måneder."},
+    {id:"mv9",t:"Som registrert kan du trekke fra inngående merverdiavgift på varer og tjenester du kjøper til virksomheten, så lenge de brukes i avgiftspliktig drift."},
+  ]},
+  {h:"Arbeidsgiver og skatt",paras:[
+    {id:"mv10",t:"Som arbeidsgiver skal du trekke skatt av lønnen (forskuddstrekk) og betale den videre til skattemyndighetene. Du skal også beregne og betale arbeidsgiveravgift."},
+    {id:"mv11",t:"Lønn og trekk rapporteres til myndighetene med a-melding. Trekket du har tatt fra de ansatte er ikke dine penger. Å bruke dem selv kan være underslag."},
+    {id:"mv12",t:"Feil eller brudd på skatte- og avgiftsreglene kan få betydning for vandelen din og dermed for bevillingen."},
+  ]},
+],
+regnskap:[
+  {h:"Bokføring",paras:[
+    {id:"rg1",t:"Næringsdrivende har bokføringsplikt. Alle transaksjoner skal registreres fortløpende, og hver postering skal kunne dokumenteres med et bilag."},
+    {id:"rg2",t:"Regnskapsmateriale, som bilag og bokførte opplysninger, skal oppbevares i fem år etter utgangen av regnskapsåret."},
+    {id:"rg3",t:"Aksjeselskap har regnskapsplikt og skal levere årsregnskap til Regnskapsregisteret. Fristen er normalt 31. juli året etter regnskapsåret."},
+    {id:"rg11",t:"Brudd på regnskapsreglene kan få betydning for vandelen din og dermed for bevillingen."},
+  ]},
+  {h:"Kassasystem",paras:[
+    {id:"rg4",t:"Bokføringspliktige med kontantsalg, der kunden betaler med kort eller kontanter ved levering, må ha et kassasystem som oppfyller kravene."},
+    {id:"rg5",t:"Unntak finnes for virksomheter med kontantsalg under 50 000 kroner (uten mva) per regnskapsår."},
+    {id:"rg6",t:"Leverandøren av kassasystemet må sende inn en produkterklæring til myndighetene. Systemet godkjennes ikke på forhånd."},
+    {id:"rg7",t:"Det skal lages en Z-rapport hver dag for hvert kassepunkt. Rapporten kan skrives ut eller lagres elektronisk."},
+    {id:"rg8",t:"Du skal gjøre dagsoppgjør ved å telle kontantene og sammenligne dem med Z-rapporten."},
+    {id:"rg9",t:"Et salg skal ikke kunne avsluttes uten at systemet skriver ut en salgskvittering. Kvitteringen kan være på papir eller elektronisk, men et system som bare kan sende elektronisk kvittering oppfyller ikke kravet."},
+    {id:"rg10",t:"Kassasystemet og den elektroniske journalen skal oppbevares i Norge i hele oppbevaringstiden."},
+  ]},
+],
+arbeid:[
+  {h:"Arbeidstid",paras:[
+    {id:"ar1",t:"Alminnelig arbeidstid er høyst 9 timer per døgn og 40 timer per uke. Mange avtaler kortere tid, ofte 37,5 timer per uke."},
+    {id:"ar2",t:"Arbeid utover de lovfestede grensene er overtid. Overtid skal gi minst 40 prosent tillegg til timelønnen."},
+  ]},
+  {h:"Pauser og hvile",paras:[
+    {id:"ar3",t:"Er arbeidsdagen lengre enn 5,5 timer, har du krav på minst én pause. Er den 8 timer eller mer, skal pausene til sammen være minst 30 minutter."},
+    {id:"ar4",t:"Hovedmåltidet skal vare minst 20 minutter, og pausen bør ligge omtrent midt i arbeidsdagen."},
+    {id:"ar5",t:"En pause regnes som fri bare hvis arbeidstakeren kan forlate arbeidsplassen og har et egnet pauserom. Ellers er pausen arbeidstid."},
+    {id:"ar6",t:"Arbeidstakeren skal ha minst 11 timer sammenhengende hvile per døgn og minst 35 timer sammenhengende fri per uke."},
+  ]},
+  {h:"Ansettelse",paras:[
+    {id:"ar7",t:"Arbeidsavtalen skal være skriftlig."},
+    {id:"ar8",t:"Prøvetid kan høyst være seks måneder."},
+    {id:"ar9",t:"Oppsigelsestiden er som hovedregel en måned når ikke annet er avtalt."},
+    {id:"ar10",t:"Feriepenger er normalt 10,2 prosent av feriepengegrunnlaget. Alle har rett til 25 virkedager ferie, altså fire uker og en dag."},
+  ]},
+  {h:"Arbeidsmiljø og HMS",paras:[
+    {id:"ar11",t:"Arbeidsgiver har ansvar for et fullt forsvarlig arbeidsmiljø og skal drive systematisk helse-, miljø- og sikkerhetsarbeid (HMS)."},
+    {id:"ar12",t:"Virksomheter med minst 10 ansatte skal ha verneombud. Med 5–9 ansatte kan de ansatte kreve det."},
+    {id:"ar13",t:"Virksomheter med minst 50 ansatte skal ha et arbeidsmiljøutvalg (AMU)."},
+  ]},
+],
+konkurs:[
+  {h:"Aksjeselskap og kapital",paras:[
+    {id:"ko1",t:"Et aksjeselskap må ha en aksjekapital på minst 30 000 kroner."},
+    {id:"ko2",t:"Styret skal sørge for at selskapet har forsvarlig egenkapital og likviditet i forhold til risikoen og omfanget av virksomheten, og følge løpende med."},
+  ]},
+  {h:"Når det går dårlig",paras:[
+    {id:"ko3",t:"Er egenkapitalen ikke forsvarlig, må styret handle, for eksempel ved å redusere driften, tilføre ny kapital eller skaffe annen finansiering."},
+    {id:"ko4",t:"Er det ikke realistisk å redde selskapet, må styret begjære konkurs innen rimelig tid."},
+    {id:"ko5",t:"Styremedlemmer kan bli personlig erstatningsansvarlige for tap som skyldes uaktsomhet, for eksempel hvis de driver videre når selskapet åpenbart er insolvent."},
+    {id:"ko6",t:"Selskapet bør informere avtaleparter om betalingsproblemer, særlig hvis det fortsatt tar imot leveranser på kreditt."},
+    {id:"ko7",t:"En skyldner er insolvent når den ikke kan oppfylle forpliktelsene sine etter hvert som de forfaller."},
+  ]},
+],
 alkloven:[
   {h:'Lovens formål',paras:[
     {id:'a1',t:'Alkoholloven skal i størst mulig utstrekning begrense de samfunnsmessige og individuelle skader alkoholbruk kan innebære.'},
@@ -617,6 +755,94 @@ ansvar:[
 };
 
 const QUESTIONS={
+servering:[
+  {q:"Hvem gir serveringsbevilling?",opts:["Politiet", "Kommunen", "Mattilsynet", "Fylkeskommunen"],c:1,e:"Serveringsbevilling gis av kommunen.",h:["sv2"]},
+  {q:"Hvilken bevilling trenger du i tillegg til serveringsbevilling for å servere alkohol?",opts:["Salgsbevilling", "Skjenkebevilling", "Ambulerende bevilling", "Ingen ekstra"],c:1,e:"Skal det serveres alkohol, kreves skjenkebevilling i tillegg.",h:["sv3"]},
+  {q:"Må en kafé uten alkohol ha serveringsbevilling?",opts:["Nei, bare steder med alkohol", "Ja, når det drives næring og gjestene kan innta maten på stedet", "Bare hvis det er over 20 sitteplasser", "Bare i byer"],c:1,e:"Kravet gjelder all næringsmessig servering der gjestene kan innta maten eller drikken på stedet, også uten alkohol.",h:["sv2"]},
+  {q:"Hva gjelder en serveringsbevilling for?",opts:["Alle serveringssteder du eier", "Det stedet som står i bevillingen", "Hele kommunen", "Hele landet"],c:1,e:"Bevillingen er knyttet til et bestemt sted.",h:["sv4"]},
+  {q:"Hvilke steder kan være unntatt fra bevillingsplikten?",opts:["Alle kafeer under 50 m²", "Ansattkantiner som drives til selvkost", "Alle restauranter uten alkohol", "Gatekjøkken"],c:1,e:"Loven har unntak, blant annet for ansattkantiner drevet til selvkost og servering som ikke drives som næring.",h:["sv5"]},
+  {q:"Hvem må kommunen innhente uttalelse fra før den avgjør en søknad om serveringsbevilling?",opts:["Brannvesenet alene", "Politiet", "Mattilsynet alene", "Naboene"],c:1,e:"Kommunen må innhente uttalelse fra politiet.",h:["sv6"]},
+  {q:"Hvor lang er kommunens frist for å avgjøre en komplett søknad om serveringsbevilling?",opts:["14 dager", "30 dager", "60 dager", "6 måneder"],c:2,e:"Kommunen skal svare senest 60 dager etter at søknaden er komplett.",h:["sv7"]},
+  {q:"Regnes bevillingen som gitt hvis kommunen ikke har svart innen fristen?",opts:["Ja, automatisk", "Ja, etter 90 dager", "Nei", "Bare for kafeer"],c:2,e:"Bevillingen regnes ikke som gitt selv om fristen er gått ut.",h:["sv7"]},
+  {q:"Hvilke dokumenter skal alltid være med i søknaden?",opts:["Regnskap for tre år", "Skatteattest og bevis for bestått etablererprøve", "Kopi av pass", "Anbefaling fra tidligere arbeidsgiver"],c:1,e:"Skatteattest og bevis for bestått etablererprøve skal alltid følge søknaden. Kommunen kan be om mer.",h:["sv8"]},
+  {q:"Hvor lenge varer en serveringsbevilling?",opts:["Ett år", "Fire år", "Åtte år", "Den har ingen fast utløpsdato"],c:3,e:"Serveringsbevillingen har ingen fast utløpsdato, i motsetning til skjenkebevilling.",h:["sv9"]},
+  {q:"Hva må du gjøre hvis du kjøper et serveringssted og vil drive videre?",opts:["Ingenting, bevillingen følger med", "Søke om ny bevilling innen 30 dager", "Søke innen ett år", "Melde fra til Mattilsynet"],c:1,e:"Faller bevillingen bort ved salg hvis ny eier ikke søker innen 30 dager. Har du søkt i tide, kan du drive videre til saken er avgjort.",h:["sv11"]},
+  {q:"Når faller en serveringsbevilling bort på grunn av stengt drift?",opts:["Etter 3 måneder", "Etter 6 måneder", "Når stedet har vært stengt i over ett år", "Aldri"],c:2,e:"Bevillingen faller bort hvis stedet har vært stengt i over ett år, eller ikke har åpnet ett år etter at bevillingen ble gitt.",h:["sv12"]},
+  {q:"Hvor lenge kan politiet stenge et serveringssted for å stanse forstyrrelser av ro og orden?",opts:["24 timer", "Inntil sju dager", "Inntil 30 dager", "Inntil ett år"],c:1,e:"Politiet kan stenge et serveringssted i inntil sju dager.",h:["sv14"]},
+  {q:"Hva kreves for at en gjest skal kunne nektes adgang for en periode på grunn av gjentatt ordensbrudd?",opts:["Muntlig beskjed fra dørvakt", "Skriftlig og begrunnet vedtak som sier hvor lenge det varer", "Avgjørelse i kommunestyret", "Dom i retten"],c:1,e:"Vedtaket må være skriftlig, begrunnet og oppgi varigheten.",h:["sv15"]},
+  {q:"En gjest nekter å betale og går fra gjenstander på stedet. Hva gjelder?",opts:["Du må levere dem tilbake med en gang", "Du kan holde dem tilbake, og må levere dem til politiet hvis gjelden ikke er oppgjort innen 60 dager", "Du kan selge dem etter 7 dager", "Du kan beholde dem for alltid"],c:1,e:"Stedet kan holde tilbake gjenstander ved manglende betaling. Etter 60 dager skal de leveres til politiet.",h:["sv16"]},
+  {q:"Hva kan straffes etter serveringsloven?",opts:["Å drive uten serveringsbevilling", "Å ha for mange sitteplasser", "Å skifte meny", "Å bruke utenlandsk personale"],c:0,e:"Det kan straffes å drive uten bevilling, å ikke følge åpningstidene og å ikke følge politiets pålegg.",h:["sv17"]},
+  {q:"Hvem fastsetter åpningstidene for serveringssteder?",opts:["Stortinget i lov", "Kommunen i forskrift", "Politiet", "Næringsforeningen"],c:1,e:"Kommunen kan fastsette åpningstider i forskrift, så de kan variere mellom kommuner.",h:["sv18"]},
+],
+leder:[
+  {q:"Hva kalles den som har det reelle ansvaret for den daglige driften av et serveringssted?",opts:["Vaktsjef", "Daglig leder", "Eier", "Kontrollør"],c:1,e:"Stedet må ha en daglig leder med det reelle ansvaret for driften.",h:["dl1"]},
+  {q:"Hvilken aldersgrense gjelder for daglig leder?",opts:["16 år", "18 år", "20 år", "25 år"],c:1,e:"Daglig leder må være myndig, altså ha fylt 18 år.",h:["dl2"]},
+  {q:"Kan eieren selv være daglig leder?",opts:["Nei, aldri", "Ja", "Bare i aksjeselskap", "Bare med dispensasjon"],c:1,e:"Eieren kan være daglig leder. Ellers må daglig leder være ansatt ved stedet.",h:["dl4"]},
+  {q:"Hvor mange spørsmål har etablererprøven?",opts:["30", "40", "50", "60"],c:2,e:"Prøven har 50 flervalgsspørsmål.",h:["dl5"]},
+  {q:"Hvor mange riktige svar må du ha for å bestå etablererprøven?",opts:["30 av 50", "35 av 50", "40 av 50", "45 av 50"],c:2,e:"Du må ha minst 40 av 50 riktige (80 prosent).",h:["dl5"]},
+  {q:"Hvor lang tid har du på etablererprøven?",opts:["60 minutter", "90 minutter", "120 minutter", "3 timer"],c:1,e:"Du har 90 minutter.",h:["dl5"]},
+  {q:"Hvilket av disse fagene er ikke en del av etablererprøven?",opts:["Skatte- og avgiftslovgivning", "Arbeidsmiljølovgivning", "Konkurslovgivning", "Plan- og bygningsloven"],c:3,e:"Prøven dekker serveringsloven, skatt og avgift, regnskap, konkurs, arbeidsmiljø og alkoholloven.",h:["dl6"]},
+  {q:"Hvor lang tid har kommunen på å holde etablererprøven etter at du har bedt om det?",opts:["Én uke", "To uker", "To måneder", "Seks måneder"],c:2,e:"Kommunen skal holde prøven innen to måneder.",h:["dl7"]},
+  {q:"Hva er maksimal avgift kommunen kan kreve for etablererprøven per forsøk?",opts:["100 kroner", "400 kroner", "1 000 kroner", "2 000 kroner"],c:1,e:"Kommunen kan kreve inntil 400 kroner i forskudd.",h:["dl7"]},
+  {q:"Må du ha et serveringssted for å kunne ta etablererprøven?",opts:["Ja, du må ha bevilling", "Ja, du må ha søkt", "Nei, hvem som helst kan ta den", "Nei, men bare for eiere"],c:2,e:"Hvem som helst kan ta etablererprøven.",h:["dl8"]},
+  {q:"Hvem må ha uklanderlig vandel?",opts:["Alle ansatte", "Bevillingshaver, daglig leder og personer med vesentlig innflytelse", "Bare daglig leder", "Bare eieren"],c:1,e:"Kravet gjelder bevillingshaver, daglig leder og personer med vesentlig innflytelse.",h:["vd1"]},
+  {q:"Hvilke lovbrudd er relevante for vandelsvurderingen?",opts:["Bare trafikkforseelser", "Brudd på straffeloven, skatte- og avgiftslovgivningen og regnskapslovgivningen", "Bare brudd på alkoholloven", "Bare voldsforbrytelser"],c:1,e:"Straffeloven, skatte-, avgifts- og regnskapslovgivningen og likestillings- og diskrimineringsloven er relevante.",h:["vd2"]},
+  {q:"Hvor gamle forhold kan kommunen legge vekt på i vandelsvurderingen?",opts:["Opptil to år", "Opptil fem år", "Opptil ti år", "Alle tidligere forhold"],c:1,e:"Kommunen kan ikke legge vekt på forhold som er eldre enn fem år.",h:["vd3"]},
+  {q:"Hvordan regnes eierandeler hos ektefelle, samboer, foreldre, barn og søsken?",opts:["De regnes ikke med", "De regnes sammen med din andel", "Bare ektefelle regnes med", "Bare om de jobber der"],c:1,e:"Slike eierandeler regnes sammen når kommunen vurderer vesentlig innflytelse.",h:["vd4"]},
+],
+mva:[
+  {q:"Hva er normalsatsen for merverdiavgift?",opts:["12 prosent", "15 prosent", "25 prosent", "30 prosent"],c:2,e:"Normalsatsen er 25 prosent.",h:["mv1"]},
+  {q:"Hvilken mva-sats gjelder når gjesten spiser maten på restauranten?",opts:["12 prosent", "15 prosent", "25 prosent", "Ingen mva"],c:2,e:"Servering på stedet er en serveringstjeneste med 25 prosent mva.",h:["mv4"]},
+  {q:"Hvilken mva-sats gjelder for mat som gjesten tar med seg (take-away)?",opts:["0 prosent", "12 prosent", "15 prosent", "25 prosent"],c:2,e:"Take-away er mat og drikke med 15 prosent mva.",h:["mv5"]},
+  {q:"Hvilken mva-sats gjelder for en øl som tas med hjem?",opts:["12 prosent", "15 prosent", "25 prosent", "Ingen mva"],c:2,e:"Alkoholholdige drikkevarer har alltid 25 prosent mva.",h:["mv6"]},
+  {q:"En kaffe kjøpes og drikkes i kafeen. Hvilken sats?",opts:["12 prosent", "15 prosent", "25 prosent", "Ingen mva"],c:2,e:"Spises eller drikkes det på stedet, er det 25 prosent. Tas den med ut, er det 15 prosent.",h:["mv4", "mv5"]},
+  {q:"Hvilken mva-sats gjelder for en pakket iskrem som selges fra kiosken?",opts:["12 prosent", "15 prosent", "25 prosent", "Ingen mva"],c:1,e:"Kioskvarer som pakket iskrem og sjokolade har alltid 15 prosent.",h:["mv7"]},
+  {q:"Hvilken sats gjelder for hotellovernatting?",opts:["12 prosent", "15 prosent", "25 prosent", "Ingen mva"],c:0,e:"Lav sats på 12 prosent gjelder blant annet hotellovernatting, persontransport og kinobilletter.",h:["mv3"]},
+  {q:"Når må du registrere virksomheten i Merverdiavgiftsregisteret?",opts:["Allerede første dag", "Når omsetningen er over 50 000 kroner i løpet av 12 måneder", "Når omsetningen er over 1 million", "Bare hvis du har ansatte"],c:1,e:"Registreringsplikten inntrer når omsetningen av avgiftspliktige varer og tjenester er over 50 000 kroner på 12 måneder.",h:["mv8"]},
+  {q:"Hva kan en mva-registrert virksomhet trekke fra?",opts:["Ingenting", "Inngående merverdiavgift på varer og tjenester til driften", "All lønn", "All skatt"],c:1,e:"Du kan trekke fra inngående mva på innkjøp som brukes i avgiftspliktig drift.",h:["mv9"]},
+  {q:"Hva må en arbeidsgiver gjøre med skatten de ansatte skal betale av lønnen?",opts:["Overlate det til de ansatte", "Trekke den fra lønnen og betale den videre til skattemyndighetene", "Betale den ved årsslutt", "Ingenting"],c:1,e:"Arbeidsgiver skal trekke skatt av lønnen (forskuddstrekk) og betale den videre.",h:["mv10"]},
+  {q:"Hva er det kalt når arbeidsgiver rapporterer lønn og trekk til myndighetene?",opts:["Skattemelding", "A-melding", "Mva-melding", "Søknad"],c:1,e:"Lønn og trekk rapporteres med a-melding.",h:["mv11"]},
+  {q:"Hva kan brudd på skatte- og avgiftsreglene få betydning for?",opts:["Bare for regnskapet", "Vandelen og dermed bevillingen", "Bare for lønnen", "Ingenting"],c:1,e:"Brudd kan påvirke vandelskravet og føre til at bevillingen nektes eller kalles tilbake.",h:["mv12"]},
+],
+regnskap:[
+  {q:"Hva innebærer bokføringsplikten?",opts:["Å føre regnskap én gang i året", "Å registrere transaksjoner fortløpende og dokumentere dem med bilag", "Å lagre kvitteringer i 30 dager", "Å sende alle bilag til Skatteetaten"],c:1,e:"Transaksjoner skal registreres fortløpende, og hver postering skal kunne dokumenteres.",h:["rg1"]},
+  {q:"Hvor lenge skal regnskapsmateriale som bilag og bokførte opplysninger oppbevares?",opts:["1 år", "3 år", "5 år", "20 år"],c:2,e:"Regnskapsmateriale skal oppbevares i fem år etter utgangen av regnskapsåret.",h:["rg2"]},
+  {q:"Hva er normalt fristen for å levere årsregnskap for et aksjeselskap?",opts:["31. mars", "30. april", "31. juli", "31. desember"],c:2,e:"Fristen er normalt 31. juli året etter regnskapsåret.",h:["rg3"]},
+  {q:"Hvem må ha et kassasystem?",opts:["Alle med ansatte", "Bokføringspliktige med kontantsalg (kort eller kontanter ved levering)", "Bare restauranter med alkohol", "Bare kjeder"],c:1,e:"Bokføringspliktige med kontantsalg må ha kassasystem som oppfyller kravene.",h:["rg4"]},
+  {q:"Hvilket unntak gjelder for kassasystem-kravet?",opts:["Steder med færre enn 5 ansatte", "Kontantsalg under 50 000 kroner per regnskapsår", "Steder uten alkohol", "Nyåpnede steder det første året"],c:1,e:"Virksomheter med kontantsalg under 50 000 kroner (uten mva) per regnskapsår er unntatt.",h:["rg5"]},
+  {q:"Hvem sender inn produkterklæringen for kassasystemet?",opts:["Du som kunde", "Leverandøren", "Revisor", "Kommunen"],c:1,e:"Leverandøren må sende inn en produkterklæring. Systemet godkjennes ikke på forhånd.",h:["rg6"]},
+  {q:"Hvor ofte skal det lages en Z-rapport?",opts:["Hver time", "Hver dag for hvert kassepunkt", "Hver uke", "Hver måned"],c:1,e:"Z-rapport skal lages hver dag for hvert kassepunkt.",h:["rg7"]},
+  {q:"Hva skal du sammenligne ved dagsoppgjøret?",opts:["Kontantene du har talt og Z-rapporten", "Lønnen og salget", "Varelageret og bilagene", "Mva og omsetning"],c:0,e:"Dagsoppgjøret er en telling av kontantene mot Z-rapporten.",h:["rg8"]},
+  {q:"Må kassasystemet skrive ut en salgskvittering?",opts:["Nei, bare hvis kunden ber om det", "Ja, et salg skal ikke kunne avsluttes uten kvittering", "Bare ved salg over 500 kroner", "Bare ved kortbetaling"],c:1,e:"Systemet skal skrive ut en salgskvittering før salget kan avsluttes.",h:["rg9"]},
+  {q:"Er det nok at kassasystemet bare kan sende kvittering elektronisk?",opts:["Ja", "Nei, systemet må kunne skrive ut kvittering", "Ja, hvis kunden gir samtykke", "Ja, etter 2020"],c:1,e:"Et system som bare kan sende elektronisk kvittering oppfyller ikke kravet.",h:["rg9"]},
+  {q:"Hvor skal kassasystemet og den elektroniske journalen oppbevares?",opts:["Hvor som helst i EU", "I Norge", "Hos leverandøren i utlandet", "Hos revisor"],c:1,e:"Kassasystemet og den elektroniske journalen skal oppbevares i Norge.",h:["rg10"]},
+  {q:"Hva kan feil i regnskapet få betydning for?",opts:["Bare for revisor", "Vandelen og dermed bevillingen", "Bare for mva", "Ingenting"],c:1,e:"Brudd på regnskapslovgivningen er relevant for vandelsvurderingen.",h:["rg11"]},
+],
+arbeid:[
+  {q:"Hva er alminnelig arbeidstid per døgn etter arbeidsmiljøloven?",opts:["7,5 timer", "8 timer", "9 timer", "10 timer"],c:2,e:"Alminnelig arbeidstid er høyst 9 timer per døgn og 40 timer per uke.",h:["ar1"]},
+  {q:"Hva er alminnelig arbeidstid per uke?",opts:["35 timer", "37,5 timer", "40 timer", "48 timer"],c:2,e:"Lovens grense er 40 timer per uke. Kortere tid, som 37,5 timer, kan avtales.",h:["ar1"]},
+  {q:"Hva kalles arbeid utover den ordinære arbeidstiden?",opts:["Fleksitid", "Overtid", "Avspasering", "Sesongarbeid"],c:1,e:"Arbeid utover de lovfestede grensene er overtid.",h:["ar2"]},
+  {q:"Hvor stort tillegg skal overtid minst gi?",opts:["10 prosent", "25 prosent", "40 prosent", "100 prosent"],c:2,e:"Overtid skal gi minst 40 prosent tillegg.",h:["ar2"]},
+  {q:"Fra hvilken arbeidsdag har du krav på minst én pause?",opts:["Over 4 timer", "Over 5,5 timer", "Over 7 timer", "Over 9 timer"],c:1,e:"Er arbeidsdagen lengre enn 5,5 timer, har du krav på minst én pause.",h:["ar3"]},
+  {q:"Hvor lang skal pausetiden til sammen være minst ved en arbeidsdag på 8 timer eller mer?",opts:["10 minutter", "20 minutter", "30 minutter", "60 minutter"],c:2,e:"Ved 8 timer eller mer skal pausene til sammen være minst 30 minutter.",h:["ar3"]},
+  {q:"Hvor lang skal hovedmåltidet minst være?",opts:["10 minutter", "20 minutter", "30 minutter", "45 minutter"],c:1,e:"Hovedmåltidet skal vare minst 20 minutter.",h:["ar4"]},
+  {q:"Når regnes en pause som fri fra arbeidet?",opts:["Alltid", "Når arbeidstakeren kan forlate arbeidsplassen og har et egnet pauserom", "Aldri", "Bare ved lunsj"],c:1,e:"Er arbeidstakeren bundet til arbeidsplassen eller mangler pauserom, er pausen arbeidstid.",h:["ar5"]},
+  {q:"Hvor mange timer sammenhengende hvile per døgn skal arbeidstakeren minst ha?",opts:["8 timer", "9 timer", "11 timer", "13 timer"],c:2,e:"Minst 11 timer sammenhengende hvile per døgn.",h:["ar6"]},
+  {q:"Hvor mange timer sammenhengende fri skal arbeidstakeren ha per uke?",opts:["24 timer", "28 timer", "35 timer", "48 timer"],c:2,e:"Minst 35 timer sammenhengende fri per uke.",h:["ar6"]},
+  {q:"Hvordan skal en arbeidsavtale inngås?",opts:["Muntlig er nok", "Skriftlig", "Bare ved fast ansettelse", "Hos advokat"],c:1,e:"Arbeidsavtalen skal være skriftlig.",h:["ar7"]},
+  {q:"Hvor lang kan en prøvetid høyst være?",opts:["Én måned", "Tre måneder", "Seks måneder", "Tolv måneder"],c:2,e:"Prøvetid kan høyst være seks måneder.",h:["ar8"]},
+  {q:"Hvor mange virkedager ferie har en arbeidstaker rett til?",opts:["20 dager", "21 dager", "25 dager", "30 dager"],c:2,e:"Retten til ferie er 25 virkedager, altså fire uker og en dag.",h:["ar10"]},
+  {q:"Fra hvor mange ansatte skal en virksomhet ha verneombud?",opts:["3", "5", "10", "20"],c:2,e:"Virksomheter med minst 10 ansatte skal ha verneombud. Med 5–9 kan ansatte kreve det.",h:["ar12"]},
+],
+konkurs:[
+  {q:"Hva er minste aksjekapital i et aksjeselskap?",opts:["10 000 kroner", "30 000 kroner", "100 000 kroner", "1 million kroner"],c:1,e:"Et aksjeselskap må ha en aksjekapital på minst 30 000 kroner.",h:["ko1"]},
+  {q:"Hvem skal sørge for at et aksjeselskap har forsvarlig egenkapital og likviditet?",opts:["Revisor", "Styret", "Kommunen", "Banken"],c:1,e:"Styret skal sørge for forsvarlig egenkapital og likviditet og følge løpende med.",h:["ko2"]},
+  {q:"Hva skal styret gjøre hvis egenkapitalen ikke er forsvarlig?",opts:["Vente til neste år", "Handle, for eksempel redusere driften eller tilføre kapital", "Betale utbytte", "Ingenting"],c:1,e:"Styret må ta grep, som å redusere driften eller skaffe ny kapital eller finansiering.",h:["ko3"]},
+  {q:"Hva må styret gjøre hvis det ikke er realistisk å redde selskapet?",opts:["Fortsette driften", "Begjære konkurs innen rimelig tid", "Selge alt til styreleder", "Flytte selskapet"],c:1,e:"Er redning urealistisk, må styret begjære konkurs innen rimelig tid.",h:["ko4"]},
+  {q:"Kan styremedlemmer bli personlig erstatningsansvarlige?",opts:["Aldri", "Ja, for tap som skyldes uaktsomhet", "Bare ved straffedom", "Bare styreleder"],c:1,e:"Styremedlemmer kan bli personlig erstatningsansvarlige for tap som skyldes uaktsomhet.",h:["ko5"]},
+  {q:"Når er en skyldner insolvent?",opts:["Når den har tap i ett år", "Når den ikke kan oppfylle forpliktelsene etter hvert som de forfaller", "Når den har mindre enn 100 000 i kassen", "Når den har lav omsetning"],c:1,e:"Insolvens betyr at forpliktelsene ikke kan oppfylles etter hvert som de forfaller.",h:["ko7"]},
+  {q:"Hva bør selskapet gjøre overfor leverandører hvis det har betalingsproblemer?",opts:["Skjule det", "Informere om problemene, særlig hvis det fortsatt tar imot varer på kreditt", "Bestille mer", "Bytte navn"],c:1,e:"Selskapet bør informere avtaleparter om betalingsproblemer.",h:["ko6"]},
+],
 alkloven:[
   {q:'Hva er det overordnede formålet med alkoholloven?',opts:['Øke statens inntekter fra alkohol','Begrense de samfunnsmessige og individuelle skader alkohol kan forårsake','Regulere produksjon av alkohol','Harmonisere reglene med EU'],c:1,e:'Alkoholloven § 1-1: formålet er å begrense de samfunnsmessige og individuelle skader alkoholbruk kan innebære.',h:['a1']},
   {q:'Hva er alkoholgruppe 3 (brennevin)?',opts:['Drikk over 4,7 til 22%','Drikk over 15%','Drikk med 22 vol% eller mer','Drikk over 18%'],c:2,e:'Brennevin er definert som drikk med 22 volumprosent eller mer (opp til 60%).',h:['a7']},
@@ -759,7 +985,8 @@ function startEksamen(){
   eksamenMode=true;eksamenScore=0;eksamenIdx=0;
   eksamenCatScores={};Object.keys(C).forEach(c=>{eksamenCatScores[c]={r:0,t:0};});
   eksamenQ=[];
-  Object.keys(QUESTIONS).forEach(c=>{[...QUESTIONS[c]].sort(()=>Math.random()-.5).slice(0,5).forEach(q=>eksamenQ.push({...q,_cat:c}));});
+  const EKS_W={servering:6,leder:5,mva:8,regnskap:8,arbeid:8,konkurs:3,alkloven:2,bevilling:2,skjenking:2,tider:1,kontroll:1,sanksjoner:1,internkontroll:1,avgifter:1,ansvar:1};
+  Object.keys(QUESTIONS).forEach(c=>{[...QUESTIONS[c]].sort(()=>Math.random()-.5).slice(0,EKS_W[c]||1).forEach(q=>eksamenQ.push({...q,_cat:c}));});
   eksamenQ.sort(()=>Math.random()-.5);
   setHdrStyle(true,EKSAMEN_COL);
   document.getElementById('ql-ttl').textContent='Etablererprøven – pensum';
@@ -793,7 +1020,7 @@ function pickEk(idx,q){
 function eksamenNext(){eksamenIdx++;if(eksamenIdx>=eksamenQ.length)showEksamenResult();else renderEksamenQ();}
 
 async function showEksamenResult(){
-  const tot=eksamenQ.length,pct=Math.round(eksamenScore/tot*100),passed=pct>=75;
+  const tot=eksamenQ.length,pct=Math.round(eksamenScore/tot*100),passed=pct>=80;
   if(passed){
     await playFireworks(12000,true);
   }
@@ -811,7 +1038,7 @@ async function showEksamenResult(){
   document.querySelector('#stat-grid .sc:nth-child(3) .slab').textContent='Resultat';
   const gw=document.getElementById('grade-wrap');gw.style.display='block';
   gw.innerHTML=`<span class="grade-badge ${passed?'grade-pass':'grade-fail'}">${passed?'✓ Bestått':'✗ Ikke bestått'}</span>`;
-  document.getElementById('res-msg').textContent=passed?'Bra jobbet! Du er klar for etablererprøven.':'Du trenger litt mer øving. 75% kreves for å bestå.';
+  document.getElementById('res-msg').textContent=passed?'Bra jobbet! Du er klar for etablererprøven.':'Du trenger litt mer øving. 80% kreves for å bestå (40 av 50).';
   const bd=document.getElementById('cat-breakdown');bd.style.display='block';bd.innerHTML='';
   Object.keys(eksamenCatScores).forEach(c=>{if(!eksamenCatScores[c].t)return;const{r,t}=eksamenCatScores[c];const p=Math.round(r/t*100);const row=document.createElement('div');row.className='cat-row';row.style.background=C[c].col+'22';row.innerHTML=`<span class="cat-row-name">${C[c].name}</span><span class="cat-row-score" style="color:${C[c].col}">${r}/${t} (${p}%)</span>`;bd.appendChild(row);});
   document.getElementById('rb1-rep').style.display='none';
