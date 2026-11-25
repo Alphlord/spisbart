@@ -105,7 +105,8 @@ window.DATA = {
     ['Opplæring', 'Nye ansatte får opplæring. Oversikt over hvem som har fått hva.'],
     ['Daglig oppstart og personlig hygiene', 'Ansatte er friske, har rent arbeidstøy og rene hender. Håndvask har såpe og papir. Ingen daglig avkrysning, men en fast regel i planen.'],
     ['Merking og datering', 'Åpnede og ferdige varer er merket med dato og innhold. Garnityr, bakevarer og melk datomerkes. Utgåtte varer kastes.'],
-    ['Rene flater og utstyr', 'Flater, skjærebrett, oppvaskmaskin, ølanlegg, isbitmaskin, glass, bardisk, kaffemaskin og sittegrupper holdes rene etter renholdsplanen.'],
+    ['Rene flater og utstyr', 'Flater, gulv, avtrekk, skjærebrett, oppvaskmaskin, ølanlegg, isbitmaskin, glass, bardisk, kaffemaskin og sittegrupper holdes rene etter renholdsplanen.'],
+    ['Rester og nedkjøling', 'Rester kjøles ned raskt, merkes med dato og innhold og dekkes til. Kjernetemperatur etter nedkjøling følger styringspunktet i planen.'],
     ['Mottak og kontroll av skadedyr', 'Varer kontrolleres ved levering (temperatur og emballasje). Spor av skadedyr meldes som avvik.'],
     ['Sikring av lokaler', 'Dører og varemottak låses. Alkohol på lager låses inn.'],
     ['Ansvarlig skjenking', 'Skjenketider og siste runde er avklart, ansvarlig for skjenking er satt på vakten, og det gjøres vakt- og rydderunder. Gjelder bare med skjenkebevilling.', 'alk']
