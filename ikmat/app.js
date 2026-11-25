@@ -172,7 +172,7 @@ async function afterLogin() {
 }
 async function selectOrg(m) {
   S.org = m.organizations; S.role = m.role; lsSet('ikmat-org', m.org_id);
-  $('#orgName').textContent = S.org.name;
+  $('#orgName').textContent = S.org.name + ' ▾';
   S.area = 'all';
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
@@ -738,7 +738,7 @@ function renderMore() {
     l.appendChild(moreItem('Endringslogg', 'Hvem som endret hva, og når', showAudit));
   }
   l.appendChild(moreItem('Mitt navn', nameOf(S.user.id), nameDialog));
-  if (S.mems.length > 1) l.appendChild(moreItem('Bytt virksomhet', null, orgSwitch));
+  l.appendChild(moreItem('Serveringssteder', S.mems.length > 1 ? 'Bytt sted eller legg til et nytt' : 'Legg til et nytt sted med egne rutiner', orgSwitch));
   l.appendChild(moreItem('Personvern og vilkår', 'Data lagres i EU', function () { location.href = '../personvern.html'; }));
   l.appendChild(moreItem('Logg ut', S.user.email, logout));
   l.appendChild(h('p', { class: 'small muted' }, 'Grenseverdier og rutiner er forslag. Virksomheten er selv ansvarlig for at planen passer driften og gjeldende regelverk.'));
@@ -753,9 +753,12 @@ function nameDialog() {
     } }, 'Lagre')]);
 }
 function orgSwitch() {
-  openDlg([h('h2', null, 'Bytt virksomhet')].concat(S.mems.map(function (m) {
-    return h('button', { class: 'btn alt', onclick: async function () { closeDlg(); await selectOrg(m); go('today'); } }, m.organizations.name);
-  })));
+  openDlg([h('h2', null, 'Serveringssteder'), h('p', { class: 'muted' }, 'Hvert sted har egne rutiner, kalender og HACCP-plan.')]
+    .concat(S.mems.map(function (m) {
+      var cur = S.org && m.org_id === S.org.id;
+      return h('button', { class: 'btn ' + (cur ? '' : 'alt'), 'aria-current': cur ? 'true' : null, onclick: async function () { closeDlg(); if (!cur) { await selectOrg(m); go('today'); } } }, m.organizations.name);
+    }))
+    .concat([h('button', { class: 'btn alt', onclick: function () { closeDlg(); startWizard(); } }, '+ Nytt serveringssted')]));
 }
 async function teamDialog() {
   var out = h('div', { role: 'status' }), list = h('div', { class: 'stack' });
@@ -898,7 +901,7 @@ function riskResult(sel) {
 var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Kjøl og frys', 'Oppsummering'];
 function startWizard() {
   var D = window.DATA;
-  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [], risk: {}, openRisk: null };
+  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: (S.org && S.user && S.names[S.user.id]) || '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [], risk: {}, openRisk: null };
   Object.keys(D.hazards).forEach(function (st) { D.hazards[st].forEach(function (_, i) { var sg = D.risk.suggest[st] && D.risk.suggest[st][i]; if (sg) W.risk[st + i] = sg.slice(); }); });
   D.ccps.forEach(function (c) { W.ccp[c.id] = { value: c.value, monitor: c.monitor, action: c.action, verify: c.verify }; });
   go('wiz'); drawWiz();
@@ -1070,7 +1073,7 @@ async function finishWizard() {
       kind: 'check', recurrence: freqFor[top], source: 'haccp', sort: 6000 + si });
   });
   if (rows2.length) await sb.from('tasks').insert(rows2);
-  W = null; toast('Stedet er opprettet');
+  W = null; lsSet('ikmat-org', orgId); toast('Stedet er opprettet');
   await afterLogin();
 }
 
@@ -1078,5 +1081,6 @@ async function finishWizard() {
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
 }
+$('#orgName').addEventListener('click', function () { if (S.org) orgSwitch(); });
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
