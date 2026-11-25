@@ -9,17 +9,17 @@
 /* Layout: sentrert logo-hero, deretter appkort, leverandørstripe og kontakt */
 :root{
   --bg:#FFFDF8; --fg:#1B1A17; --muted:#5E5A50; --line:#E6E0D2; --card:#FFFFFF; --band:#F4EFE2;
-  --yellow:#E8B84B; --pink:#C8376A; --green:#5C7A39; --blue:#1B4F7A;
-  --logo:#111111; --accent:#C8376A; --on-accent:#FFFFFF;
+  --yellow:#E8B84B; --pink:#E8B84B; --green:#5C7A39; --blue:#1B4F7A;
+  --logo:#111111; --accent:#E8B84B; --on-accent:#1B1A17;
   --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
   --body:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
-  --pink:#E0577F; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E0577F; --on-accent:#16150F; color-scheme:dark}}
+  --pink:#E8B84B; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E8B84B; --on-accent:#16150F; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
-  --pink:#E0577F; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E0577F; --on-accent:#16150F; color-scheme:dark}
+  --pink:#E8B84B; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E8B84B; --on-accent:#16150F; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
 .wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -46,7 +46,7 @@ p{margin:0}
  17.5%{fill:#E05A4D}
  20.0%{fill:#D94E57}
  22.5%{fill:#D14261}
- 25.0%{fill:#C8376A}
+ 25.0%{fill:#E8B84B}
  27.5%{fill:#C83C50}
  30.0%{fill:#C44336}
  32.5%{fill:#BD4C16}
@@ -141,7 +141,15 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .tile:hover{filter:brightness(1.08)}
 .tile.t-barn,.ch-barn{background:#1A7A6E}
 .tile.t-kafe,.ch-kafe{background:#1B4F7A}
-.tile.t-prove,.ch-prove{background:#C8376A}
+.tile.t-prove,.ch-prove{background:#E8B84B}
+.tile.t-prove,.ch-prove,.ch-prove h2,.ch-prove .sub-app h3,.ch-prove .chapter a{color:#1B1A17}
+.chapter.ch-prove,.chapter.ch-prove h2,.chapter.ch-prove .pitch,.chapter.ch-prove .ch-note{color:#1B1A17}
+.ch-prove .ch-btn{background:#1B1A17;color:#fff;border-color:#1B1A17}
+.ch-prove .ch-btn.alt{background:transparent;color:#1B1A17}
+.ch-prove .ch-btn.alt:hover{background:rgba(27,26,23,.12)}
+.chapter.ch-prove figcaption{color:rgba(27,26,23,.85)}
+.ch-prove .sub-app{border-top-color:rgba(27,26,23,.35)}
+.ch-prove a:focus-visible{outline-color:#1B1A17}
 @media (max-width:700px){.chapters{grid-template-columns:1fr}}
 .chapter{padding-block:clamp(56px,9vw,104px);color:#fff;scroll-margin-top:0}
 .chapter h2{font-size:clamp(40px,9vw,96px);line-height:.95;color:#fff;max-width:11em;margin:0;overflow-wrap:break-word}
@@ -198,7 +206,6 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
     <div class="ch-top">
       <div>
         <p class="pitch"><b>Bare Barnemat</b> er kalenderen der du planlegger månedens måltider. Dra rettene inn på dagene. Appen sier fra når en rett ikke passer for et barn med allergi eller spesialkost, og viser hva måneden koster.</p>
-        <div class="ch-btns"><a class="ch-btn" href="barnemat/?demo=1">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Bare%20Barnemat">Kjøp</a></div>
         <p class="ch-note">Demoen starter med en ferdig plan, og du slipper å logge inn. Appen er under utvikling. Vil din barnehage teste den, send oss en e-post.</p>
       </div>
       <div class="panel">
@@ -228,7 +235,6 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
     <div class="ch-top">
       <div>
         <p class="pitch"><b>Auto·Mat</b> regner ut varekost, påslag og margin for hver rett. Bestilling, svinn og allergener ligger i samme app. Laget for proffkjøkken, kafeer og serveringssteder.</p>
-        <div class="ch-btns"><a class="ch-btn" href="automat/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Auto%C2%B7Mat">Kjøp</a></div>
         <p class="ch-note">Demoen har eksempeldata fra et kjøkken, så du ser alle verktøyene i bruk. Det du legger inn lagres bare i din nettleser.</p>
       </div>
       <div class="panel">
@@ -266,7 +272,6 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
       <div class="ch-top">
         <div>
           <p class="pitch">Et hjelpemiddel for å bestå skjenkeprøven. Over 100 spørsmål fordelt på seks temaer: salg, bevilling, skjenketider, kunde, internkontroll og reklame.</p>
-          <div class="ch-btns"><a class="ch-btn" href="skjenkeprove/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven">Kjøp</a></div>
           <p class="ch-note">I demoen er ett tema åpent. Resten og eksamen får du i fullversjonen.</p>
         </div>
       </div>
@@ -284,7 +289,6 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
       <div class="ch-top">
         <div>
           <p class="pitch">Et hjelpemiddel for å bestå etablererprøven. Over 70 spørsmål fordelt på ni temaer: alkoholloven, bevilling, salg og skjenking, tider, kontroll, sanksjoner, internkontroll, avgifter og ansvar.</p>
-          <div class="ch-btns"><a class="ch-btn" href="etablerer/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven">Kjøp</a></div>
           <p class="ch-note">I demoen er ett tema åpent. Resten og eksamen får du i fullversjonen.</p>
         </div>
       </div>
