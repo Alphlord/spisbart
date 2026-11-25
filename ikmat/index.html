@@ -65,7 +65,10 @@ button{cursor:pointer}
 .top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
 .top .wrap{display:flex;align-items:center;gap:10px;min-height:52px}
 .brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;color:var(--fg)}
-.brand svg{width:34px;height:auto}
+.mods{display:flex;gap:2px;min-width:0}
+.mods button{border:0;background:transparent;font-family:var(--display);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);padding:12px 8px 8px;border-bottom:3px solid transparent;cursor:pointer}
+.mods button[aria-current=true]{color:var(--fg);border-bottom-color:#E8B84B}
+@media(max-width:519px){.top .org{display:none}}
 .top .org{background:none;border:0;font:inherit;cursor:pointer;padding:8px 0 8px 8px;margin-left:auto;font-size:14px;color:var(--muted);max-width:50%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 main{padding-top:18px}
@@ -174,9 +177,11 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <body>
 <div id="offline" class="offline" hidden>Ingen nett. Kvitteringer lagres her og sendes når du er på nett igjen.</div>
 <header class="top" id="top" hidden><div class="wrap">
-  <a class="brand" href="./" aria-label="IK-mat">
-    <svg viewBox="0 0 100 38" aria-hidden="true"><path fill="#E8B84B" d="M50 8c-6 0-9 5-15 5-7 0-9-5-17-5C9 8 3 14 3 22c0 8 7 12 15 10 9-2 11-9 32-9s23 7 32 9c8 2 15-2 15-10 0-8-6-14-15-14-8 0-10 5-17 5-6 0-9-5-15-5z"/></svg>
-    IK-mat</a>
+  <nav class="mods" id="mods" aria-label="Moduler">
+    <button type="button" data-mod="mat">IK-mat</button>
+    <button type="button" data-mod="alkohol">IK-alkohol</button>
+    <button type="button" data-mod="hms">HMS</button>
+  </nav>
   <button class="org" id="orgName" type="button" aria-label="Bytt eller legg til serveringssted"></button>
 </div></header>
 <nav class="tabs" id="tabs" hidden aria-label="Hovedmeny"><div class="wrap">
@@ -276,6 +281,14 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 </section>
 
 <!-- Mer -->
+<section class="screen" id="s-mod">
+  <h1 id="modTitle"></h1>
+  <p class="muted" id="modInfo"></p>
+  <div class="stack" id="modLinks"></div>
+  <div class="row"><h2 class="grow">Rutiner</h2><button class="btn small" id="modAdd" type="button">Ny rutine</button></div>
+  <div class="stack" id="modTasks"></div>
+</section>
+
 <section class="screen" id="s-more">
   <h1>Mer</h1>
   <div class="stack" id="moreList"></div>
@@ -295,6 +308,6 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="data.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<script src="data.js?v=16"></script>
+<script src="app.js?v=16"></script>
 </body></html>

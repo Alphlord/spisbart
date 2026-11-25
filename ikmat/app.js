@@ -73,7 +73,7 @@ function isLeder() { return S.role === 'leder'; }
 function nameOf(id) { return (id && S.names[id]) || 'Ukjent'; }
 
 /* ---------- navigasjon ---------- */
-var TABS = ['today', 'cal', 'dev', 'more'];
+var TABS = ['today', 'cal', 'dev', 'more', 'mod'];
 function go(name) {
   S.screen = name;
   $$('.screen').forEach(function (s) { s.classList.remove('on'); s.classList.remove('printing'); });
@@ -83,7 +83,9 @@ function go(name) {
   $('#addNav').hidden = !(S.org && isLeder());
   $('#top').hidden = !(S.org || name === 'start' || name === 'wiz');
   $$('#tabs button').forEach(function (b) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $$('#mods button').forEach(function (b) { b.setAttribute('aria-current', name === 'mod' && S.mod === b.dataset.mod ? 'true' : 'false'); });
   window.scrollTo(0, 0);
+  if (name === 'mod') renderMod();
   if (name === 'today') renderToday();
   if (name === 'cal') renderCal();
   if (name === 'dev') loadDevs();
@@ -507,8 +509,8 @@ function drawTaskAdmin() {
     box.appendChild(row);
   });
 }
-function taskDialog(t) {
-  var isNew = !t; t = t || { title: '', domain: 'mat', routine: 'annet', kind: 'check', recurrence: { freq: 'daily' }, active: true, area_id: null, unit: '', hint: '' };
+function taskDialog(t, preDomain) {
+  var isNew = !t; t = t || { title: '', domain: preDomain || 'mat', routine: 'annet', kind: 'check', recurrence: { freq: 'daily' }, active: true, area_id: null, unit: '', hint: '' };
   var title = h('input', { type: 'text', id: 't-title', value: t.title, maxlength: 200 });
   var hint = h('textarea', { id: 't-hint' }, t.hint || '');
   var area = h('select', { id: 't-area' }, h('option', { value: '' }, 'Hele stedet'), S.areas.map(function (a) { return h('option', { value: a.id }, a.name); }));
@@ -576,7 +578,7 @@ function taskDialog(t) {
       if (res.error) { msg(out, 'err', errText(res.error)); ev.target.disabled = false; return; }
       closeDlg(); toast('Lagret');
       var rt = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'); if (!rt.error) S.tasks = rt.data;
-      if (S.screen === 'today') renderToday(); else renderCal();
+      if (S.screen === 'today') renderToday(); else if (S.screen === 'mod') renderMod(); else renderCal();
     } }, 'Lagre'))]);
 }
 
@@ -730,6 +732,34 @@ function unitEditDialog(u) {
 }
 
 /* ================= MER ================= */
+var MOD = {
+  mat: ['IK-mat', 'Internkontroll for mat: HACCP-plan, temperaturer, renhold og avvik.'],
+  alkohol: ['IK-alkohol', 'Internkontroll for servering av alkohol: ansvar, opplæring og hendelser.'],
+  hms: ['HMS', 'Helse, miljø og sikkerhet: vernerunder, brann, førstehjelp og risiko.']
+};
+function renderMod() {
+  var m = S.mod || 'mat';
+  $('#modTitle').textContent = MOD[m][0]; $('#modInfo').textContent = MOD[m][1] + ' Alle rutinene vises også i I dag-listen.';
+  var l = clear($('#modLinks'));
+  if (m === 'mat') {
+    l.appendChild(moreItem('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
+    l.appendChild(moreItem('Tilsynsmappe', 'Plan, kvitteringer og avvik for en periode', showFolder));
+    if (isLeder()) l.appendChild(moreItem('Kjøleskap og frysere', 'Gi dem navn og mål hver for seg', unitsDialog));
+  } else if (m === 'alkohol' && !S.org.has_alcohol) {
+    l.appendChild(h('div', { class: 'note' }, 'Stedet er ikke registrert med alkohol. Rutiner du legger inn her vises likevel i I dag-listen.'));
+  }
+  $('#modAdd').hidden = !isLeder();
+  var box = clear($('#modTasks'));
+  var ts = S.tasks.filter(function (t) { return t.domain === m; }).sort(function (a, b) { return (b.active - a.active) || a.title.localeCompare(b.title, 'nb'); });
+  if (!ts.length) box.appendChild(h('div', { class: 'note' }, 'Ingen rutiner ennå.'));
+  ts.forEach(function (t) {
+    var row = h('div', { class: 'trow' + (t.active ? '' : ' off') }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, t.title), h('div', { class: 'small muted' }, [ROUT_LABEL[t.routine] || null, recText(t.recurrence)].filter(Boolean).join(' · '))));
+    if (isLeder()) row.appendChild(h('button', { class: 'btn soft small', type: 'button', onclick: function () { taskDialog(t); } }, 'Endre'));
+    box.appendChild(row);
+  });
+}
+$$('#mods button').forEach(function (b) { b.addEventListener('click', function () { S.mod = b.dataset.mod; go('mod'); }); });
+$('#modAdd').addEventListener('click', function () { taskDialog(null, S.mod); });
 function moreItem(title, sub, fn) {
   return h('button', { class: 'dev', type: 'button', onclick: fn }, h('div', { class: 't' }, title), sub ? h('div', { class: 'small muted' }, sub) : null);
 }
