@@ -245,8 +245,9 @@ a{text-underline-offset:3px}
 
 .chapter h1::before,.chapter h2::before{display:none}
 .brand{display:inline-flex;align-items:center}
-.brand::before{content:"";width:40px;height:9px;border-radius:5px;margin-right:12px;background:var(--bar,linear-gradient(90deg,#E9D09A 0 33.3%,#66794D 33.3% 66.6%,#A94B65 66.6%))}
-.pg-barn{--bar:#E9D09A}.pg-kafe{--bar:#66794D}.pg-prove{--bar:#A94B65}
+.bartlogo{width:56px;height:auto;margin-right:10px;flex:none}
+.pg-barn #bart{animation:none;fill:#E8B84B}.pg-kafe #bart{animation:none;fill:#5C7A39}.pg-prove #bart{animation:none;fill:#C8376A}
+@media (prefers-reduced-motion:reduce){.pg-barn #bart,.pg-kafe #bart,.pg-prove #bart{animation:none}}
 .hero{position:relative;isolation:isolate}
 html,body{overflow-x:clip}
 .hero::before{content:"";position:absolute;inset:-8% -25% -30%;z-index:-1;pointer-events:none;background:radial-gradient(38% 46% at 18% 30%,rgba(233,208,154,.55),transparent 70%),radial-gradient(34% 42% at 84% 22%,rgba(169,75,101,.22),transparent 70%),radial-gradient(34% 34% at 62% 66%,rgba(102,121,77,.22),transparent 70%)}
@@ -266,7 +267,7 @@ html,body{overflow-x:clip}
 .tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head><body class="pg-prove">
-<div class="topbar"><div class="wrap"><a class="brand" href="index.html">Spisbart</a>
+<div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>Spisbart</span></a>
 <button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i></button></div>
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html" aria-current="page">Quizzapp</a></li><li><a href="om.html">Om oss</a></li></ul></nav></div>
 <noscript><style>.menu-panel{display:block;position:static}.burger{display:none}</style></noscript>
