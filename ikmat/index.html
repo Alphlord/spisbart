@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>IK-mat – spisbart.no</title>
+<meta name="description" content="IK-mat fra spisbart.no: HACCP-veiviser, kalender med åpne- og stengerutiner, avvik og tilsynsmappe.">
+<meta name="theme-color" content="#FFFDF8">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preload" href="../fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Mobil først: innhold i én kolonne, faste faner nederst. Samme palett som spisbart.no. */
+:root{
+  --bg:#FFFDF8; --fg:#1B1A17; --muted:#5E5A50; --line:#E6E0D2; --card:#FFFFFF; --band:#F4EFE2;
+  --accent:#E9D09A; --on-accent:#1B1A17; --green:#4F6338; --green-bg:#E7EEDC; --red:#A4474F; --red-bg:#F6E3E4;
+  --amber:#8A6414; --amber-bg:#F6ECD0; --blue:#1B4F7A;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --tabs:64px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
+  --accent:#E9D09A; --on-accent:#16150F; --green:#9BBF5A; --green-bg:#26301A; --red:#E08A93; --red-bg:#3A1E22;
+  --amber:#E3BD66; --amber-bg:#33290F; --blue:#5FA8DC; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 var(--body);
+  padding-bottom:calc(var(--tabs) + env(safe-area-inset-bottom,0px) + 16px)}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin:0;text-wrap:balance}
+h1{font-size:34px} h2{font-size:26px} h3{font-size:20px}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+[hidden]{display:none!important}
+.muted{color:var(--muted)} .small{font-size:14px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1 1 0;min-width:0}
+
+/* topplinje */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{display:flex;align-items:center;gap:10px;min-height:52px}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;color:var(--fg)}
+.brand svg{width:34px;height:auto}
+.top .org{margin-left:auto;font-size:14px;color:var(--muted);max-width:50%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+main{padding-top:18px}
+.screen{display:none;flex-direction:column;gap:18px}
+.screen.on{display:flex}
+
+/* knapper og felt */
+.btn{border:2px solid var(--fg);background:var(--fg);color:var(--bg);border-radius:10px;padding:11px 18px;font-weight:600;min-height:46px}
+.btn.alt{background:transparent;color:var(--fg)}
+.btn.soft{background:var(--band);border-color:var(--line);color:var(--fg)}
+.btn.small{min-height:38px;padding:6px 12px;font-size:15px}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn[disabled]{opacity:.5;cursor:default}
+label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:15px}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=time],select,textarea{
+  width:100%;border:2px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;min-height:46px;font-weight:400;font-size:17px}
+textarea{min-height:96px;resize:vertical}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.note{background:var(--band);border-radius:12px;padding:12px 14px;font-size:15px}
+.err{background:var(--red-bg);color:var(--red);border-radius:10px;padding:10px 12px;font-size:15px}
+.ok{background:var(--green-bg);color:var(--green);border-radius:10px;padding:10px 12px;font-size:15px}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:600;background:var(--band);color:var(--muted)}
+.pill.g{background:var(--green-bg);color:var(--green)} .pill.r{background:var(--red-bg);color:var(--red)} .pill.a{background:var(--amber-bg);color:var(--amber)}
+
+/* innlogging */
+#s-auth{max-width:440px;margin:0 auto}
+.seg{display:flex;border:2px solid var(--fg);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:10px;font-weight:600;min-height:44px}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+
+/* veiviser */
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:6px;border-radius:99px;background:var(--line)}
+.steps i.on{background:var(--green)}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.chk:last-child{border-bottom:0}
+.chk input{width:24px;height:24px;flex:none;margin:2px 0 0;accent-color:var(--green)}
+.chk b{display:block;font-weight:600}
+.chk span{display:block;color:var(--muted);font-size:14px}
+
+/* i dag */
+.datebar{display:flex;align-items:center;gap:8px}
+.datebar .d{flex:1;text-align:center;font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
+.datebar .d small{display:block;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--muted)}
+.prog{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--green);width:0;transition:width .2s}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-weight:600;white-space:nowrap;min-height:38px}
+.chip[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.group{display:flex;flex-direction:column;gap:8px}
+.group>header{display:flex;align-items:baseline;gap:10px}
+.group>header h3{flex:1}
+.task{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.task .tick{flex:none;width:38px;height:38px;border-radius:10px;border:2px solid var(--fg);background:transparent;display:grid;place-content:center;font-size:22px;line-height:1;padding:0}
+.task.done .tick{background:var(--green);border-color:var(--green);color:#fff}
+.task.skipped .tick{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.task .body{flex:1;min-width:0}
+.task .ttl{font-weight:600}
+.task.done .ttl{color:var(--muted)}
+.task .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.task .more{font-size:14px;color:var(--muted);margin-top:6px}
+.task .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* kalender */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .h{font-size:12px;text-align:center;color:var(--muted);font-weight:600;text-transform:uppercase}
+.cal button.day{aspect-ratio:1;border:1px solid var(--line);background:var(--card);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;font-weight:600}
+.cal button.day.out{opacity:.35}
+.cal button.day.today{border:2px solid var(--fg)}
+.cal button.day .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.cal button.day .dot.g{background:var(--green)} .cal button.day .dot.a{background:var(--amber)} .cal button.day .dot.r{background:var(--red)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.trow{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.trow.off{opacity:.55}
+
+/* avvik */
+.dev{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;text-align:left;width:100%}
+.dev .t{font-weight:600}
+
+/* faner */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.tabs button{border:0;background:transparent;height:var(--tabs);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;color:var(--muted)}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-current=page]{color:var(--fg)}
+.tabs button[aria-current=page] svg{stroke-width:2.6}
+
+/* dialog som bunnark */
+dialog{border:0;border-radius:18px 18px 0 0;padding:0;max-width:720px;width:100%;margin:auto auto 0;background:var(--bg);color:var(--fg);max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog .in{padding:18px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;max-height:90vh}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabs) + env(safe-area-inset-bottom,0px) + 14px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:60;font-weight:600;max-width:90vw}
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.scroll{overflow-x:auto}
+.offline{background:var(--amber-bg);color:var(--amber);text-align:center;font-size:14px;padding:6px}
+@media print{
+  .top,.tabs,.noprint,.toast,.offline{display:none!important}
+  body{padding:0;background:#fff;color:#000;font-size:12pt}
+  .screen:not(.printing){display:none!important}
+  .card{border:1px solid #999;break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){.prog i{transition:none}}
+</style></head>
+<body>
+<div id="offline" class="offline" hidden>Ingen nett. Kvitteringer lagres her og sendes når du er på nett igjen.</div>
+<header class="top" id="top" hidden><div class="wrap">
+  <a class="brand" href="./" aria-label="IK-mat">
+    <svg viewBox="0 0 100 38" aria-hidden="true"><path fill="#E8B84B" d="M50 8c-6 0-9 5-15 5-7 0-9-5-17-5C9 8 3 14 3 22c0 8 7 12 15 10 9-2 11-9 32-9s23 7 32 9c8 2 15-2 15-10 0-8-6-14-15-14-8 0-10 5-17 5-6 0-9-5-15-5z"/></svg>
+    IK-mat</a>
+  <span class="org" id="orgName"></span>
+</div></header>
+
+<main class="wrap">
+
+<!-- Innlogging -->
+<section class="screen" id="s-auth">
+  <div class="stack">
+    <h1>IK-mat</h1>
+    <p class="muted">Rutiner, målinger og avvik for kjøkken, bar og kafé. Fra <a href="../">spisbart.no</a>.</p>
+    <div class="seg" role="group" aria-label="Velg">
+      <button type="button" id="authIn" aria-pressed="true">Logg inn</button>
+      <button type="button" id="authUp" aria-pressed="false">Ny bruker</button>
+    </div>
+    <form id="authForm" class="stack" autocomplete="on">
+      <label class="f">E-post<input type="email" id="email" autocomplete="email" required></label>
+      <label class="f">Passord<input type="password" id="pw" autocomplete="current-password" minlength="8" required></label>
+      <div id="authMsg" role="status"></div>
+      <button class="btn" id="authGo" type="submit">Logg inn</button>
+      <button class="btn alt small" id="resetPw" type="button">Glemt passord</button>
+    </form>
+    <p class="muted small">Data lagres i EU. Ingen sporingsinfokapsler. Se <a href="../personvern.html">personvern</a> og <a href="../vilkar.html">vilkår</a>.</p>
+  </div>
+</section>
+
+<!-- Start: ny virksomhet eller bli med -->
+<section class="screen" id="s-start">
+  <h1>Kom i gang</h1>
+  <div class="card stack">
+    <h2>Ny virksomhet</h2>
+    <p class="muted">HACCP-veiviseren stiller noen spørsmål og lager plan og kalender for stedet ditt.</p>
+    <button class="btn" id="startNew">Start veiviseren</button>
+  </div>
+  <div class="card stack">
+    <h2>Bli med på et sted</h2>
+    <p class="muted">Har du fått en kode av din leder, skriv den her.</p>
+    <label class="f">Ditt navn<input type="text" id="joinName" autocomplete="name"></label>
+    <label class="f">Kode<input type="text" id="joinCode" autocapitalize="characters" autocomplete="off"></label>
+    <div id="joinMsg" role="status"></div>
+    <button class="btn alt" id="joinGo">Bli med</button>
+  </div>
+  <button class="btn alt small" id="startOut">Logg ut</button>
+</section>
+
+<!-- Veiviser -->
+<section class="screen" id="s-wiz">
+  <div class="steps" id="wizSteps" aria-hidden="true"></div>
+  <div id="wizBody" class="stack"></div>
+  <div id="wizMsg" role="status"></div>
+  <div class="row noprint">
+    <button class="btn alt" id="wizBack">Tilbake</button>
+    <button class="btn grow" id="wizNext">Neste</button>
+  </div>
+</section>
+
+<!-- I dag -->
+<section class="screen" id="s-today">
+  <div class="datebar">
+    <button class="btn alt small" id="dPrev" aria-label="Forrige dag">‹</button>
+    <div class="d" id="dLabel"></div>
+    <button class="btn alt small" id="dNext" aria-label="Neste dag">›</button>
+  </div>
+  <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+  <div class="muted small" id="progTxt"></div>
+  <div class="chips" id="areaChips" role="group" aria-label="Avdeling"></div>
+  <div id="overdue"></div>
+  <div id="taskList" class="stack"></div>
+  <div id="closeBox"></div>
+</section>
+
+<!-- Kalender -->
+<section class="screen" id="s-cal">
+  <div class="datebar">
+    <button class="btn alt small" id="mPrev" aria-label="Forrige måned">‹</button>
+    <div class="d" id="mLabel"></div>
+    <button class="btn alt small" id="mNext" aria-label="Neste måned">›</button>
+  </div>
+  <div class="cal" id="calGrid"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>Alt gjort</span><span><i style="background:var(--amber)"></i>Delvis</span><span><i style="background:var(--red)"></i>Mangler</span></div>
+  <div class="row"><h2 class="grow">Gjentagende oppgaver</h2><button class="btn small" id="addTask">Ny oppgave</button></div>
+  <div id="taskAdmin" class="stack"></div>
+</section>
+
+<!-- Avvik -->
+<section class="screen" id="s-dev">
+  <div class="row"><h1 class="grow">Avvik</h1><button class="btn small" id="newDev">Nytt avvik</button></div>
+  <input type="text" id="devQ" placeholder="Søk i avvik" aria-label="Søk i avvik">
+  <div class="chips" id="devChips" role="group" aria-label="Status"></div>
+  <div id="devList" class="stack"></div>
+</section>
+
+<!-- Mer -->
+<section class="screen" id="s-more">
+  <h1>Mer</h1>
+  <div class="stack" id="moreList"></div>
+</section>
+
+<!-- Dokumentvisning (plan, tilsynsmappe, logg) -->
+<section class="screen" id="s-doc">
+  <div class="row noprint"><button class="btn alt small" id="docBack">Tilbake</button><button class="btn small" id="docPrint">Skriv ut eller lagre som PDF</button><button class="btn soft small" id="docCsv" hidden>Last ned Excel (CSV)</button></div>
+  <div id="docBody" class="stack"></div>
+</section>
+
+</main>
+
+<nav class="tabs" id="tabs" hidden aria-label="Hovedmeny"><div class="wrap">
+  <button data-go="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8.5 9.5 1.8 1.8 3.5-3.6M8.5 16h7"/></svg>I dag</button>
+  <button data-go="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Kalender</button>
+  <button data-go="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/></svg>Avvik</button>
+  <button data-go="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mer</button>
+</div></nav>
+
+<dialog id="dlg"><div class="in" id="dlgBody"></div></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>

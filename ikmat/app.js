@@ -1,0 +1,873 @@
+/* IK-mat. Vanlig JavaScript uten byggesteg. All tilgangsstyring skjer i databasen (RLS), ikke her. */
+(function () {
+'use strict';
+
+var SB_URL = 'https://wfgsjlsrrefuadxgpnwy.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZ3NqbHNycmVmdWFkeGdwbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMTg2MjIsImV4cCI6MjEwMTU5NDYyMn0.wQnrQsB8HnZVnIn78m2eu8mbWmUuJ6rID308z5stMys';
+if (!window.supabase) {
+  document.addEventListener('DOMContentLoaded', function () {
+    var a = document.getElementById('s-auth'); a.classList.add('on');
+    a.insertBefore(Object.assign(document.createElement('div'), { className: 'err', textContent: 'Kunne ikke laste tjenesten. Sjekk nettet og last siden på nytt.' }), a.firstChild);
+  });
+  return;
+}
+var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+
+/* ---------- små hjelpere ---------- */
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function h(tag, attrs) {
+  var e = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    var v = attrs[k];
+    if (v == null || v === false) return;
+    if (k === 'class') e.className = v;
+    else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+    else if (k === 'value') e.value = v;
+    else if (k === 'checked' || k === 'disabled' || k === 'hidden' || k === 'required') e[k] = !!v;
+    else e.setAttribute(k, v === true ? '' : v);
+  });
+  for (var i = 2; i < arguments.length; i++) add(e, arguments[i]);
+  return e;
+}
+function add(e, c) {
+  if (c == null || c === false) return;
+  if (Array.isArray(c)) c.forEach(function (x) { add(e, x); });
+  else e.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+}
+function clear(e) { while (e.firstChild) e.removeChild(e.firstChild); return e; }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseYmd(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function addDays(s, n) { var d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); }
+var WD = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+var WDL = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'];
+var MON = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+function isoDow(d) { return ((d.getDay() + 6) % 7) + 1; }
+function fmtDate(s) { var d = parseYmd(s); return WDL[isoDow(d) - 1] + ' ' + d.getDate() + '. ' + MON[d.getMonth()]; }
+function fmtTs(t) { var d = new Date(t); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function num(v) { if (v == null || v === '') return null; var n = Number(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+function uuid() { return (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); })); }
+function lsGet(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ingenting */ } }
+var toastT;
+function toast(t) { var e = $('#toast'); e.textContent = t; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { e.hidden = true; }, 3200); }
+function msg(el, kind, text) { clear(el); if (text) el.appendChild(h('div', { class: kind }, text)); }
+function errText(e) {
+  var m = (e && (e.message || e.error_description)) || String(e);
+  if (/Invalid login/i.test(m)) return 'Feil e-post eller passord.';
+  if (/already registered/i.test(m)) return 'Denne e-posten har allerede en bruker. Logg inn i stedet.';
+  if (/Password should/i.test(m)) return 'Passordet må ha minst 8 tegn.';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Ingen kontakt med tjenesten. Sjekk nettet og prøv igjen.';
+  return m;
+}
+function isNetErr(e) { return !navigator.onLine || /Failed to fetch|NetworkError|Load failed/i.test((e && e.message) || ''); }
+function csvCell(v) { v = v == null ? '' : String(v); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+
+/* ---------- tilstand ---------- */
+var S = {
+  user: null, mems: [], org: null, role: 'ansatt', areas: [], tasks: [], names: {},
+  day: ymd(new Date()), area: 'all', month: null, devFilter: 'alle', devs: [], dayRows: [], overdue: [], screen: 'auth', cameFrom: 'more'
+};
+function isLeder() { return S.role === 'leder'; }
+function nameOf(id) { return (id && S.names[id]) || 'Ukjent'; }
+
+/* ---------- navigasjon ---------- */
+var TABS = ['today', 'cal', 'dev', 'more'];
+function go(name) {
+  S.screen = name;
+  $$('.screen').forEach(function (s) { s.classList.remove('on'); s.classList.remove('printing'); });
+  $('#s-' + name).classList.add('on');
+  var inApp = TABS.indexOf(name) >= 0;
+  $('#tabs').hidden = !(inApp && S.org);
+  $('#top').hidden = !(S.org || name === 'start' || name === 'wiz');
+  $$('#tabs button').forEach(function (b) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  window.scrollTo(0, 0);
+  if (name === 'today') renderToday();
+  if (name === 'cal') renderCal();
+  if (name === 'dev') loadDevs();
+  if (name === 'more') renderMore();
+}
+$$('#tabs button').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
+
+/* ---------- dialog ---------- */
+var dlg = $('#dlg');
+function openDlg(nodes) { var b = clear($('#dlgBody')); add(b, nodes); if (!dlg.open) dlg.showModal(); }
+function closeDlg() { if (dlg.open) dlg.close(); }
+dlg.addEventListener('click', function (e) { if (e.target === dlg) closeDlg(); });
+
+/* ---------- innlogging ---------- */
+var authMode = 'in';
+function setAuthMode(m) {
+  authMode = m;
+  $('#authIn').setAttribute('aria-pressed', m === 'in');
+  $('#authUp').setAttribute('aria-pressed', m === 'up');
+  $('#authGo').textContent = m === 'in' ? 'Logg inn' : 'Opprett bruker';
+  $('#pw').setAttribute('autocomplete', m === 'in' ? 'current-password' : 'new-password');
+  $('#resetPw').hidden = m !== 'in';
+  msg($('#authMsg'), '', '');
+}
+$('#authIn').addEventListener('click', function () { setAuthMode('in'); });
+$('#authUp').addEventListener('click', function () { setAuthMode('up'); });
+$('#authForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  var email = $('#email').value.trim(), pw = $('#pw').value, out = $('#authMsg'), btn = $('#authGo');
+  btn.disabled = true; msg(out, '', '');
+  try {
+    if (authMode === 'in') {
+      var r = await sb.auth.signInWithPassword({ email: email, password: pw });
+      if (r.error) throw r.error;
+    } else {
+      var u = await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: location.origin + location.pathname } });
+      if (u.error) throw u.error;
+      if (!u.data.session) msg(out, 'ok', 'Sjekk e-posten din og bekreft adressen. Deretter kan du logge inn.');
+    }
+  } catch (err) { msg(out, 'err', errText(err)); }
+  btn.disabled = false;
+});
+$('#resetPw').addEventListener('click', async function () {
+  var email = $('#email').value.trim();
+  if (!email) { msg($('#authMsg'), 'err', 'Skriv inn e-postadressen din først.'); return; }
+  var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  msg($('#authMsg'), r.error ? 'err' : 'ok', r.error ? errText(r.error) : 'Hvis adressen finnes, har vi sendt en lenke for nytt passord.');
+});
+async function logout() { await sb.auth.signOut(); S.org = null; S.mems = []; $('#orgName').textContent = ''; go('auth'); }
+$('#startOut').addEventListener('click', logout);
+
+function recoveryDialog() {
+  var pw = h('input', { type: 'password', id: 'newpw', minlength: 8, autocomplete: 'new-password' });
+  var out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Nytt passord'), h('label', { class: 'f' }, 'Nytt passord (minst 8 tegn)', pw), out,
+    h('button', { class: 'btn', onclick: async function () {
+      var r = await sb.auth.updateUser({ password: pw.value });
+      if (r.error) msg(out, 'err', errText(r.error)); else { closeDlg(); toast('Passordet er endret'); }
+    } }, 'Lagre')]);
+}
+
+/* ---------- oppstart ---------- */
+sb.auth.onAuthStateChange(function (ev, session) {
+  if (ev === 'PASSWORD_RECOVERY') { setTimeout(recoveryDialog, 0); }
+  if (ev === 'SIGNED_OUT') { S.user = null; return; }
+  if ((ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') && session && (!S.user || S.user.id !== session.user.id)) {
+    S.user = session.user;
+    setTimeout(afterLogin, 0);
+  } else if (ev === 'INITIAL_SESSION' && !session) go('auth');
+});
+
+async function afterLogin() {
+  try {
+    var r = await sb.from('members').select('org_id, role, display_name, organizations(id, name, orgnr, address, business_type, has_alcohol)').eq('user_id', S.user.id);
+    if (r.error) throw r.error;
+    S.mems = r.data || [];
+    if (!S.mems.length) { S.org = null; go('start'); return; }
+    var want = lsGet('ikmat-org', null);
+    var m = S.mems.filter(function (x) { return x.org_id === want; })[0] || S.mems[0];
+    await selectOrg(m);
+    go('today');
+    flushQueue();
+  } catch (e) {
+    if (isNetErr(e)) { $('#offline').hidden = false; toast('Ingen nett'); }
+    else toast(errText(e));
+  }
+}
+async function selectOrg(m) {
+  S.org = m.organizations; S.role = m.role; lsSet('ikmat-org', m.org_id);
+  $('#orgName').textContent = S.org.name;
+  S.area = 'all';
+  var res = await Promise.all([
+    sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
+    sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'),
+    sb.from('members').select('user_id, role, display_name').eq('org_id', S.org.id)
+  ]);
+  res.forEach(function (x) { if (x.error) throw x.error; });
+  S.areas = res[0].data; S.tasks = res[1].data;
+  S.names = {}; S.members = res[2].data;
+  S.members.forEach(function (x) { S.names[x.user_id] = x.display_name || 'Uten navn'; });
+}
+window.addEventListener('online', function () { $('#offline').hidden = true; flushQueue(); });
+window.addEventListener('offline', function () { $('#offline').hidden = false; });
+if (!navigator.onLine) $('#offline').hidden = false;
+
+/* ---------- start: bli med ---------- */
+$('#startNew').addEventListener('click', function () { startWizard(); });
+$('#joinGo').addEventListener('click', async function () {
+  var out = $('#joinMsg'), name = $('#joinName').value.trim(), code = $('#joinCode').value.trim();
+  if (!name || !code) { msg(out, 'err', 'Fyll inn navn og kode.'); return; }
+  var r = await sb.rpc('join_with_code', { p_code: code, p_name: name });
+  if (r.error) { msg(out, 'err', errText(r.error)); return; }
+  await afterLogin();
+});
+
+/* ================= I DAG ================= */
+var ROUT_LABEL = { apning: 'Åpning', stenging: 'Stenging' };
+var DOMAIN_LABEL = { mat: 'Mat', alkohol: 'Alkohol', hms: 'HMS' };
+var queue = lsGet('ikmat-q', []);
+
+function recText(r) {
+  var f = r.freq || 'daily';
+  if (f === 'daily') return r.weekdays && r.weekdays.length && r.weekdays.length < 7 ? 'Hver ' + r.weekdays.map(function (n) { return WD[n - 1].toLowerCase(); }).join(', ') : 'Hver dag';
+  if (f === 'weekly') return 'Ukentlig ' + (r.weekdays || [1]).map(function (n) { return WD[n - 1].toLowerCase(); }).join(', ');
+  if (f === 'monthly') return 'Månedlig den ' + (r.day || 1) + '.';
+  return 'Årlig ' + (r.day || 1) + '. ' + MON[(r.month || 1) - 1];
+}
+function dueOn(rec, d) {
+  var f = rec.freq || 'daily', iso = isoDow(d);
+  if (rec.start && ymd(d) < rec.start) return false;
+  var wd = Array.isArray(rec.weekdays) ? rec.weekdays.map(Number) : null;
+  var last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  if (f === 'daily') return !wd || wd.indexOf(iso) >= 0;
+  if (f === 'weekly') return (wd || [1]).indexOf(iso) >= 0;
+  if (f === 'monthly') return d.getDate() === Math.min(rec.day || 1, last);
+  if (f === 'yearly') return d.getMonth() + 1 === (rec.month || 1) && d.getDate() === Math.min(rec.day || 1, last);
+  return false;
+}
+
+async function fetchDay(day) {
+  var key = 'ikmat-day-' + S.org.id + '-' + day;
+  try {
+    var r = await sb.rpc('tasks_for_day', { p_org: S.org.id, p_day: day });
+    if (r.error) throw r.error;
+    $('#offline').hidden = navigator.onLine;
+    lsSet(key, r.data);
+    return r.data;
+  } catch (e) {
+    if (isNetErr(e)) { $('#offline').hidden = false; return lsGet(key, []); }
+    throw e;
+  }
+}
+function applyQueue(rows, day) {
+  // vis kvitteringer som venter på nett som utført
+  queue.forEach(function (q) {
+    if (q.due_date !== day || q.org_id !== S.org.id) return;
+    rows.forEach(function (r) { if (r.task_id === q.task_id && !r.run_id) { r.run_status = q.status; r.run_value = q.value; r.run_done_by = S.user.id; r.run_done_at = q.done_at; r.pending = true; } });
+  });
+  return rows;
+}
+
+async function renderToday() {
+  if (!S.org) return;
+  var day = S.day, today = ymd(new Date());
+  $('#dLabel').textContent = '';
+  var lab = $('#dLabel'); lab.appendChild(document.createTextNode(day === today ? 'I dag' : fmtDate(day)));
+  lab.appendChild(h('small', null, day === today ? fmtDate(day) : (day < today ? 'Tidligere dag' : 'Kommende dag')));
+  $('#dNext').disabled = false;
+  // avdelingsfilter
+  var chips = clear($('#areaChips'));
+  if (S.areas.length > 1) {
+    chips.appendChild(chip('Alle', S.area === 'all', function () { S.area = 'all'; renderToday(); }));
+    S.areas.forEach(function (a) { chips.appendChild(chip(a.name, S.area === a.id, function () { S.area = a.id; renderToday(); })); });
+  }
+  var rows;
+  try {
+    rows = applyQueue(await fetchDay(day), day);
+    S.dayRows = rows;
+    if (day === today) {
+      var prev = applyQueue(await fetchDay(addDays(day, -1)), addDays(day, -1));
+      S.overdue = prev.filter(function (r) { return !r.run_status; }).map(function (r) { r.overdueDay = addDays(day, -1); return r; });
+    } else S.overdue = [];
+  } catch (e) { clear($('#taskList')).appendChild(h('div', { class: 'err' }, errText(e))); return; }
+  drawToday();
+}
+function chip(text, on, fn) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick: fn }, text); }
+
+function drawToday() {
+  var rows = S.dayRows.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
+  var done = rows.filter(function (r) { return r.run_status; }).length;
+  $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
+  $('#progTxt').textContent = rows.length ? done + ' av ' + rows.length + ' oppgaver er kvittert' : 'Ingen oppgaver denne dagen.';
+
+  var od = clear($('#overdue'));
+  var odRows = S.overdue.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
+  if (odRows.length) {
+    var box = h('div', { class: 'group' }, h('header', null, h('h3', null, 'Ikke gjort i går'), h('span', { class: 'pill r' }, odRows.length)));
+    odRows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay)); });
+    od.appendChild(box);
+  }
+
+  var list = clear($('#taskList'));
+  function area(r) { return r.area_name || ''; }
+  var groups = [];
+  var areaOrder = S.areas.map(function (a) { return a.id; });
+  function gFor(title, key) { var g = groups.filter(function (x) { return x.key === key; })[0]; if (!g) { g = { key: key, title: title, rows: [] }; groups.push(g); } return g; }
+  var open = [], mid = [], close = [];
+  rows.forEach(function (r) { (r.routine === 'apning' ? open : r.routine === 'stenging' ? close : mid).push(r); });
+  function perArea(arr, label, prefix) {
+    var ids = areaOrder.filter(function (id) { return arr.some(function (r) { return r.area_id === id; }); });
+    if (arr.some(function (r) { return !r.area_id; })) ids.push(null);
+    ids.forEach(function (id) {
+      var rs = arr.filter(function (r) { return r.area_id === id; });
+      var nm = id ? area(rs[0]) : '';
+      var g = gFor(label + (nm ? ' · ' + nm : ''), prefix + (id || 'x')); g.rows = rs; g.rout = true;
+    });
+  }
+  perArea(open, 'Åpning', 'o');
+  ['mat', 'alkohol', 'hms'].forEach(function (dm) {
+    var rs = mid.filter(function (r) { return r.domain === dm; });
+    if (rs.length) { var g = gFor('Faste kontroller · ' + DOMAIN_LABEL[dm], 'm' + dm); g.rows = rs; }
+  });
+  perArea(close, 'Stenging', 's');
+  if (!groups.length) list.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver er planlagt denne dagen. Legg til oppgaver i kalenderen.'));
+  groups.forEach(function (g) {
+    var d = g.rows.filter(function (r) { return r.run_status; }).length;
+    var head = h('header', null, h('h3', null, g.title), h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
+    var box = h('div', { class: 'group' }, head);
+    g.rows.forEach(function (r) { box.appendChild(taskRow(r, S.day)); });
+    list.appendChild(box);
+  });
+  var cb = clear($('#closeBox'));
+  if (rows.length && done === rows.length) cb.appendChild(h('div', { class: 'ok' }, 'Alt er kvittert for ' + (S.day === ymd(new Date()) ? 'i dag' : fmtDate(S.day)) + '. Bra jobbet.'));
+}
+
+function taskRow(r, day) {
+  var st = r.run_status;
+  var tick = h('button', { class: 'tick', type: 'button', 'aria-label': st ? 'Se detaljer for ' + r.title : 'Kvitter ' + r.title,
+    onclick: function () { onTick(r, day); } }, st === 'done' ? '✓' : st === 'skipped' ? '↷' : '');
+  var meta = h('div', { class: 'meta' });
+  if (r.kind === 'measure' && (r.min_value != null || r.max_value != null)) meta.appendChild(h('span', null, 'Grense: ' + (r.min_value != null ? 'min ' + r.min_value : '') + (r.min_value != null && r.max_value != null ? ', ' : '') + (r.max_value != null ? 'maks ' + r.max_value : '') + ' ' + (r.unit || '')));
+  if (st) {
+    var who = nameOf(r.run_done_by) + ' ' + fmtTs(r.run_done_at);
+    if (r.run_value != null) meta.appendChild(h('span', null, r.run_value + ' ' + (r.unit || '')));
+    meta.appendChild(h('span', null, st === 'skipped' ? 'Hoppet over av ' + who : who));
+    if (r.pending) meta.appendChild(h('span', { class: 'pill a' }, 'Venter på nett'));
+    if (r.run_value != null && ((r.min_value != null && r.run_value < r.min_value) || (r.max_value != null && r.run_value > r.max_value))) meta.appendChild(h('span', { class: 'pill r' }, 'Utenfor grense'));
+  }
+  var more = h('div', { class: 'more', hidden: true });
+  if (r.hint) more.appendChild(h('div', null, r.hint));
+  if (st === 'skipped' && r.run_skip_reason) more.appendChild(h('div', null, 'Begrunnelse: ' + r.run_skip_reason));
+  if (r.run_note) more.appendChild(h('div', null, 'Notat: ' + r.run_note));
+  if (!st) more.appendChild(h('div', { class: 'acts' }, h('button', { class: 'btn alt small', type: 'button', onclick: function (e) { e.stopPropagation(); skipDialog(r, day); } }, 'Hopp over eller utsett')));
+  var body = h('div', { class: 'body' }, h('div', { class: 'ttl' }, r.title), meta, more);
+  if (r.hint || st || !st) body.addEventListener('click', function (e) { if (e.target.closest('button')) return; more.hidden = !more.hidden; });
+  return h('div', { class: 'task ' + (st || '') }, tick, body);
+}
+
+function onTick(r, day) {
+  if (r.run_status) { toast(nameOf(r.run_done_by) + ' · ' + fmtTs(r.run_done_at)); return; }
+  if (r.kind === 'check') { saveRun(r, day, { status: 'done' }); return; }
+  var note = h('textarea', { id: 'rnote', placeholder: 'Valgfritt notat' });
+  var val = h('input', { type: 'text', inputmode: 'decimal', id: 'rval', autocomplete: 'off' });
+  var file = h('input', { type: 'file', accept: 'image/*', capture: 'environment', id: 'rfile' });
+  var out = h('div', { role: 'status' });
+  var fields = [h('h2', null, r.title)];
+  if (r.kind === 'measure') {
+    fields.push(h('label', { class: 'f' }, 'Måling' + (r.unit ? ' (' + r.unit + ')' : ''), val));
+    if (r.min_value != null || r.max_value != null) fields.push(h('div', { class: 'note' }, 'Grense: ' + (r.min_value != null ? 'minst ' + r.min_value : '') + (r.min_value != null && r.max_value != null ? ' og ' : '') + (r.max_value != null ? 'høyst ' + r.max_value : '') + ' ' + (r.unit || '') + '. Utenfor grense opprettes avvik automatisk.'));
+  }
+  if (r.kind === 'photo') fields.push(h('label', { class: 'f' }, 'Bilde', file));
+  fields.push(h('label', { class: 'f' }, r.kind === 'note' ? 'Notat' : 'Notat (valgfritt)', note), out);
+  fields.push(h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Avbryt'),
+    h('button', { class: 'btn grow', type: 'button', onclick: async function (ev) {
+      var p = { status: 'done', note: note.value.trim() || null };
+      if (r.kind === 'measure') { p.value = num(val.value); if (p.value == null) { msg(out, 'err', 'Skriv inn et tall.'); return; } }
+      if (r.kind === 'note' && !p.note) { msg(out, 'err', 'Skriv et notat.'); return; }
+      if (r.kind === 'photo') { if (!file.files[0]) { msg(out, 'err', 'Ta eller velg et bilde.'); return; } }
+      ev.target.disabled = true;
+      try { if (r.kind === 'photo' || file.files[0]) p.photo_path = await uploadPhoto(file.files[0]); } catch (e) { msg(out, 'err', 'Bildet ble ikke lastet opp: ' + errText(e)); ev.target.disabled = false; return; }
+      closeDlg(); saveRun(r, day, p);
+    } }, 'Kvitter')));
+  openDlg(fields);
+  setTimeout(function () { (val.isConnected && r.kind === 'measure' ? val : note).focus(); }, 50);
+}
+function skipDialog(r, day) {
+  var why = h('textarea', { id: 'why', placeholder: 'Hvorfor hoppes oppgaven over?' }), out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Hopp over'), h('p', { class: 'muted' }, r.title), h('label', { class: 'f' }, 'Begrunnelse (kreves)', why), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'),
+      h('button', { class: 'btn grow', onclick: function () {
+        if (!why.value.trim()) { msg(out, 'err', 'Skriv en begrunnelse.'); return; }
+        closeDlg(); saveRun(r, day, { status: 'skipped', skip_reason: why.value.trim() });
+      } }, 'Hopp over'))]);
+}
+async function saveRun(r, day, p) {
+  var rec = { id: uuid(), org_id: S.org.id, task_id: r.task_id, due_date: day, status: p.status, value: p.value == null ? null : p.value,
+    note: p.note || null, skip_reason: p.skip_reason || null, photo_path: p.photo_path || null, done_at: new Date().toISOString() };
+  // vis med en gang
+  r.run_status = rec.status; r.run_value = rec.value; r.run_note = rec.note; r.run_skip_reason = rec.skip_reason; r.run_done_by = S.user.id; r.run_done_at = rec.done_at;
+  if (day !== S.day) S.overdue = S.overdue.filter(function (x) { return x !== r; });
+  drawToday();
+  var ins = Object.assign({}, rec); delete ins.done_at;
+  try {
+    var res = await sb.from('task_runs').insert(ins);
+    if (res.error) {
+      if (res.error.code === '23505') { toast('Allerede kvittert av noen andre'); renderToday(); return; }
+      throw res.error;
+    }
+    if (rec.value != null && ((r.min_value != null && rec.value < r.min_value) || (r.max_value != null && rec.value > r.max_value))) toast('Utenfor grense. Avvik er opprettet.');
+    renderToday();
+  } catch (e) {
+    if (isNetErr(e)) { r.pending = true; queue.push(rec); lsSet('ikmat-q', queue); drawToday(); toast('Lagret på enheten. Sendes når du er på nett.'); }
+    else { toast('Kunne ikke lagre: ' + errText(e)); renderToday(); }
+  }
+}
+var flushing = false;
+async function flushQueue() {
+  if (flushing || !queue.length || !S.org || !navigator.onLine) return;
+  flushing = true;
+  var rest = [];
+  for (var i = 0; i < queue.length; i++) {
+    var q = Object.assign({}, queue[i]); delete q.done_at;
+    var r = await sb.from('task_runs').insert(q);
+    if (r.error && r.error.code !== '23505') { if (isNetErr(r.error)) { rest = queue.slice(i); break; } }
+  }
+  queue = rest; lsSet('ikmat-q', queue); flushing = false;
+  if (S.screen === 'today') renderToday();
+}
+$('#dPrev').addEventListener('click', function () { S.day = addDays(S.day, -1); renderToday(); });
+$('#dNext').addEventListener('click', function () { S.day = addDays(S.day, 1); renderToday(); });
+
+/* ---------- bilder ---------- */
+function shrink(file) {
+  return new Promise(function (res, rej) {
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () {
+      var max = 1280, w = img.width, hh = img.height, k = Math.min(1, max / Math.max(w, hh));
+      var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(hh * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(function (b) { URL.revokeObjectURL(url); b ? res(b) : rej(new Error('Kunne ikke lese bildet')); }, 'image/jpeg', 0.82);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('Kunne ikke lese bildet')); };
+    img.src = url;
+  });
+}
+async function uploadPhoto(file) {
+  if (!file) return null;
+  var blob = await shrink(file), path = S.org.id + '/' + uuid() + '.jpg';
+  var r = await sb.storage.from('ikmat-bilder').upload(path, blob, { contentType: 'image/jpeg' });
+  if (r.error) throw r.error;
+  return path;
+}
+async function photoImg(path) {
+  var r = await sb.storage.from('ikmat-bilder').createSignedUrl(path, 3600);
+  if (r.error) return h('div', { class: 'muted small' }, 'Bildet kunne ikke vises.');
+  return h('img', { src: r.data.signedUrl, alt: 'Vedlagt bilde', style: 'max-width:100%;border-radius:10px' });
+}
+
+/* ================= KALENDER ================= */
+$('#mPrev').addEventListener('click', function () { S.month = new Date(S.month.getFullYear(), S.month.getMonth() - 1, 1); renderCal(); });
+$('#mNext').addEventListener('click', function () { S.month = new Date(S.month.getFullYear(), S.month.getMonth() + 1, 1); renderCal(); });
+$('#addTask').addEventListener('click', function () { taskDialog(null); });
+
+async function renderCal() {
+  if (!S.org) return;
+  if (!S.month) { var n = new Date(); S.month = new Date(n.getFullYear(), n.getMonth(), 1); }
+  var m = S.month, first = ymd(m), last = ymd(new Date(m.getFullYear(), m.getMonth() + 1, 0));
+  $('#mLabel').textContent = MON[m.getMonth()] + ' ' + m.getFullYear();
+  var runs = [];
+  var r = await sb.from('task_runs').select('task_id, due_date, status').eq('org_id', S.org.id).gte('due_date', first).lte('due_date', last).limit(5000);
+  if (!r.error) runs = r.data;
+  var done = {};
+  runs.forEach(function (x) { done[x.due_date] = (done[x.due_date] || 0) + 1; });
+  var g = clear($('#calGrid'));
+  WD.forEach(function (w) { g.appendChild(h('div', { class: 'h' }, w)); });
+  var lead = isoDow(m) - 1, days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate(), today = ymd(new Date());
+  for (var i = 0; i < lead; i++) g.appendChild(h('div'));
+  for (var d = 1; d <= days; d++) {
+    var dt = new Date(m.getFullYear(), m.getMonth(), d), key = ymd(dt);
+    var due = S.tasks.filter(function (t) { return t.active && dueOn(t.recurrence, dt); }).length;
+    var n2 = done[key] || 0, cls = '';
+    if (due) cls = n2 >= due ? 'g' : n2 > 0 ? 'a' : (key < today ? 'r' : '');
+    (function (k) {
+      g.appendChild(h('button', { class: 'day' + (key === today ? ' today' : ''), type: 'button', 'aria-label': fmtDate(key), onclick: function () { S.day = k; go('today'); } },
+        String(d), h('span', { class: 'dot ' + cls })));
+    })(key);
+  }
+  drawTaskAdmin();
+}
+function drawTaskAdmin() {
+  var box = clear($('#taskAdmin'));
+  $('#addTask').hidden = !isLeder();
+  if (!S.tasks.length) { box.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver ennå.')); return; }
+  var areaName = {}; S.areas.forEach(function (a) { areaName[a.id] = a.name; });
+  S.tasks.slice().sort(function (a, b) { return (b.active - a.active) || a.title.localeCompare(b.title, 'nb'); }).forEach(function (t) {
+    var row = h('div', { class: 'trow' + (t.active ? '' : ' off') },
+      h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, t.title),
+        h('div', { class: 'small muted' }, [(areaName[t.area_id] || 'Hele stedet'), ROUT_LABEL[t.routine] || null, DOMAIN_LABEL[t.domain], recText(t.recurrence)].filter(Boolean).join(' · '))));
+    if (isLeder()) row.appendChild(h('button', { class: 'btn soft small', type: 'button', onclick: function () { taskDialog(t); } }, 'Endre'));
+    box.appendChild(row);
+  });
+}
+function taskDialog(t) {
+  var isNew = !t; t = t || { title: '', domain: 'mat', routine: 'annet', kind: 'check', recurrence: { freq: 'daily' }, active: true, area_id: null, unit: '', hint: '' };
+  var title = h('input', { type: 'text', id: 't-title', value: t.title, maxlength: 200 });
+  var hint = h('textarea', { id: 't-hint' }, t.hint || '');
+  var area = h('select', { id: 't-area' }, h('option', { value: '' }, 'Hele stedet'), S.areas.map(function (a) { return h('option', { value: a.id }, a.name); }));
+  area.value = t.area_id || '';
+  var dom = h('select', { id: 't-dom' }, ['mat', 'alkohol', 'hms'].map(function (x) { return h('option', { value: x }, DOMAIN_LABEL[x]); })); dom.value = t.domain;
+  var rout = h('select', { id: 't-rout' }, [['apning', 'Åpning'], ['stenging', 'Stenging'], ['daglig', 'Daglig'], ['ukentlig', 'Ukentlig'], ['manedlig', 'Månedlig'], ['arlig', 'Årlig'], ['annet', 'Annet']].map(function (x) { return h('option', { value: x[0] }, x[1]); })); rout.value = t.routine;
+  var kind = h('select', { id: 't-kind' }, [['check', 'Avkrysning'], ['measure', 'Måling'], ['note', 'Notat'], ['photo', 'Bilde']].map(function (x) { return h('option', { value: x[0] }, x[1]); })); kind.value = t.kind;
+  var unit = h('input', { type: 'text', id: 't-unit', value: t.unit || '', placeholder: '°C' });
+  var mn = h('input', { type: 'text', inputmode: 'decimal', id: 't-min', value: t.min_value == null ? '' : t.min_value });
+  var mx = h('input', { type: 'text', inputmode: 'decimal', id: 't-max', value: t.max_value == null ? '' : t.max_value });
+  var measure = h('div', { class: 'stack' }, h('label', { class: 'f' }, 'Enhet', unit), h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Minst', mn), h('label', { class: 'f grow' }, 'Høyst', mx)));
+  var rec = t.recurrence || { freq: 'daily' };
+  var freq = h('select', { id: 't-freq' }, [['daily', 'Hver dag'], ['weekly', 'Ukentlig'], ['monthly', 'Månedlig'], ['yearly', 'Årlig']].map(function (x) { return h('option', { value: x[0] }, x[1]); })); freq.value = rec.freq || 'daily';
+  var wd = (rec.weekdays || (rec.freq === 'weekly' ? [1] : [1, 2, 3, 4, 5, 6, 7])).map(Number);
+  var wdBox = h('div', { class: 'chips' }, WD.map(function (w, i) {
+    var b = h('button', { class: 'chip', type: 'button', 'aria-pressed': wd.indexOf(i + 1) >= 0 ? 'true' : 'false', onclick: function () { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); } }, w); b.dataset.n = i + 1; return b;
+  }));
+  var dayN = h('input', { type: 'number', id: 't-day', min: 1, max: 31, value: rec.day || 1 });
+  var monN = h('select', { id: 't-mon' }, MON.map(function (m, i) { return h('option', { value: i + 1 }, m); })); monN.value = rec.month || 1;
+  var wdWrap = h('div', { class: 'f' }, 'Ukedager', wdBox), dayWrap = h('label', { class: 'f' }, 'Dag i måneden', dayN), monWrap = h('label', { class: 'f' }, 'Måned', monN);
+  function sync() {
+    measure.hidden = kind.value !== 'measure';
+    wdWrap.hidden = !(freq.value === 'daily' || freq.value === 'weekly');
+    dayWrap.hidden = !(freq.value === 'monthly' || freq.value === 'yearly');
+    monWrap.hidden = freq.value !== 'yearly';
+  }
+  kind.addEventListener('change', sync); freq.addEventListener('change', sync); sync();
+  var act = h('input', { type: 'checkbox', id: 't-act', checked: t.active });
+  var out = h('div', { role: 'status' });
+  openDlg([h('h2', null, isNew ? 'Ny oppgave' : 'Endre oppgave'),
+    h('label', { class: 'f' }, 'Tittel', title), h('label', { class: 'f' }, 'Hjelpetekst', hint),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Avdeling', area), h('label', { class: 'f grow' }, 'Område', dom)),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Rutine', rout), h('label', { class: 'f grow' }, 'Type', kind)),
+    measure, h('label', { class: 'f' }, 'Gjentas', freq), wdWrap, dayWrap, monWrap,
+    h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Fjern haken for å slutte å bruke oppgaven. Historikken beholdes.'))),
+    out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!title.value.trim()) { msg(out, 'err', 'Oppgaven trenger en tittel.'); return; }
+      var r2 = { freq: freq.value };
+      if (freq.value === 'daily' || freq.value === 'weekly') {
+        r2.weekdays = $$('button', wdBox).filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; }).map(function (b) { return +b.dataset.n; });
+        if (!r2.weekdays.length) { msg(out, 'err', 'Velg minst én ukedag.'); return; }
+        if (freq.value === 'daily' && r2.weekdays.length === 7) delete r2.weekdays;
+      }
+      if (freq.value === 'monthly' || freq.value === 'yearly') r2.day = Math.max(1, Math.min(31, +dayN.value || 1));
+      if (freq.value === 'yearly') r2.month = +monN.value;
+      var row = { org_id: S.org.id, area_id: area.value || null, domain: dom.value, routine: rout.value, title: title.value.trim(), hint: hint.value.trim() || null,
+        kind: kind.value, unit: kind.value === 'measure' ? (unit.value.trim() || null) : null,
+        min_value: kind.value === 'measure' ? num(mn.value) : null, max_value: kind.value === 'measure' ? num(mx.value) : null,
+        recurrence: r2, active: act.checked };
+      ev.target.disabled = true;
+      var res = isNew ? await sb.from('tasks').insert(Object.assign(row, { source: 'egen' })) : await sb.from('tasks').update(row).eq('id', t.id);
+      if (res.error) { msg(out, 'err', errText(res.error)); ev.target.disabled = false; return; }
+      closeDlg(); toast('Lagret');
+      var rt = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'); if (!rt.error) S.tasks = rt.data;
+      renderCal();
+    } }, 'Lagre'))]);
+}
+
+/* ================= AVVIK ================= */
+var DEV_STATUS = { apen: 'Åpen', under_arbeid: 'Under arbeid', lukket: 'Lukket' };
+async function loadDevs() {
+  if (!S.org) return;
+  var r = await sb.from('deviations').select('*').eq('org_id', S.org.id).order('created_at', { ascending: false }).limit(500);
+  if (r.error) { clear($('#devList')).appendChild(h('div', { class: 'err' }, errText(r.error))); return; }
+  S.devs = r.data; drawDevs();
+}
+function drawDevs() {
+  var chips = clear($('#devChips'));
+  [['alle', 'Alle'], ['apen', 'Åpne'], ['under_arbeid', 'Under arbeid'], ['lukket', 'Lukket']].forEach(function (x) {
+    chips.appendChild(chip(x[1], S.devFilter === x[0], function () { S.devFilter = x[0]; drawDevs(); }));
+  });
+  var q = $('#devQ').value.trim().toLowerCase(), list = clear($('#devList'));
+  var rows = S.devs.filter(function (d) {
+    if (S.devFilter !== 'alle' && d.status !== S.devFilter) return false;
+    return !q || (d.title + ' ' + (d.description || '') + ' ' + (d.cause || '') + ' ' + (d.action || '')).toLowerCase().indexOf(q) >= 0;
+  });
+  if (!rows.length) list.appendChild(h('div', { class: 'note' }, S.devs.length ? 'Ingen avvik passer.' : 'Ingen avvik registrert. Bra.'));
+  rows.forEach(function (d) {
+    list.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { devDialog(d); } },
+      h('div', { class: 't' }, d.title),
+      h('div', { class: 'row small' }, h('span', { class: 'pill ' + (d.status === 'lukket' ? 'g' : d.status === 'apen' ? 'r' : 'a') }, DEV_STATUS[d.status]), h('span', { class: 'pill' }, DOMAIN_LABEL[d.category]), h('span', { class: 'muted' }, fmtTs(d.created_at) + ' · ' + nameOf(d.created_by)))));
+  });
+}
+$('#devQ').addEventListener('input', drawDevs);
+$('#newDev').addEventListener('click', function () { devDialog(null); });
+
+function devDialog(d) {
+  var isNew = !d; d = d || { title: '', category: 'mat', status: 'apen', description: '', cause: '', action: '' };
+  var title = h('input', { type: 'text', id: 'd-title', value: d.title, maxlength: 200 });
+  var cat = h('select', { id: 'd-cat' }, ['mat', 'alkohol', 'hms'].map(function (x) { return h('option', { value: x }, DOMAIN_LABEL[x]); })); cat.value = d.category;
+  var desc = h('textarea', { id: 'd-desc' }, d.description || '');
+  var cause = h('textarea', { id: 'd-cause' }, d.cause || '');
+  var act = h('textarea', { id: 'd-act' }, d.action || '');
+  var status = h('select', { id: 'd-st' }, Object.keys(DEV_STATUS).map(function (k) { return h('option', { value: k }, DEV_STATUS[k]); })); status.value = d.status;
+  var resp = h('select', { id: 'd-resp' }, h('option', { value: '' }, 'Ikke satt'), (S.members || []).map(function (m) { return h('option', { value: m.user_id }, m.display_name || 'Uten navn'); })); resp.value = d.responsible || '';
+  var file = h('input', { type: 'file', accept: 'image/*', capture: 'environment', id: 'd-file' });
+  var out = h('div', { role: 'status' }), photoBox = h('div');
+  if (d.photo_path) photoImg(d.photo_path).then(function (im) { photoBox.appendChild(im); });
+  openDlg([h('h2', null, isNew ? 'Nytt avvik' : 'Avvik'),
+    h('label', { class: 'f' }, 'Hva skjedde?', title),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Område', cat), h('label', { class: 'f grow' }, 'Status', status)),
+    h('label', { class: 'f' }, 'Beskrivelse', desc), h('label', { class: 'f' }, 'Årsak', cause), h('label', { class: 'f' }, 'Tiltak', act),
+    h('label', { class: 'f' }, 'Ansvarlig', resp), photoBox, h('label', { class: 'f' }, d.photo_path ? 'Bytt bilde' : 'Bilde', file), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Lukk'), h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!title.value.trim()) { msg(out, 'err', 'Beskriv hva som skjedde.'); return; }
+      ev.target.disabled = true;
+      var row = { category: cat.value, title: title.value.trim(), description: desc.value.trim() || null, cause: cause.value.trim() || null, action: act.value.trim() || null,
+        status: status.value, responsible: resp.value || null, closed_at: status.value === 'lukket' ? (d.closed_at || new Date().toISOString()) : null };
+      try { if (file.files[0]) row.photo_path = await uploadPhoto(file.files[0]); } catch (e) { msg(out, 'err', 'Bildet ble ikke lastet opp: ' + errText(e)); ev.target.disabled = false; return; }
+      var res = isNew ? await sb.from('deviations').insert(Object.assign(row, { org_id: S.org.id })) : await sb.from('deviations').update(row).eq('id', d.id);
+      if (res.error) { msg(out, 'err', errText(res.error)); ev.target.disabled = false; return; }
+      closeDlg(); toast('Lagret'); loadDevs();
+    } }, 'Lagre'))]);
+}
+
+/* ================= MER ================= */
+function moreItem(title, sub, fn) {
+  return h('button', { class: 'dev', type: 'button', onclick: fn }, h('div', { class: 't' }, title), sub ? h('div', { class: 'small muted' }, sub) : null);
+}
+function renderMore() {
+  var l = clear($('#moreList'));
+  l.appendChild(h('div', { class: 'card' }, h('div', { style: 'font-weight:600' }, S.org.name), h('div', { class: 'small muted' }, (S.org.orgnr ? 'Org.nr. ' + S.org.orgnr + ' · ' : '') + (isLeder() ? 'Du er leder' : 'Du er ansatt'))));
+  l.appendChild(moreItem('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
+  l.appendChild(moreItem('Tilsynsmappe', 'Plan, kvitteringer og avvik for en periode. Skriv ut eller last ned.', showFolder));
+  if (isLeder()) {
+    l.appendChild(moreItem('Team og invitasjon', 'Se hvem som har tilgang og lag invitasjonskode', teamDialog));
+    l.appendChild(moreItem('Endringslogg', 'Hvem som endret hva, og når', showAudit));
+  }
+  l.appendChild(moreItem('Mitt navn', nameOf(S.user.id), nameDialog));
+  if (S.mems.length > 1) l.appendChild(moreItem('Bytt virksomhet', null, orgSwitch));
+  l.appendChild(moreItem('Personvern og vilkår', 'Data lagres i EU', function () { location.href = '../personvern.html'; }));
+  l.appendChild(moreItem('Logg ut', S.user.email, logout));
+  l.appendChild(h('p', { class: 'small muted' }, 'Grenseverdier og rutiner er forslag. Virksomheten er selv ansvarlig for at planen passer driften og gjeldende regelverk.'));
+}
+function nameDialog() {
+  var n = h('input', { type: 'text', id: 'my-name', value: S.names[S.user.id] || '', maxlength: 120, autocomplete: 'name' });
+  openDlg([h('h2', null, 'Mitt navn'), h('p', { class: 'muted' }, 'Navnet vises på kvitteringer og avvik.'), h('label', { class: 'f' }, 'Navn', n),
+    h('button', { class: 'btn', onclick: async function () {
+      var r = await sb.rpc('set_my_name', { p_org: S.org.id, p_name: n.value.trim() });
+      if (r.error) { toast(errText(r.error)); return; }
+      S.names[S.user.id] = n.value.trim(); closeDlg(); toast('Lagret'); renderMore();
+    } }, 'Lagre')]);
+}
+function orgSwitch() {
+  openDlg([h('h2', null, 'Bytt virksomhet')].concat(S.mems.map(function (m) {
+    return h('button', { class: 'btn alt', onclick: async function () { closeDlg(); await selectOrg(m); go('today'); } }, m.organizations.name);
+  })));
+}
+async function teamDialog() {
+  var out = h('div', { role: 'status' }), list = h('div', { class: 'stack' });
+  var r = await sb.from('members').select('user_id, role, display_name').eq('org_id', S.org.id);
+  (r.data || []).forEach(function (m) {
+    var row = h('div', { class: 'trow' }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, m.display_name || 'Uten navn'), h('div', { class: 'small muted' }, m.role === 'leder' ? 'Leder' : 'Ansatt')));
+    if (m.user_id !== S.user.id) {
+      row.appendChild(h('button', { class: 'btn soft small', onclick: async function () {
+        var e = await sb.from('members').update({ role: m.role === 'leder' ? 'ansatt' : 'leder' }).eq('org_id', S.org.id).eq('user_id', m.user_id);
+        if (e.error) toast(errText(e.error)); else { await selectOrg(S.mems.filter(function (x) { return x.org_id === S.org.id; })[0]); teamDialog(); }
+      } }, m.role === 'leder' ? 'Gjør til ansatt' : 'Gjør til leder'));
+      row.appendChild(h('button', { class: 'btn danger small', onclick: async function () {
+        if (!confirm('Fjerne ' + (m.display_name || 'denne personen') + ' fra stedet?')) return;
+        var e = await sb.from('members').delete().eq('org_id', S.org.id).eq('user_id', m.user_id);
+        if (e.error) toast(errText(e.error)); else { await selectOrg(S.mems.filter(function (x) { return x.org_id === S.org.id; })[0]); teamDialog(); }
+      } }, 'Fjern'));
+    }
+    list.appendChild(row);
+  });
+  openDlg([h('h2', null, 'Team'), list,
+    h('div', { class: 'note' }, 'Lag en kode og gi den til den som skal få tilgang. Koden virker én gang og i sju dager. Personen oppretter bruker og skriver koden under «Bli med på et sted».'),
+    out, h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Lukk'), h('button', { class: 'btn grow', onclick: async function () {
+      var c = await sb.rpc('create_invite', { p_org: S.org.id, p_role: 'ansatt' });
+      if (c.error) msg(out, 'err', errText(c.error)); else msg(out, 'ok', 'Kode: ' + c.data);
+    } }, 'Lag kode for ansatt'))]);
+}
+
+/* ---------- dokumenter ---------- */
+function docScreen(nodes, csv) {
+  var b = clear($('#docBody')); add(b, nodes);
+  $('#docCsv').hidden = !csv; $('#docCsv').onclick = csv || null;
+  go('doc'); $('#s-doc').classList.add('printing'); $('#top').hidden = false; $('#tabs').hidden = true;
+}
+$('#docBack').addEventListener('click', function () { go('more'); });
+$('#docPrint').addEventListener('click', function () { window.print(); });
+function downloadCsv(name, rows) {
+  var text = '﻿' + rows.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n');
+  var a = h('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' })), download: name });
+  document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function table(head, rows) {
+  return h('div', { class: 'scroll' }, h('table', { class: 't' }, h('thead', null, h('tr', null, head.map(function (x) { return h('th', null, x); }))),
+    h('tbody', null, rows.map(function (r) { return h('tr', null, r.map(function (c) { return h('td', null, c == null ? '' : String(c)); })); }))));
+}
+function planNodes(p, meta) {
+  var D = window.DATA, out = [];
+  out.push(h('div', { class: 'card stack' }, h('h2', null, 'IK-mat-plan'), h('div', null, S.org.name + (S.org.orgnr ? ' · org.nr. ' + S.org.orgnr : '')),
+    meta ? h('div', { class: 'small muted' }, meta) : null));
+  if (!p || !p.steps) { out.push(h('div', { class: 'note' }, 'Planen er ikke fylt ut ennå.')); return out; }
+  var stepName = {}; D.steps.forEach(function (s) { stepName[s[0]] = s[1]; });
+  out.push(h('div', { class: 'card stack' }, h('h3', null, 'Prosess'), h('div', null, p.steps.map(function (s) { return stepName[s]; }).join(' → '))));
+  var hz = [];
+  p.steps.forEach(function (s) { (p.hazards[s] || []).forEach(function (x) { hz.push([stepName[s], D.hazardTypes[x.type], x.text]); }); });
+  out.push(h('div', { class: 'card stack' }, h('h3', null, 'Farevurdering'), table(['Steg', 'Type', 'Fare'], hz)));
+  out.push(h('div', { class: 'card stack' }, h('h3', null, 'God hygienepraksis'), table(['Rutine', 'Beskrivelse'], (p.ghp || []).map(function (g) { return [g.title, g.text]; }))));
+  out.push(h('div', { class: 'card stack' }, h('h3', null, 'Kritiske styringspunkter'),
+    table(['Punkt', 'Grense', 'Overvåking', 'Korrigerende tiltak', 'Verifisering'], (p.ccps || []).map(function (c) { return [c.title, (c.kind === 'max' ? 'Høyst ' : 'Minst ') + c.value + ' ' + c.unit, c.monitor, c.action, c.verify]; }))));
+  return out;
+}
+async function showPlan() {
+  var r = await sb.from('haccp_plans').select('*').eq('org_id', S.org.id).order('version', { ascending: false }).limit(1);
+  if (r.error) { toast(errText(r.error)); return; }
+  var pl = r.data[0] || {}, nodes = planNodes(pl.plan, 'Versjon ' + (pl.version || 1) + ' · ' + (pl.status === 'godkjent' ? 'Godkjent ' + fmtTs(pl.approved_at) + ' av ' + nameOf(pl.approved_by) : 'Utkast'));
+  if (isLeder() && pl.id && pl.status !== 'godkjent') nodes.push(h('button', { class: 'btn noprint', onclick: async function () {
+    var u = await sb.from('haccp_plans').update({ status: 'godkjent', approved_by: S.user.id, approved_at: new Date().toISOString() }).eq('id', pl.id);
+    if (u.error) toast(errText(u.error)); else { toast('Planen er godkjent'); showPlan(); }
+  } }, 'Godkjenn planen'));
+  docScreen(nodes, null);
+}
+async function showFolder() {
+  var to = ymd(new Date()), from = addDays(to, -30);
+  var f = h('input', { type: 'date', id: 'f-from', value: from }), t = h('input', { type: 'date', id: 'f-to', value: to });
+  openDlg([h('h2', null, 'Tilsynsmappe'), h('p', { class: 'muted' }, 'Velg perioden som skal tas med.'),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Fra', f), h('label', { class: 'f grow' }, 'Til', t)),
+    h('button', { class: 'btn', onclick: function () { closeDlg(); buildFolder(f.value, t.value); } }, 'Lag mappe')]);
+}
+async function buildFolder(from, to) {
+  if (!from || !to || from > to) { toast('Ugyldig periode'); return; }
+  var res = await Promise.all([
+    sb.from('haccp_plans').select('*').eq('org_id', S.org.id).order('version', { ascending: false }).limit(1),
+    sb.from('task_runs').select('*, tasks(title, domain, routine, unit, area_id)').eq('org_id', S.org.id).gte('due_date', from).lte('due_date', to).order('due_date').limit(10000),
+    sb.from('deviations').select('*').eq('org_id', S.org.id).gte('created_at', from + 'T00:00:00').lte('created_at', to + 'T23:59:59').order('created_at')
+  ]);
+  for (var i = 0; i < res.length; i++) if (res[i].error) { toast(errText(res[i].error)); return; }
+  var plan = res[0].data[0] || {}, runs = res[1].data, devs = res[2].data;
+  var areaName = {}; S.areas.forEach(function (a) { areaName[a.id] = a.name; });
+  var runRows = runs.map(function (r) { var t = r.tasks || {}; return [r.due_date, areaName[t.area_id] || 'Hele stedet', DOMAIN_LABEL[t.domain] || '', t.title || '', r.status === 'done' ? 'Utført' : 'Hoppet over', r.value == null ? '' : r.value + ' ' + (t.unit || ''), r.note || r.skip_reason || '', nameOf(r.done_by), fmtTs(r.done_at)]; });
+  var devRows = devs.map(function (d) { return [fmtTs(d.created_at), DOMAIN_LABEL[d.category], d.title, DEV_STATUS[d.status], d.cause || '', d.action || '', nameOf(d.responsible)]; });
+  var nodes = [h('div', { class: 'card stack' }, h('h2', null, 'Tilsynsmappe'), h('div', null, S.org.name + (S.org.orgnr ? ' · org.nr. ' + S.org.orgnr : '')), h('div', { class: 'small muted' }, 'Periode ' + from + ' til ' + to + '. Laget ' + fmtTs(new Date())))]
+    .concat(planNodes(plan.plan, plan.version ? 'Versjon ' + plan.version + ' · ' + (plan.status === 'godkjent' ? 'Godkjent' : 'Utkast') : null));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, 'Kvitteringer (' + runRows.length + ')'), table(['Dato', 'Avdeling', 'Område', 'Oppgave', 'Status', 'Måling', 'Notat', 'Av', 'Tid'], runRows)));
+  nodes.push(h('div', { class: 'card stack' }, h('h3', null, 'Avvik (' + devRows.length + ')'), table(['Opprettet', 'Område', 'Avvik', 'Status', 'Årsak', 'Tiltak', 'Ansvarlig'], devRows)));
+  docScreen(nodes, function () {
+    downloadCsv('ik-mat-' + from + '-' + to + '.csv', [['Kvitteringer'], ['Dato', 'Avdeling', 'Område', 'Oppgave', 'Status', 'Måling', 'Notat', 'Av', 'Tid']].concat(runRows).concat([[], ['Avvik'], ['Opprettet', 'Område', 'Avvik', 'Status', 'Årsak', 'Tiltak', 'Ansvarlig']]).concat(devRows));
+  });
+}
+async function showAudit() {
+  var r = await sb.from('audit_log').select('*').eq('org_id', S.org.id).order('at', { ascending: false }).limit(300);
+  if (r.error) { toast(errText(r.error)); return; }
+  var names = { organizations: 'Virksomhet', members: 'Medlem', areas: 'Avdeling', haccp_plans: 'HACCP-plan', tasks: 'Oppgave', task_runs: 'Kvittering', deviations: 'Avvik' };
+  var acts = { INSERT: 'Opprettet', UPDATE: 'Endret', DELETE: 'Slettet' };
+  docScreen([h('div', { class: 'card stack' }, h('h2', null, 'Endringslogg'), h('div', { class: 'small muted' }, 'De siste 300 endringene. Loggen kan ikke endres eller slettes av brukere.'),
+    table(['Tid', 'Hvem', 'Hva', 'Handling'], r.data.map(function (x) { return [fmtTs(x.at), nameOf(x.user_id), names[x.table_name] || x.table_name, acts[x.action] || x.action]; })))], null);
+}
+
+/* ================= VEIVISER ================= */
+var W = null;
+var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Oppsummering'];
+function startWizard() {
+  var D = window.DATA;
+  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {} };
+  D.ccps.forEach(function (c) { W.ccp[c.id] = { value: c.value, monitor: c.monitor, action: c.action, verify: c.verify }; });
+  go('wiz'); drawWiz();
+}
+function hzDefault(step) { if (!W.hz[step]) W.hz[step] = window.DATA.hazards[step].map(function (_, i) { return i; }); return W.hz[step]; }
+function toggleIn(arr, v, on) { var i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); }
+function checkRow(title, sub, on, fn, id) {
+  var cb = h('input', { type: 'checkbox', checked: on, id: id, onchange: function () { fn(cb.checked); } });
+  return h('label', { class: 'chk' }, cb, h('div', null, h('b', null, title), sub ? h('span', null, sub) : null));
+}
+function drawWiz() {
+  var D = window.DATA, b = clear($('#wizBody'));
+  var st = clear($('#wizSteps')); WSTEPS.forEach(function (_, i) { st.appendChild(h('i', { class: i <= W.step ? 'on' : '' })); });
+  msg($('#wizMsg'), '', '');
+  b.appendChild(h('h1', null, WSTEPS[W.step]));
+  $('#wizBack').textContent = W.step === 0 ? 'Avbryt' : 'Tilbake';
+  $('#wizNext').textContent = W.step === WSTEPS.length - 1 ? 'Opprett og start' : 'Neste';
+  if (W.step === 0) {
+    b.appendChild(h('p', { class: 'muted' }, 'Fortell litt om stedet. Veiviseren bruker svarene til å lage plan og kalender.'));
+    var n = h('input', { type: 'text', id: 'w-name', value: W.name, maxlength: 200, oninput: function () { W.name = n.value; } });
+    var o = h('input', { type: 'text', id: 'w-org', value: W.orgnr, inputmode: 'numeric', placeholder: '9 siffer', oninput: function () { W.orgnr = o.value; } });
+    var t = h('select', { id: 'w-type', onchange: function () { W.btype = t.value; W.areas = D.defaultAreas[W.btype].slice(); W.steps = D.defaultSteps[W.btype].slice(); W.hz = {}; } }, D.businessTypes.map(function (x) { return h('option', { value: x[0] }, x[1]); })); t.value = W.btype;
+    var m = h('input', { type: 'text', id: 'w-me', value: W.myname, autocomplete: 'name', oninput: function () { W.myname = m.value; } });
+    b.appendChild(h('label', { class: 'f' }, 'Navn på virksomheten', n)); b.appendChild(h('label', { class: 'f' }, 'Organisasjonsnummer (valgfritt)', o));
+    b.appendChild(h('label', { class: 'f' }, 'Type sted', t)); b.appendChild(h('label', { class: 'f' }, 'Ditt navn', m));
+  } else if (W.step === 1) {
+    b.appendChild(h('p', { class: 'muted' }, 'Hver avdeling får egne åpne- og stengerutiner.'));
+    D.areas.forEach(function (a) { b.appendChild(h('div', { class: 'card' }, checkRow(a.slice(1)[0], null, W.areas.indexOf(a[0]) >= 0, function (on) { toggleIn(W.areas, a[0], on); }, 'a-' + a[0]))); });
+    b.appendChild(h('div', { class: 'card' }, checkRow('Vi har skjenkebevilling', 'Legger til rutiner for IK-alkohol.', W.alk, function (on) { W.alk = on; }, 'w-alk')));
+  } else if (W.step === 2) {
+    b.appendChild(h('p', { class: 'muted' }, 'Hvilke steg går maten gjennom hos dere? Forhåndsvalgt etter type sted.'));
+    var c = h('div', { class: 'card' });
+    D.steps.forEach(function (s) { c.appendChild(checkRow(s[1], null, W.steps.indexOf(s[0]) >= 0, function (on) { toggleIn(W.steps, s[0], on); }, 's-' + s[0])); });
+    b.appendChild(c);
+  } else if (W.step === 3) {
+    b.appendChild(h('p', { class: 'muted' }, 'Hva kan gå galt i hvert steg? Fjern det som ikke passer, og legg til egne i etterkant.'));
+    D.steps.filter(function (s) { return W.steps.indexOf(s[0]) >= 0; }).forEach(function (s) {
+      var sel = hzDefault(s[0]), c2 = h('div', { class: 'card' }, h('h3', null, s[1]));
+      D.hazards[s[0]].forEach(function (x, i) { c2.appendChild(checkRow(x[0], D.hazardTypes[x[1]], sel.indexOf(i) >= 0, function (on) { toggleIn(sel, i, on); }, 'h-' + s[0] + i)); });
+      b.appendChild(c2);
+    });
+  } else if (W.step === 4) {
+    b.appendChild(h('p', { class: 'muted' }, 'Grunnrutiner som alle trenger. De blir en del av planen.'));
+    var c3 = h('div', { class: 'card' });
+    D.ghp.forEach(function (g, i) { c3.appendChild(checkRow(g[0], g[1], W.ghp.indexOf(i) >= 0, function (on) { toggleIn(W.ghp, i, on); }, 'g-' + i)); });
+    b.appendChild(c3);
+  } else if (W.step === 5) {
+    b.appendChild(h('div', { class: 'note' }, 'Dette er forslag. Du er ansvarlig for at grensene passer driften. Kontroller mot Mattilsynets veiledning.'));
+    var any = false;
+    D.ccps.forEach(function (c) {
+      if (W.steps.indexOf(c.step) < 0) return; any = true;
+      var s = W.ccp[c.id];
+      var v = h('input', { type: 'text', inputmode: 'decimal', id: 'c-v-' + c.id, value: s.value, oninput: function () { var x = num(v.value); if (x != null) s.value = x; } });
+      var mo = h('textarea', { id: 'c-m-' + c.id, oninput: function () { s.monitor = mo.value; } }, s.monitor);
+      var ac = h('textarea', { id: 'c-a-' + c.id, oninput: function () { s.action = ac.value; } }, s.action);
+      var ve = h('textarea', { id: 'c-e-' + c.id, oninput: function () { s.verify = ve.value; } }, s.verify);
+      b.appendChild(h('div', { class: 'card stack' }, h('h3', null, c.title), h('label', { class: 'f' }, (c.kind === 'max' ? 'Høyst ' : 'Minst ') + '(' + c.unit + ')', v),
+        h('label', { class: 'f' }, 'Overvåking', mo), h('label', { class: 'f' }, 'Hvis grensen brytes', ac), h('label', { class: 'f' }, 'Verifisering', ve)));
+    });
+    if (!any) b.appendChild(h('p', { class: 'muted' }, 'Ingen styringspunkter for stegene du har valgt.'));
+  } else {
+    var a2 = W.areas.map(function (x) { return D.areas.filter(function (y) { return y[0] === x; })[0][1]; });
+    b.appendChild(h('div', { class: 'card stack' }, h('div', null, h('b', null, W.name || 'Uten navn')), h('div', { class: 'muted' }, D.businessTypes.filter(function (x) { return x[0] === W.btype; })[0][1] + ' · ' + (a2.join(', ') || 'ingen avdelinger') + (W.alk ? ' · skjenkebevilling' : '')),
+      h('div', null, W.steps.length + ' steg, ' + W.ghp.length + ' hygienerutiner og ' + D.ccps.filter(function (c) { return W.steps.indexOf(c.step) >= 0; }).length + ' styringspunkter.')));
+    b.appendChild(h('div', { class: 'note' }, 'Når du oppretter, lages planen som utkast, og kalenderen fylles med åpne- og stengerutiner for hver avdeling. Du kan endre alt etterpå.'));
+  }
+}
+$('#wizBack').addEventListener('click', function () { if (W.step === 0) { go(S.org ? 'more' : 'start'); } else { W.step--; drawWiz(); window.scrollTo(0, 0); } });
+$('#wizNext').addEventListener('click', async function () {
+  var out = $('#wizMsg');
+  if (W.step === 0) {
+    if (!W.name.trim()) { msg(out, 'err', 'Skriv inn navnet på stedet.'); return; }
+    if (!W.myname.trim()) { msg(out, 'err', 'Skriv inn ditt navn.'); return; }
+    if (W.orgnr.trim() && !/^[0-9 ]{9,11}$/.test(W.orgnr.trim())) { msg(out, 'err', 'Organisasjonsnummer har 9 siffer.'); return; }
+  }
+  if (W.step === 1 && !W.areas.length) { msg(out, 'err', 'Velg minst én avdeling.'); return; }
+  if (W.step === 2 && !W.steps.length) { msg(out, 'err', 'Velg minst ett steg.'); return; }
+  if (W.step < WSTEPS.length - 1) { W.step++; drawWiz(); window.scrollTo(0, 0); return; }
+  var btn = $('#wizNext'); btn.disabled = true;
+  try { await finishWizard(); } catch (e) { msg(out, 'err', errText(e)); }
+  btn.disabled = false;
+});
+async function finishWizard() {
+  var D = window.DATA;
+  var cr = await sb.rpc('create_organization', { p_name: W.name.trim(), p_orgnr: W.orgnr.trim() || null, p_business_type: W.btype, p_has_alcohol: W.alk, p_areas: W.areas, p_display_name: W.myname.trim() });
+  if (cr.error) throw cr.error;
+  var orgId = cr.data;
+  var plan = { businessType: W.btype, areas: W.areas, alcohol: W.alk, steps: W.steps, hazards: {}, ghp: [], ccps: [], created: new Date().toISOString() };
+  W.steps.forEach(function (s) { plan.hazards[s] = hzDefault(s).map(function (i) { return { text: D.hazards[s][i][0], type: D.hazards[s][i][1] }; }); });
+  plan.ghp = W.ghp.slice().sort(function (a, b) { return a - b; }).map(function (i) { return { title: D.ghp[i][0], text: D.ghp[i][1] }; });
+  D.ccps.forEach(function (c) {
+    if (W.steps.indexOf(c.step) < 0) return;
+    var s = W.ccp[c.id]; plan.ccps.push({ id: c.id, title: c.title, kind: c.kind, value: s.value, unit: c.unit, monitor: s.monitor, action: s.action, verify: s.verify });
+  });
+  var up = await sb.from('haccp_plans').update({ plan: plan }).eq('org_id', orgId).eq('version', 1);
+  if (up.error) throw up.error;
+  // sett grenser på temperaturoppgavene og lag måleoppgaver for varme-punktene
+  var tk = await sb.from('tasks').select('id, title, unit').eq('org_id', orgId);
+  var ar = await sb.from('areas').select('id, kind').eq('org_id', orgId);
+  if (!tk.error) {
+    for (var i = 0; i < plan.ccps.length; i++) {
+      var c = plan.ccps[i], re = D.limitTaskMatch[c.id];
+      if (!re) continue;
+      var rows = tk.data.filter(function (t) { return t.unit === '°C' && re.test(t.title); });
+      for (var j = 0; j < rows.length; j++) await sb.from('tasks').update({ max_value: c.value }).eq('id', rows[j].id);
+    }
+  }
+  var kj = (ar.data || []).filter(function (a) { return a.kind === 'kjokken'; })[0];
+  var extra = [['varme', 'Kjernetemperatur ved varmebehandling', 'min'], ['varmhold', 'Temperatur ved varmholding', 'min'], ['nedkjol', 'Temperatur etter nedkjøling', 'max']];
+  for (var k = 0; k < extra.length; k++) {
+    var cc = plan.ccps.filter(function (x) { return x.id === extra[k][0]; })[0];
+    if (!cc) continue;
+    var row = { org_id: orgId, area_id: kj ? kj.id : null, domain: 'mat', routine: 'daglig', title: extra[k][1], hint: 'Mål når retten produseres. Fra HACCP-planen.', kind: 'measure', unit: cc.unit, recurrence: { freq: 'daily' }, source: 'haccp', sort: 5000 + k };
+    row[cc.kind === 'min' ? 'min_value' : 'max_value'] = cc.value;
+    await sb.from('tasks').insert(row);
+  }
+  W = null; toast('Stedet er opprettet');
+  await afterLogin();
+}
+
+/* ---------- PWA ---------- */
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
+}
+window.__ikmat = { S: S, go: go, dueOn: dueOn };
+})();

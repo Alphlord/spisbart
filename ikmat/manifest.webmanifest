@@ -1,0 +1,13 @@
+{
+  "name": "IK-mat fra spisbart.no",
+  "short_name": "IK-mat",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFDF8",
+  "theme_color": "#FFFDF8",
+  "lang": "nb",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
