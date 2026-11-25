@@ -172,7 +172,7 @@ async function afterLogin() {
 }
 async function selectOrg(m) {
   S.org = m.organizations; S.role = m.role; lsSet('ikmat-org', m.org_id);
-  $('#orgName').textContent = S.org.name + ' ▾';
+  $('#orgName').textContent = S.org.name + (S.mems.length > 1 ? ' ▾' : '');
   S.area = 'all';
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
@@ -744,7 +744,7 @@ function renderMore() {
     l.appendChild(moreItem('Endringslogg', 'Hvem som endret hva, og når', showAudit));
   }
   l.appendChild(moreItem('Mitt navn', nameOf(S.user.id), nameDialog));
-  l.appendChild(moreItem('Serveringssteder', S.mems.length > 1 ? 'Bytt sted eller legg til et nytt' : 'Legg til et nytt sted med egne rutiner', orgSwitch));
+  if (S.mems.length > 1) l.appendChild(moreItem('Bytt virksomhet', null, orgSwitch));
   l.appendChild(moreItem('Personvern og vilkår', 'Data lagres i EU', function () { location.href = '../personvern.html'; }));
   l.appendChild(moreItem('Logg ut', S.user.email, logout));
   l.appendChild(h('p', { class: 'small muted' }, 'Grenseverdier og rutiner er forslag. Virksomheten er selv ansvarlig for at planen passer driften og gjeldende regelverk.'));
@@ -759,12 +759,12 @@ function nameDialog() {
     } }, 'Lagre')]);
 }
 function orgSwitch() {
-  openDlg([h('h2', null, 'Serveringssteder'), h('p', { class: 'muted' }, 'Hvert sted har egne rutiner, kalender og HACCP-plan.')]
+  openDlg([h('h2', null, 'Bytt virksomhet')]
     .concat(S.mems.map(function (m) {
       var cur = S.org && m.org_id === S.org.id;
       return h('button', { class: 'btn ' + (cur ? '' : 'alt'), 'aria-current': cur ? 'true' : null, onclick: async function () { closeDlg(); if (!cur) { await selectOrg(m); go('today'); } } }, m.organizations.name);
     }))
-    .concat([h('button', { class: 'btn alt', onclick: function () { closeDlg(); startWizard(); } }, '+ Nytt serveringssted')]));
+  );
 }
 async function teamDialog() {
   var out = h('div', { role: 'status' }), list = h('div', { class: 'stack' });
@@ -1087,6 +1087,6 @@ async function finishWizard() {
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
 }
-$('#orgName').addEventListener('click', function () { if (S.org) orgSwitch(); });
+$('#orgName').addEventListener('click', function () { if (S.org && S.mems.length > 1) orgSwitch(); });
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
