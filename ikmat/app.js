@@ -205,15 +205,32 @@ var DOMAIN_LABEL = { mat: 'Mat', alkohol: 'Alkohol', hms: 'HMS' };
 var queue = lsGet('ikmat-q', []);
 
 function recText(r) {
-  var f = r.freq || 'daily';
+  var f = r.freq || 'daily', ev = +r.every > 1 ? +r.every : 1;
+  if (ev > 1) {
+    var u = { daily: 'dag', weekly: 'uke', monthly: 'måned', yearly: 'år' }[f] || 'dag';
+    var base = 'Hver ' + ev + '. ' + u;
+    if (f === 'weekly') base += ' ' + (r.weekdays || [1]).map(function (n) { return WD[n - 1].toLowerCase(); }).join(', ');
+    if (f === 'monthly') base += ' den ' + (r.day || 1) + '.';
+    return base + (r.start ? ' fra ' + fmtShort(r.start) : '');
+  }
   if (f === 'daily') return r.weekdays && r.weekdays.length && r.weekdays.length < 7 ? 'Hver ' + r.weekdays.map(function (n) { return WD[n - 1].toLowerCase(); }).join(', ') : 'Hver dag';
   if (f === 'weekly') return 'Ukentlig ' + (r.weekdays || [1]).map(function (n) { return WD[n - 1].toLowerCase(); }).join(', ');
   if (f === 'monthly') return 'Månedlig den ' + (r.day || 1) + '.';
   return 'Årlig ' + (r.day || 1) + '. ' + MON[(r.month || 1) - 1];
 }
+function fmtShort(s) { var d = parseYmd(s); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear(); }
+function dayNum(d) { return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
 function dueOn(rec, d) {
   var f = rec.freq || 'daily', iso = isoDow(d);
   if (rec.start && ymd(d) < rec.start) return false;
+  var ev = +rec.every > 1 ? +rec.every : 1;
+  if (ev > 1) {
+    var st = rec.start ? parseYmd(rec.start) : d;
+    if (f === 'daily') return (dayNum(d) - dayNum(st)) % ev === 0;
+    if (f === 'weekly') { if (Math.round(((dayNum(d) - (iso - 1)) - (dayNum(st) - (isoDow(st) - 1))) / 7) % ev !== 0) return false; }
+    if (f === 'monthly') { if (((d.getFullYear() - st.getFullYear()) * 12 + d.getMonth() - st.getMonth()) % ev !== 0) return false; }
+    if (f === 'yearly') { if ((d.getFullYear() - st.getFullYear()) % ev !== 0) return false; }
+  }
   var wd = Array.isArray(rec.weekdays) ? rec.weekdays.map(Number) : null;
   var last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
   if (f === 'daily') return !wd || wd.indexOf(iso) >= 0;
@@ -336,6 +353,7 @@ function taskRow(r, day) {
   if (r.hint) more.appendChild(h('div', null, r.hint));
   if (st === 'skipped' && r.run_skip_reason) more.appendChild(h('div', null, 'Begrunnelse: ' + r.run_skip_reason));
   if (r.run_note) more.appendChild(h('div', null, 'Notat: ' + r.run_note));
+  if (isLeder()) more.appendChild(h('div', { class: 'acts' }, h('button', { class: 'btn soft small', type: 'button', onclick: function (e) { e.stopPropagation(); var t = S.tasks.filter(function (x) { return x.id === r.task_id; })[0]; if (t) taskDialog(t); } }, 'Endre hvor ofte')));
   if (!st) more.appendChild(h('div', { class: 'acts' }, h('button', { class: 'btn alt small', type: 'button', onclick: function (e) { e.stopPropagation(); skipDialog(r, day); } }, 'Hopp over eller utsett')));
   var body = h('div', { class: 'body' }, h('div', { class: 'ttl' }, r.title), meta, more);
   if (r.hint || st || !st) body.addEventListener('click', function (e) { if (e.target.closest('button')) return; more.hidden = !more.hidden; });
@@ -501,6 +519,10 @@ function taskDialog(t) {
   var measure = h('div', { class: 'stack' }, h('label', { class: 'f' }, 'Enhet', unit), h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Minst', mn), h('label', { class: 'f grow' }, 'Høyst', mx)));
   var rec = t.recurrence || { freq: 'daily' };
   var freq = h('select', { id: 't-freq' }, [['daily', 'Hver dag'], ['weekly', 'Ukentlig'], ['monthly', 'Månedlig'], ['yearly', 'Årlig']].map(function (x) { return h('option', { value: x[0] }, x[1]); })); freq.value = rec.freq || 'daily';
+  var every = h('input', { type: 'number', id: 't-every', min: 1, max: 99, value: rec.every || 1, 'aria-label': 'Intervall' });
+  var evUnit = h('span', null, '');
+  var startD = h('input', { type: 'date', id: 't-start', value: rec.start || '' });
+  var evWrap = h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Hvor ofte (hver ... )', h('div', { class: 'row' }, every, evUnit)), h('label', { class: 'f grow' }, 'Starter', startD));
   var wd = (rec.weekdays || (rec.freq === 'weekly' ? [1] : [1, 2, 3, 4, 5, 6, 7])).map(Number);
   var wdBox = h('div', { class: 'chips' }, WD.map(function (w, i) {
     var b = h('button', { class: 'chip', type: 'button', 'aria-pressed': wd.indexOf(i + 1) >= 0 ? 'true' : 'false', onclick: function () { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); } }, w); b.dataset.n = i + 1; return b;
@@ -513,6 +535,7 @@ function taskDialog(t) {
     wdWrap.hidden = !(freq.value === 'daily' || freq.value === 'weekly');
     dayWrap.hidden = !(freq.value === 'monthly' || freq.value === 'yearly');
     monWrap.hidden = freq.value !== 'yearly';
+    evUnit.textContent = { daily: '. dag', weekly: '. uke', monthly: '. måned', yearly: '. år' }[freq.value];
   }
   kind.addEventListener('change', sync); freq.addEventListener('change', sync); sync();
   var act = h('input', { type: 'checkbox', id: 't-act', checked: t.active });
@@ -521,7 +544,7 @@ function taskDialog(t) {
     h('label', { class: 'f' }, 'Tittel', title), h('label', { class: 'f' }, 'Hjelpetekst', hint),
     h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Avdeling', area), h('label', { class: 'f grow' }, 'Område', dom)),
     h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Rutine', rout), h('label', { class: 'f grow' }, 'Type', kind)),
-    measure, h('label', { class: 'f' }, 'Gjentas', freq), wdWrap, dayWrap, monWrap,
+    measure, h('label', { class: 'f' }, 'Gjentas', freq), evWrap, wdWrap, dayWrap, monWrap,
     h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Fjern haken for å slutte å bruke oppgaven. Historikken beholdes.'))),
     out,
     h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', onclick: async function (ev) {
@@ -532,6 +555,9 @@ function taskDialog(t) {
         if (!r2.weekdays.length) { msg(out, 'err', 'Velg minst én ukedag.'); return; }
         if (freq.value === 'daily' && r2.weekdays.length === 7) delete r2.weekdays;
       }
+      var evn = Math.max(1, Math.min(99, Math.floor(+every.value) || 1));
+      if (evn > 1) { r2.every = evn; r2.start = startD.value || ymd(new Date()); if (freq.value === 'daily') delete r2.weekdays; }
+      else if (startD.value) r2.start = startD.value;
       if (freq.value === 'monthly' || freq.value === 'yearly') r2.day = Math.max(1, Math.min(31, +dayN.value || 1));
       if (freq.value === 'yearly') r2.month = +monN.value;
       var row = { org_id: S.org.id, area_id: area.value || null, domain: dom.value, routine: rout.value, title: title.value.trim(), hint: hint.value.trim() || null,
@@ -543,7 +569,7 @@ function taskDialog(t) {
       if (res.error) { msg(out, 'err', errText(res.error)); ev.target.disabled = false; return; }
       closeDlg(); toast('Lagret');
       var rt = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'); if (!rt.error) S.tasks = rt.data;
-      renderCal();
+      if (S.screen === 'today') renderToday(); else renderCal();
     } }, 'Lagre'))]);
 }
 

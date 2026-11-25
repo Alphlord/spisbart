@@ -1,0 +1,2 @@
+-- due_on med intervall ("every") og startdato ("start"): hver 3. dag, annenhver uke, hver 3. måned.
+-- Se migrasjonen ikmat_05_due_on_interval i Supabase for selve funksjonen (erstatter due_on fra 02_security.sql).
