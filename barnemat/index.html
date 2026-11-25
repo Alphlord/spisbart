@@ -2412,6 +2412,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
         </div>`;
       } else {
         const resolveBtn = dayKey ? `<button class="icon-btn" data-action="resolve-conflict" data-day-key="${dayKey}" style="margin-top:8px;">${resolveLabel}</button>` : '';
+        bbTrack('conflict_warning', { type: hasAllergenConflict ? 'allergen' : 'diet' });
         warning = `<div class="allergy-warning">
           <div style="font-size:14px;">⚠</div>
           <div style="flex:1;"><strong>Passer ikke for alle barn.</strong> ${escapeHtml(lines)}${resolveBtn}</div>
@@ -3498,6 +3499,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
       document.getElementById('cancel-btn').addEventListener('click', () => { closeModal(); });
       const delBtn = document.getElementById('delete-recipe');
       if (delBtn) delBtn.addEventListener('click', async () => {
+        { const gone = customRecipes.find(r => r.id === draft.id); if (gone && gone.catalogId) bbTrack('catalog_remove', { id: gone.catalogId }); }
         customRecipes = customRecipes.filter(r => r.id !== draft.id);
         delete recipeImages[draft.id];
         await saveKey('customRecipes', customRecipes);
@@ -5137,6 +5139,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
     else if (action === 'pantry') openPantryEditor();
     else if (action === 'export') openExport();
     else if (action === 'catalog') openCatalog();
+    bbTrack('feature', { name: action });
   }
   settingsMenu.querySelectorAll('.settings-opt').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -5364,6 +5367,14 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
   }
 
 
+  // Enkel bruksmåling: bare tellere per barnehage – aldri bruker, barn eller innhold. Gjør ingenting i demo/lokal modus.
+  function bbTrack(event, props) {
+    try {
+      if (!bbCloud) return;
+      bbCloud.client.from('usage_events').insert({ kindergarten_id: bbCloud.kgId, event, props: props || {} }).then(() => {}, () => {});
+    } catch (e) {}
+  }
+
   // ───────── Spisbart-katalog (felles rettkatalog og pakker fra backoffice) ─────────
   function bbCatRecipeToLocal(row) {
     const d = row.data || {};
@@ -5424,7 +5435,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
     }
     async function addMany(ids) {
       const h = have(); let n = 0;
-      for (const id of ids) { const row = byId[id]; if (row && !h.has(id)) { customRecipes.push(bbCatRecipeToLocal(row)); n++; } }
+      for (const id of ids) { const row = byId[id]; if (row && !h.has(id)) { customRecipes.push(bbCatRecipeToLocal(row)); n++; bbTrack('catalog_add', { id }); } }
       if (!n) return;
       await saveKey('customRecipes', customRecipes);
       showToast(n === 1 ? 'Rett lagt til' : n + ' retter lagt til');
@@ -5457,6 +5468,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
   (async () => {
     await bbAuthGate();
     bbCheckSubscription();
+    try { if (bbCloud && !sessionStorage.getItem('bb_login_tracked')) { sessionStorage.setItem('bb_login_tracked', '1'); bbTrack('login'); } } catch (e) {}
     if (BB_DEMO) bbDemoBanner();
     if (BB_DEMO) { // første besøk: legg inn en eksempelplan for to uker
       try {

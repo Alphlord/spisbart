@@ -44,6 +44,14 @@ label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:10p
 .toast.show{display:block}
 pre{background:#f1eee3;border-radius:8px;padding:10px;overflow:auto;font-size:12px;max-height:300px}
 .hidden{display:none!important}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:8px 0 16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat .sn{font-size:30px;font-weight:800;line-height:1.1}.stat .sl{color:var(--muted);font-size:13px;margin-top:2px}
+.grid2c{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card h4{margin:0 0 10px;font-size:15px}
+.bars{display:grid;gap:7px}.bar{display:grid;grid-template-columns:minmax(90px,36%) 1fr auto;gap:10px;align-items:center;font-size:13px}
+.bt{background:var(--line);border-radius:4px;height:10px;overflow:hidden}.bt i{display:block;height:100%;background:var(--blue);border-radius:4px}
+.bn{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 </style></head><body>
 
 <div id="login" class="login hidden">
@@ -61,7 +69,7 @@ pre{background:#f1eee3;border-radius:8px;padding:10px;overflow:auto;font-size:12
 <div id="app" class="hidden">
   <header class="top"><h1>Spisbart backoffice</h1><span class="sp"></span><span id="who"></span><button class="sm" id="logout" style="background:transparent;color:#fff;border-color:#fff">Logg ut</button></header>
   <nav class="tabs" id="tabs">
-    <button data-t="kunder" class="on">Kunder</button><button data-t="retter">Retter</button><button data-t="pakker">Pakker</button><button data-t="priser">Priser</button><button data-t="logg">Logg</button>
+    <button data-t="kunder" class="on">Kunder</button><button data-t="tall">Nøkkeltall</button><button data-t="retter">Retter</button><button data-t="pakker">Pakker</button><button data-t="priser">Priser</button><button data-t="logg">Logg</button>
   </nav>
   <main id="view"></main>
 </div>
@@ -112,7 +120,7 @@ $('#loginForm').addEventListener('submit',async e=>{
 });
 $('#logout').onclick=async()=>{await sb.auth.signOut();location.reload()};
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;[...$('#tabs').children].forEach(x=>x.classList.toggle('on',x===b));render()});
-function render(){({kunder:viewKunder,retter:viewRetter,pakker:viewPakker,priser:viewPriser,logg:viewLogg})[tab]()}
+function render(){({kunder:viewKunder,tall:viewTall,retter:viewRetter,pakker:viewPakker,priser:viewPriser,logg:viewLogg})[tab]()}
 
 /* ───────── kunder ───────── */
 async function viewKunder(){
@@ -125,6 +133,7 @@ async function viewKunder(){
 }
 async function viewKunde(k){
   const v=$('#view');
+  try{const {data:sr}=await sb.from('subscriptions').select('source').eq('kindergarten_id',k.id).maybeSingle();k.source=sr&&sr.source||''}catch(e){k.source=''}
   const {data:mem,error}=await sb.rpc('admin_members',{kg:k.id});
   if(error){toast(error.message,1);return}
   v.innerHTML=`<p><button class="sm" id="back">← Alle kunder</button></p><h2>${esc(k.name)}</h2>
@@ -132,7 +141,8 @@ async function viewKunde(k){
    <div><label>Status</label><select id="s_status">${Object.entries(STATUS).map(([v,l])=>`<option value="${v}" ${k.status===v?'selected':''}>${l}</option>`).join('')}</select></div>
    <div><label>Plan</label><input id="s_plan" value="${esc(k.plan||'')}" placeholder="f.eks. Barnehage 1 år"></div>
    <div><label>Prøveperiode til</label><input id="s_trial" type="date" value="${k.trial_ends_at?k.trial_ends_at.slice(0,10):''}"></div>
-   <div><label>Betalt til</label><input id="s_paid" type="date" value="${k.paid_until||''}"></div></div>
+   <div><label>Betalt til</label><input id="s_paid" type="date" value="${k.paid_until||''}"></div>
+   <div><label>Hvor kom kunden fra?</label><input id="s_src" list="srcs" value="${esc(k.source||'')}" placeholder="f.eks. Demo, Anbefaling, Messe"><datalist id="srcs"><option>Demo på nettsiden</option><option>Anbefaling</option><option>Messe</option><option>E-post</option><option>Annet</option></datalist></div></div>
    <label>Notater (intern, ikke synlig for kunden)</label><textarea id="s_notes" style="min-height:70px;font-family:inherit">${esc(k.notes||'')}</textarea>
    <p class="muted">Sperret og avsluttet: kunden kan fortsatt se og laste ned dataene sine, men ikke lagre nytt.</p>
    <button class="pri" id="saveSub">Lagre abonnement</button></div>
@@ -146,7 +156,7 @@ async function viewKunde(k){
   <div class="card"><h3 style="margin-top:0;color:var(--red)">Slett barnehage</h3><p class="muted">Sletter barnehagen, alle data, medlemskap og kvitteringer for godt. Brukes ved GDPR-krav om sletting. Brukerkontoene beholdes.</p><button class="dan" id="del">Slett barnehage …</button></div>`;
   $('#back').onclick=viewKunder;
   $('#saveSub').onclick=async()=>{
-    const row={kindergarten_id:k.id,status:$('#s_status').value,plan:$('#s_plan').value||null,trial_ends_at:$('#s_trial').value||null,paid_until:$('#s_paid').value||null,notes:$('#s_notes').value||null,updated_at:new Date().toISOString()};
+    const row={kindergarten_id:k.id,status:$('#s_status').value,plan:$('#s_plan').value||null,trial_ends_at:$('#s_trial').value||null,paid_until:$('#s_paid').value||null,notes:$('#s_notes').value||null,source:$('#s_src').value.trim()||null,updated_at:new Date().toISOString()};
     const {error}=await sb.from('subscriptions').upsert(row);
     if(error)return toast(error.message,1);await log('subscription_update',k.id,null,{status:row.status,plan:row.plan,paid_until:row.paid_until});toast('Lagret');Object.assign(k,{status:row.status,plan:row.plan,paid_until:row.paid_until,notes:row.notes})};
   v.querySelectorAll('button[data-a]').forEach(b=>b.onclick=async()=>{
@@ -264,6 +274,59 @@ function editPack(p,sel,recipes){
 
 /* ───────── priser (kommer) ───────── */
 function viewPriser(){$('#view').innerHTML='<h2>Priser</h2><div class="card"><p>Innsamling av priser fra kvitteringer er under bygging. Databasen er klar (kvitteringer, prisobservasjoner og prisindeks), men opplasting i appen og kontrollkøen kommer i neste steg.</p></div>'}
+
+/* ───────── nøkkeltall ───────── */
+const FEATURE_LABELS={matboksen:'Matboksen',stats:'Nøkkeltall (i appen)',packages:'Ukespakker',bestilt:'Bestilt',snack:'Ettermiddagsmat',newrecipe:'Ny oppskrift',user:'Min konto',children:'Barn',suppliers:'Leverandører',pantry:'Faste varer og priser',export:'Eksporter månedsmeny',catalog:'Spisbart-katalog'};
+function bars(rows,fmt){const max=Math.max(1,...rows.map(r=>r[1]));return '<div class="bars">'+rows.map(([l,n,sub])=>`<div class="bar"><span class="bl">${esc(l)}</span><span class="bt"><i style="width:${Math.max(2,n/max*100)}%"></i></span><span class="bn">${fmt?fmt(n):n}${sub?` <small class="muted">${esc(sub)}</small>`:''}</span></div>`).join('')+'</div>'}
+function stat(n,l,sub){return `<div class="stat"><div class="sn">${n}</div><div class="sl">${esc(l)}</div>${sub?`<div class="muted" style="font-size:12px">${esc(sub)}</div>`:''}</div>`}
+function dlist(a,empty){return a.length?'<table>'+a.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td class="muted">${esc(x.date||(x.last?new Date(x.last).toLocaleDateString('nb-NO'):'aldri innlogget'))}</td></tr>`).join('')+'</table>':`<p class="muted">${empty}</p>`}
+async function viewTall(){
+  $('#view').innerHTML='<h2>Nøkkeltall</h2><p class="muted">Laster …</p>';
+  const {data:m,error}=await sb.rpc('admin_metrics');
+  if(error){$('#view').innerHTML='<h2>Nøkkeltall</h2><p class="err">'+esc(error.message)+'</p>';return}
+  const b=m.business,u=m.usage,c=m.content;
+  const act=(b.by_status.active||0),tri=(b.by_status.trial||0),sus=(b.by_status.suspended||0),can=(b.by_status.cancelled||0);
+  const lastWeek=u.active_weeks[u.active_weeks.length-1]?.n||0;
+  const inactiveN=u.inactive14.length;
+  const apps={barnemat:'Bare Barnemat',automat:'Auto·Mat',skjenkeprove:'QuizzMeg Skjenkeprøven',etablerer:'QuizzMeg Etablererprøven',ukjent:'Ukjent'};
+  const appKeys=[...new Set([...Object.keys(b.demo_30d),...Object.keys(b.buy_30d)])];
+  const names=Object.fromEntries(ALLERGENS.concat(DIETS));
+  const enough=b.total>=3;
+  const funnel=[['Opprettet',u.funnel.created],['Har logget inn',u.funnel.logged_in],['Har lagt en plan',u.funnel.has_plan],['Har minst fem planlagte dager',u.funnel.five_days]];
+  $('#view').innerHTML=`<h2>Nøkkeltall</h2><p class="muted">Bare tall for barnehager samlet. Ingen navn på barn, og ingen sporing av enkeltbrukere. Oppdatert ${new Date(m.generated).toLocaleString('nb-NO')}.</p>
+
+  <h3>Forretning</h3>
+  <div class="stats">${stat(act,'Betalende')}${stat(tri,'I prøveperiode')}${stat(sus+can,'Sperret eller avsluttet')}${stat(b.avg_age_days,'Snitt dager som kunde')}</div>
+  <div class="grid2c">
+   <div class="card"><h4>Betaling som må følges opp</h4><p class="muted" style="margin-top:0">Utløper innen 30 dager</p>${dlist(b.expiring_paid,'Ingen')}<p class="muted">Utløpt, men fortsatt markert som betalt</p>${dlist(b.overdue_paid,'Ingen')}<p class="muted">Prøveperiode slutter innen 14 dager</p>${dlist(b.trial_ending,'Ingen')}</div>
+   <div class="card"><h4>Hvor kundene kommer fra</h4>${bars(Object.entries(b.by_source).sort((x,y)=>y[1]-x[1]))}<p class="muted">Fylles ut per kunde under Kunder → Abonnement.</p></div>
+  </div>
+  <div class="card"><h4>Demoer og kjøpsforespørsler siste 30 dager</h4>${appKeys.length?'<table><tr><th>App</th><th>Demo startet</th><th>Trykket «Kjøp»</th><th>Andel</th></tr>'+appKeys.map(a=>{const d=b.demo_30d[a]||0,k=b.buy_30d[a]||0;return `<tr><td>${esc(apps[a]||a)}</td><td>${d}</td><td>${k}</td><td>${d?Math.round(k/d*100)+' %':'–'}</td></tr>`}).join('')+'</table>':'<p class="muted">Ingen registrert ennå. Målingen startet '+(b.since?new Date(b.since).toLocaleDateString('nb-NO'):'da denne siden ble oppdatert')+'. Tallene kommer når noen trykker «Prøv demo» eller «Kjøp» på spisbart.no.</p>'}</div>
+
+  <h3>Bruk</h3>
+  <div class="stats">${stat(lastWeek,'Aktive barnehager denne uka')}${stat(u.logins_30d,'Innlogginger siste 30 dager')}${stat(inactiveN,'Ikke innlogget på 14 dager')}</div>
+  <div class="grid2c">
+   <div class="card"><h4>Aktive barnehager per uke</h4>${bars(u.active_weeks.map(w=>[w.week.slice(5),w.n]))}</div>
+   <div class="card"><h4>Fra opprettet til i bruk</h4>${bars(funnel)}</div>
+  </div>
+  <div class="grid2c">
+   <div class="card"><h4>Planlagte dager de neste 14 dagene</h4>${u.planned_next14.length?bars(u.planned_next14.map(x=>[x.name,x.days]),null):'<p class="muted">Ingen kunder ennå.</p>'}<p class="muted">Maks 10 hverdager. Lave tall betyr at barnehagen ikke planlegger fremover.</p></div>
+   <div class="card"><h4>Funksjoner brukt siste 30 dager</h4>${Object.keys(u.features_30d).length?bars(Object.entries(u.features_30d).sort((x,y)=>y[1]-x[1]).map(([k,n])=>[FEATURE_LABELS[k]||k,n])):'<p class="muted">Ingen registrert ennå. Telles fra og med denne oppdateringen.</p>'}</div>
+  </div>
+  <div class="card"><h4>Kunder du bør ta kontakt med</h4><p class="muted" style="margin-top:0">Prøve eller betalt, ikke innlogget siste 14 dager</p>${dlist(u.inactive14,'Alle har vært innlogget nylig.')}</div>
+
+  <h3>Innhold</h3>
+  <div class="stats">${stat(c.warnings_30d,'Allergivarsler vist siste 30 dager')}${stat(c.own_recipes,'Egne retter laget av barnehager')}${stat(c.catalog_added_30d,'Katalogretter lagt til (30 d)','Fjernet igjen: '+c.catalog_removed_30d)}</div>
+  <div class="grid2c">
+   <div class="card"><h4>Mest planlagte retter (90 dager)</h4>${c.top_recipes.length?bars(c.top_recipes.map(r=>[r.name,r.n])):'<p class="muted">Ingen planer ennå.</p>'}</div>
+   <div class="card"><h4>Mest tilføyde katalogretter</h4>${c.top_catalog_added.length?bars(c.top_catalog_added.map(r=>[r.name,r.n])):'<p class="muted">Ingen retter er lagt til fra katalogen ennå. Publiser retter under Retter først.</p>'}</div>
+  </div>
+  <div class="grid2c">
+   <div class="card"><h4>Allergier blant registrerte barn</h4>${enough?bars(c.allergens.map(a=>[names[a.id]||a.id,a.children,a.kindergartens+' barnehager'])):'<p class="muted">Vises når minst tre barnehager er registrert, så ingen enkeltbarnehage kan leses ut.</p>'}</div>
+   <div class="card"><h4>Kosthold blant registrerte barn</h4>${enough?bars(c.diets.map(a=>[names[a.id]||a.id,a.children,a.kindergartens+' barnehager'])):'<p class="muted">Vises når minst tre barnehager er registrert.</p>'}</div>
+  </div>
+  <div class="card"><h4>Priser fra kvitteringer</h4><div class="stats" style="margin:0">${stat(c.prices.receipts,'Kvitteringer')}${stat(c.prices.observations,'Prislinjer')}${stat(c.prices.index,'Varer i prisindeksen')}</div></div>`;
+}
 
 /* ───────── logg ───────── */
 async function viewLogg(){
