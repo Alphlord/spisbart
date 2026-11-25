@@ -807,8 +807,11 @@ function planNodes(p, meta) {
   var stepName = {}; D.steps.forEach(function (s) { stepName[s[0]] = s[1]; });
   out.push(h('div', { class: 'card stack' }, h('h3', null, 'Prosess'), h('div', null, p.steps.map(function (s) { return stepName[s]; }).join(' → '))));
   var hz = [];
-  p.steps.forEach(function (s) { (p.hazards[s] || []).forEach(function (x) { hz.push([stepName[s], D.hazardTypes[x.type], x.text]); }); });
-  out.push(h('div', { class: 'card stack' }, h('h3', null, 'Farevurdering'), table(['Steg', 'Type', 'Fare'], hz)));
+  p.steps.forEach(function (s) { (p.hazards[s] || []).forEach(function (x) {
+    var vur = x.cls ? D.risk.label[x.cls] + ' (' + D.risk.often[x.often].toLowerCase() + ', ' + D.risk.bad[x.bad].toLowerCase() + ')' : 'Ikke vurdert';
+    hz.push([stepName[s], D.hazardTypes[x.type], x.text, vur]);
+  }); });
+  out.push(h('div', { class: 'card stack' }, h('h3', null, 'Farevurdering'), table(['Steg', 'Type', 'Fare', 'Vurdering'], hz)));
   out.push(h('div', { class: 'card stack' }, h('h3', null, 'God hygienepraksis'), table(['Rutine', 'Beskrivelse'], (p.ghp || []).map(function (g) { return [g.title, g.text]; }))));
   out.push(h('div', { class: 'card stack' }, h('h3', null, 'Kritiske styringspunkter'),
     table(['Punkt', 'Grense', 'Overvåking', 'Korrigerende tiltak', 'Verifisering'], (p.ccps || []).map(function (c) { return [c.title, (c.kind === 'max' ? 'Høyst ' : 'Minst ') + c.value + ' ' + c.unit, c.monitor, c.action, c.verify]; }))));
@@ -862,10 +865,40 @@ async function showAudit() {
 
 /* ================= VEIVISER ================= */
 var W = null;
+
+/* ---------- farevurdering: matrise ---------- */
+function rkCls(sel) { return sel ? window.DATA.risk.matrix[sel[0]][sel[1]] : 'NONE'; }
+function rkTag(c) { return h('span', { class: 'rk ' + c }, window.DATA.risk.label[c]); }
+function riskMatrix(sel, pick) {
+  var R = window.DATA.risk, g = h('div', { class: 'rmx', role: 'group', 'aria-label': 'Matrise: hvor ofte det skjer mot hvor ille det blir' });
+  g.appendChild(h('div', { class: 'corner' }));
+  g.appendChild(h('div', { class: 'xt' }, 'Hvor ille blir det hvis det skjer?  →'));
+  g.appendChild(h('div', { class: 'yt' }, h('span', null, 'Hvor ofte skjer det?  →')));
+  g.appendChild(h('div', { class: 'sp' }));
+  R.bad.forEach(function (c, ci) { g.appendChild(h('div', { class: 'hc' + (sel && sel[1] === ci ? ' on' : '') }, c)); });
+  for (var r = 4; r >= 0; r--) {
+    g.appendChild(h('div', { class: 'hr' + (sel && sel[0] === r ? ' on' : '') }, R.often[r]));
+    for (var c = 0; c < 5; c++) (function (r, c) {
+      var cls = R.matrix[r][c], on = !!sel && sel[0] === r && sel[1] === c;
+      g.appendChild(h('button', { class: 'cell ' + cls, type: 'button', 'aria-pressed': on ? 'true' : 'false',
+        'aria-label': R.often[r] + ', ' + R.bad[c].toLowerCase() + ': ' + R.label[cls], onclick: function () { pick([r, c]); } }, R.label[cls]));
+    })(r, c);
+  }
+  return g;
+}
+function riskResult(sel) {
+  var R = window.DATA.risk;
+  if (!sel) return h('div', { class: 'note' }, 'Trykk på et felt i matrisen.');
+  var c = rkCls(sel);
+  return h('div', { class: 'rres ' + c }, h('b', null, R.name[c]),
+    h('p', { style: 'font-weight:600' }, R.oftenLong[sel[0]] + ' (' + R.often[sel[0]].toLowerCase() + '). Hvis det skjer: ' + R.badLong[sel[1]].toLowerCase() + '.'),
+    h('p', null, R.text[c]));
+}
 var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Kjøl og frys', 'Oppsummering'];
 function startWizard() {
   var D = window.DATA;
-  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [] };
+  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [], risk: {}, openRisk: null };
+  Object.keys(D.hazards).forEach(function (st) { D.hazards[st].forEach(function (_, i) { var sg = D.risk.suggest[st] && D.risk.suggest[st][i]; if (sg) W.risk[st + i] = sg.slice(); }); });
   D.ccps.forEach(function (c) { W.ccp[c.id] = { value: c.value, monitor: c.monitor, action: c.action, verify: c.verify }; });
   go('wiz'); drawWiz();
 }
@@ -900,10 +933,24 @@ function drawWiz() {
     D.steps.forEach(function (s) { c.appendChild(checkRow(s[1], null, W.steps.indexOf(s[0]) >= 0, function (on) { toggleIn(W.steps, s[0], on); }, 's-' + s[0])); });
     b.appendChild(c);
   } else if (W.step === 3) {
-    b.appendChild(h('p', { class: 'muted' }, 'Hva kan gå galt i hvert steg? Fjern det som ikke passer, og legg til egne i etterkant.'));
+    b.appendChild(h('p', { class: 'muted' }, 'Hva kan gå galt i hvert steg? Fjern det som ikke passer. For hver fare velger du hvor ofte den skjer og hvor ille den blir. Vi har satt forslag du kan endre.'));
     D.steps.filter(function (s) { return W.steps.indexOf(s[0]) >= 0; }).forEach(function (s) {
       var sel = hzDefault(s[0]), c2 = h('div', { class: 'card' }, h('h3', null, s[1]));
-      D.hazards[s[0]].forEach(function (x, i) { c2.appendChild(checkRow(x[0], D.hazardTypes[x[1]], sel.indexOf(i) >= 0, function (on) { toggleIn(sel, i, on); }, 'h-' + s[0] + i)); });
+      D.hazards[s[0]].forEach(function (x, i) {
+        var key = s[0] + i, wrap = h('div', { class: 'hzr' });
+        wrap.appendChild(checkRow(x[0], D.hazardTypes[x[1]], sel.indexOf(i) >= 0, function (on) { toggleIn(sel, i, on); drawWiz(); }, 'h-' + s[0] + i));
+        if (sel.indexOf(i) >= 0) {
+          var open = W.openRisk === key, cur = W.risk[key] || null;
+          wrap.appendChild(h('div', { class: 'rline' }, rkTag(rkCls(cur)),
+            h('button', { class: 'btn soft small', type: 'button', 'aria-expanded': open ? 'true' : 'false', onclick: function () { W.openRisk = open ? null : key; drawWiz(); } }, open ? 'Lukk' : (cur ? 'Endre vurdering' : 'Vurder')),));
+          if (open) {
+            wrap.appendChild(h('p', { class: 'small muted' }, 'Trykk der raden (hvor ofte) og kolonnen (hvor ille) møtes. Feltet forteller hva du skal gjøre med faren.'));
+            wrap.appendChild(riskMatrix(cur, function (p) { W.risk[key] = p; drawWiz(); }));
+            wrap.appendChild(riskResult(cur));
+          }
+        }
+        c2.appendChild(wrap);
+      });
       b.appendChild(c2);
     });
   } else if (W.step === 4) {
@@ -972,7 +1019,12 @@ async function finishWizard() {
   if (cr.error) throw cr.error;
   var orgId = cr.data;
   var plan = { businessType: W.btype, areas: W.areas, alcohol: W.alk, steps: W.steps, hazards: {}, ghp: [], ccps: [], created: new Date().toISOString() };
-  W.steps.forEach(function (s) { plan.hazards[s] = hzDefault(s).map(function (i) { return { text: D.hazards[s][i][0], type: D.hazards[s][i][1] }; }); });
+  W.steps.forEach(function (s) {
+    plan.hazards[s] = hzDefault(s).map(function (i) {
+      var rk = W.risk[s + i];
+      return { text: D.hazards[s][i][0], type: D.hazards[s][i][1], often: rk ? rk[0] : null, bad: rk ? rk[1] : null, cls: rk ? D.risk.matrix[rk[0]][rk[1]] : null };
+    });
+  });
   plan.ghp = W.ghp.filter(function (i) { return D.ghp[i][2] !== 'alk' || W.alk; }).sort(function (a, b) { return a - b; }).map(function (i) { return { title: D.ghp[i][0], text: D.ghp[i][1] }; });
   D.ccps.forEach(function (c) {
     if (W.steps.indexOf(c.step) < 0) return;
@@ -1006,6 +1058,21 @@ async function finishWizard() {
     row[cc.kind === 'min' ? 'min_value' : 'max_value'] = cc.value;
     await sb.from('tasks').insert(row);
   }
+  // kontroller fra farevurderingen: ett oppdrag per prosesstrinn, hyppighet etter strengeste type
+  var covered = { kjol: 1, frys: 1, varme: 1, varmhold: 1, nedkjol: 1 };
+  var rank = { PRP: 0, CP: 1, OPRP: 2, CCP: 3 }, freqFor = { CP: { freq: 'monthly', day: 1 }, OPRP: { freq: 'weekly', weekdays: [1] }, CCP: { freq: 'daily' } };
+  var stepNames = {}; D.steps.forEach(function (x) { stepNames[x[0]] = x[1]; });
+  var rows2 = [];
+  W.steps.forEach(function (st, si) {
+    if (covered[st]) return;
+    var hs = (plan.hazards[st] || []).filter(function (x) { return x.cls && rank[x.cls] >= 1; });
+    if (!hs.length) return;
+    var top = hs.reduce(function (m, x) { return rank[x.cls] > rank[m] ? x.cls : m; }, 'CP');
+    rows2.push({ org_id: orgId, area_id: kj ? kj.id : null, domain: 'mat', routine: top === 'CCP' ? 'daglig' : top === 'OPRP' ? 'ukentlig' : 'manedlig',
+      title: 'Kontroller: ' + stepNames[st], hint: 'Fra farevurderingen. Faren(e): ' + hs.map(function (x) { return x.text + ' (' + D.risk.label[x.cls] + ')'; }).join('; ') + '.',
+      kind: 'check', recurrence: freqFor[top], source: 'haccp', sort: 6000 + si });
+  });
+  if (rows2.length) await sb.from('tasks').insert(rows2);
   W = null; toast('Stedet er opprettet');
   await afterLogin();
 }

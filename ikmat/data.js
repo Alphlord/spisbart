@@ -89,6 +89,29 @@ window.DATA = {
       ['Feil dosering av kjemikalier', 'kjem']
     ]
   },
+  // Farevurdering: matrise. Rad = hvor ofte (0 nesten aldri .. 4 ukentlig), kolonne = hvor ille (0 ingen følger .. 4 alvorlig).
+  risk: {
+    often: ['Nesten aldri', 'Hvert par år', 'Noen ganger i året', 'Månedlig', 'Ukentlig eller oftere'],
+    oftenLong: ['Skjer nesten aldri', 'Skjer sjelden', 'Kan skje i løpet av et år', 'Skjer jevnlig', 'Skjer ofte'],
+    bad: ['Ingen følger', 'Litt ubehag', 'Én blir syk', 'Flere blir syke', 'Alvorlig'],
+    badLong: ['Ingen blir syke, bare kvalitet eller utseende', 'Litt ubehag, ingen blir syke', 'Én gjest blir syk', 'Flere gjester blir syke', 'Alvorlig sykdom eller dødsfall'],
+    matrix: [['PRP','PRP','PRP','CP','CP'],['PRP','CP','CP','OPRP','OPRP'],['PRP','CP','OPRP','OPRP','CCP'],['CP','OPRP','OPRP','CCP','CCP'],['CP','OPRP','CCP','CCP','CCP']],
+    label: { PRP: 'Rutine', CP: 'Kontroll', OPRP: 'Tiltak', CCP: 'Kritisk', MOD: 'Uavklart', NONE: 'Ikke vurdert' },
+    name: { PRP: 'Rutine (grunnrutine, PRP)', CP: 'Kontroll (kontrollpunkt, CP)', OPRP: 'Tiltak (operasjonell grunnrutine, OPRP)', CCP: 'Kritisk (kritisk kontrollpunkt, CCP)', MOD: 'Uavklart (under endring)' },
+    text: {
+      PRP: 'Dekkes av god hygienepraksis. Ingen egen avkrysning, men faren står i planen.',
+      CP: 'Et sted i prosessen der du passer ekstra godt på. Appen legger inn en kontroll hver måned.',
+      OPRP: 'Et tiltak som må følges aktivt. Appen legger inn en kontroll hver uke.',
+      CCP: 'Her kan det bli farlig. Du må måle mot en grense. Appen legger inn en daglig kontroll, og måling med grenseverdi der det finnes et styringspunkt.',
+      MOD: 'Ikke avklart ennå. Faren står som uavklart i planen.'
+    },
+    // forslag per fare, i samme rekkefølge som hazards: [rad, kolonne]
+    suggest: {
+      mottak: [[2,3],[2,2],[1,2],[1,4]], kjol: [[2,3],[2,3],[1,4]], frys: [[1,2],[2,0]], tort: [[1,2],[0,3]],
+      forb: [[2,3],[2,2],[1,4],[2,1]], varme: [[2,4],[1,2]], nedkjol: [[3,3]], varmhold: [[2,3]], gjenvarme: [[2,4]],
+      servering: [[2,2],[1,4],[2,3]], transport: [[2,3],[1,3]], oppvask: [[2,2],[1,2]]
+    }
+  },
   hazardTypes: { bio: 'Biologisk', kjem: 'Kjemisk', fys: 'Fysisk', allergen: 'Allergen' },
 
   // God hygienepraksis. Alle forhåndsvalgt.
