@@ -129,7 +129,8 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
 .cat-nm{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1px;}
 .cat-acts{display:flex;flex-direction:column;gap:4px;}
 .ca{background:rgba(0,0,0,.32);border:none;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;border-radius:4px;cursor:pointer;}
-.no-tts .ca-l{display:none}
+.no-tts .ca-l,.no-tts #lyt-btn{display:none}
+.a-t{color:#1a1a1a}
 .ca:hover{background:rgba(0,0,0,.5);}
 .cat-prog{display:none;margin-top:6px;}
 .cpb{height:6px;background:rgba(0,0,0,.18);border-radius:3px;overflow:hidden;margin-bottom:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,.15);}
@@ -308,6 +309,7 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
             <button class="act a-l" onclick="doLaert()"><span class="ai">✓</span>lært</button>
             <button class="act a-r" onclick="doRep()"><span class="ai">↺</span>repeter</button>
             <button class="act a-s" id="les-btn" onclick="openQles()"><span class="ai">📖</span>les</button>
+            <button class="act a-t" id="lyt-btn" onclick="ttsHl&&ttsHl()"><span class="ai" id="lyt-ico">▶</span><span id="lyt-lbl">lytt</span></button>
           </div>
           <div class="next-bar" id="next-bar"><button class="next-btn" onclick="eksamenNext()">Neste →</button></div>
         </div>
@@ -1057,7 +1059,7 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
   if(!syn||!window.SpeechSynthesisUtterance){if(bar)bar.style.display='none';document.documentElement.classList.add('no-tts');return;}
   var KEY=(location.pathname.indexOf('etablerer')>-1?'ep':'qs')+'-tts';
   var el=function(i){return document.getElementById(i)};
-  var items=[],idx=0,playing=false,rate=1,auto=true,voice=null,tok=0,endMsg='';
+  var items=[],idx=0,playing=false,rate=1,auto=true,voice=null,tok=0,endMsg='',single=false;
   try{var sv=JSON.parse(localStorage.getItem(KEY)||'{}');if(sv.rate)rate=sv.rate;if(sv.auto===false)auto=false;}catch(e){}
   function save(){try{localStorage.setItem(KEY,JSON.stringify({rate:rate,auto:auto}))}catch(e){}}
   function pick(){var v=syn.getVoices()||[];voice=null;
@@ -1090,9 +1092,10 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
     var v=syn.getVoices()||[];
     if(v.length&&!voice)s.textContent='Fant ingen norsk stemme på enheten. Legg til norsk tale i innstillingene.';
     else s.textContent=items.length?('Avsnitt '+(idx+1)+' av '+items.length):'';}
-  function ui(){var b=el('tts-play');if(!b)return;b.setAttribute('aria-label',playing?'Pause':'Spill av');
+  function ui(){var h=el('lyt-ico');if(h){h.textContent=(playing&&single)?'⏹':'▶';el('lyt-lbl').textContent=(playing&&single)?'stopp':'lytt';}
+    var b=el('tts-play');if(!b)return;b.setAttribute('aria-label',playing?'Pause':'Spill av');
     el('tts-ico').textContent=playing?'⏸':'▶';el('tts-lbl').textContent=playing?'Pause':(items.length&&idx>0?'Fortsett':'Lytt');}
-  function stop(reset){tok++;playing=false;try{syn.cancel()}catch(e){}
+  function stop(reset){tok++;playing=false;single=false;try{syn.cancel()}catch(e){}
     document.querySelectorAll('.tts-on').forEach(function(n){n.classList.remove('tts-on')});
     if(reset){items=[];idx=0;}ui();status();}
   function nextTheme(){
@@ -1103,7 +1106,7 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
     window.openRead(n);setTimeout(function(){collect();if(items.length){playing=true;speak();}},350);return true;}
   function speak(){
     if(!playing)return;
-    if(idx>=items.length){endMsg='';if(!nextTheme()){stop(false);idx=0;status(endMsg||'Ferdig. Trykk Lytt for å høre igjen.');}return;}
+    if(idx>=items.length){if(single){stop(true);return;}endMsg='';if(!nextTheme()){stop(false);idx=0;status(endMsg||'Ferdig. Trykk Lytt for å høre igjen.');}return;}
     var my=++tok,parts=chunks(items[idx].t),k=0;mark();status();ui();
     try{syn.cancel()}catch(e){}
     (function go(){
@@ -1113,13 +1116,21 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
       u.onend=go;u.onerror=function(e){if(my===tok&&e&&e.error!=='interrupted'&&e.error!=='canceled'){stop(false);status('Kunne ikke spille av lyden på denne enheten.');}};
       syn.speak(u);})();}
   function play(){
+    single=false;
     if(!items.length||!document.body.contains(items[0].el))collect();
     if(!items.length)return;
     playing=true;speak();}
   function pause(){tok++;playing=false;try{syn.cancel()}catch(e){}ui();}
   function jump(d){if(!items.length||!document.body.contains(items[0].el))collect();
     idx=Math.max(0,Math.min(items.length-1,idx+d));if(playing){speak();}else{mark();status();ui();}}
-  window.ttsStart=function(){stop(true);collect();if(items.length){playing=true;speak();}};
+  window.ttsStart=function(){stop(true);single=false;collect();if(items.length){playing=true;speak();}};
+  window.ttsHl=function(){
+    if(playing&&single){stop(true);return;}
+    var its=[].slice.call(document.querySelectorAll('#ql-body .pp.hl')).map(function(n){return {el:n,t:norm(textOf(n))}}).filter(function(x){return x.t});
+    if(!its.length){var fb=el('fb'),t=fb?norm(fb.textContent):'';if(t)its=[{el:fb,t:t}];}
+    if(!its.length)return;
+    stop(true);items=its;idx=0;single=true;playing=true;speak();};
+  var nx=window.nxt;if(typeof nx==='function')window.nxt=function(){stop(true);return nx.apply(this,arguments);};
   var pl=el('tts-play');if(!pl)return;
   pl.addEventListener('click',function(){playing?pause():play()});
   el('tts-prev').addEventListener('click',function(){jump(-1)});
