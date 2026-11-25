@@ -1,4 +1,4 @@
-/* IK-mat. Vanlig JavaScript uten byggesteg. All tilgangsstyring skjer i databasen (RLS), ikke her. */
+/* iOrden (tidligere IK-mat). Vanlig JavaScript uten byggesteg. All tilgangsstyring skjer i databasen (RLS), ikke her. */
 (function () {
 'use strict';
 

@@ -1,6 +1,6 @@
 {
-  "name": "IK-mat fra spisbart.no",
-  "short_name": "IK-mat",
+  "name": "iOrden – internkontroll",
+  "short_name": "iOrden",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
