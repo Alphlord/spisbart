@@ -313,10 +313,10 @@ html,body{overflow-x:clip}
     <div class="ch-btns ch-btns-end"><a class="ch-btn" href="automat/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20Auto%C2%B7Mat">Kjøp</a></div>
   </div>
 </section>
-      <div class="card"><h3>Dere styrer barnas data</h3><p>Barnehagen bestemmer hva som registreres. Vi anbefaler fornavn eller initialer. Databehandleravtale inngås før dere tar appen i bruk.</p></div>
-      <div class="card"><h3>Innsyn med logg</h3><p>Vi ser barnehagens data bare når dere ber om hjelp, og hver tilgang logges. Dere kan hente ut og slette dataene deres.</p></div>
-    </div>
-    <a class="more" href="personvern.html">Les hele personvernerklæringen</a>
+<section class="band">
+  <div class="wrap">
+    <h2>Nå ut til kjøkken som planlegger</h2>
+    <p>Er du grossist eller produsent og vil at varene dine skal finnes der menyene lages? Ta kontakt, så forteller vi hva som er mulig.</p>
   </div>
 </section>
 </main>
@@ -331,16 +331,16 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))set(false
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);b.focus()}});})();
 </script>
 
-document.getElementById('copy').addEventListener('click',function(){
-  var b=this,t=document.getElementById('addr');
-  function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
-  function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
-  try{navigator.clipboard.writeText(t.textContent).then(ok,sel)}catch(e){sel()}
-});
-</script>
 <script>
 /* Enkel måling uten informasjonskapsler: teller bare trykk på «Prøv demo» og «Kjøp», per app. Ingen IP, ingen bruker-ID. */
 (function(){
   var U='https://kvwhiuwbnkmybenvaejj.supabase.co/rest/v1/usage_events',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
   function app(h){h=h||'';return h.indexOf('barnemat')>-1?'barnemat':h.indexOf('automat')>-1?'automat':h.indexOf('skjenkeprove')>-1?'skjenkeprove':h.indexOf('etablerer')>-1?'etablerer':/Bare%20Barnemat/.test(h)?'barnemat':/Auto%C2%B7Mat/.test(h)?'automat':/Skjenke/i.test(h)?'skjenkeprove':/Etablerer/i.test(h)?'etablerer':'ukjent'}
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.ch-btn');if(!a)return;
+    var h=a.getAttribute('href')||'',buy=h.indexOf('mailto:')===0;
+    try{fetch(U,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K,Prefer:'return=minimal'},body:JSON.stringify({event:buy?'buy_click':'demo_start',props:{app:app(h)}})}).catch(function(){})}catch(_){}
+  });
+})();
+</script>
 </body></html>

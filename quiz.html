@@ -324,6 +324,13 @@ html,body{overflow-x:clip}
       <figure><img src="bilder/quizz-kategorier.webp" width="520" height="900" alt="Liste over temaer som serveringsloven, daglig leder, mva, regnskap, arbeidsmiljø og alkoholloven" loading="lazy"><figcaption>Velg tema og se hvor langt du har kommet.</figcaption></figure>
       <figure><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="Quizspørsmål med fire svaralternativer" loading="lazy"><figcaption>Ett spørsmål om gangen.</figcaption></figure>
       <figure><img src="bilder/quizz-svar.webp" width="520" height="900" alt="Riktig svar markert og forklaring på hvorfor et alternativ er feil" loading="lazy"><figcaption>Svar med forklaring.</figcaption></figure>
+      <figure><img src="bilder/quizz-pensum.webp" width="520" height="900" alt="Pensumtekst om serveringsloven ved siden av spørsmålet" loading="lazy"><figcaption>Les pensum når du står fast.</figcaption></figure>
+      <figure><img src="bilder/quizz-eksamen.webp" width="520" height="900" alt="Eksamensmodus med spørsmål 1 av 50" loading="lazy"><figcaption>Eksamensmodus med 50 spørsmål.</figcaption></figure>
+      </div>
+    <div class="ch-btns ch-btns-end"><a class="ch-btn" href="etablerer/">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven">Kjøp</a></div>
+    </div>
+  </div>
+</section>
 </main>
 <footer class="sitefoot"><div class="wrap">
 <ul class="trust-row"><li>Data lagres i EU</li><li>Ingen sporingsinfokapsler</li><li>Databehandleravtale før bruk</li><li>Norsk virksomhet, org.nr. 925 412 309</li></ul>
@@ -336,16 +343,16 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))set(false
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){set(false);b.focus()}});})();
 </script>
 
-document.getElementById('copy').addEventListener('click',function(){
-  var b=this,t=document.getElementById('addr');
-  function ok(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Kopier'},1800)}
-  function sel(){var r=document.createRange();r.selectNodeContents(t);var x=getSelection();x.removeAllRanges();x.addRange(r)}
-  try{navigator.clipboard.writeText(t.textContent).then(ok,sel)}catch(e){sel()}
-});
-</script>
 <script>
 /* Enkel måling uten informasjonskapsler: teller bare trykk på «Prøv demo» og «Kjøp», per app. Ingen IP, ingen bruker-ID. */
 (function(){
   var U='https://kvwhiuwbnkmybenvaejj.supabase.co/rest/v1/usage_events',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2d2hpdXdibmtteWJlbnZhZWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzE3NzcsImV4cCI6MjExMTEwNzc3N30.cQhgIBWPvC8FsMpRbhY71tPqf-T6dH7rTW08xCMcE98';
   function app(h){h=h||'';return h.indexOf('barnemat')>-1?'barnemat':h.indexOf('automat')>-1?'automat':h.indexOf('skjenkeprove')>-1?'skjenkeprove':h.indexOf('etablerer')>-1?'etablerer':/Bare%20Barnemat/.test(h)?'barnemat':/Auto%C2%B7Mat/.test(h)?'automat':/Skjenke/i.test(h)?'skjenkeprove':/Etablerer/i.test(h)?'etablerer':'ukjent'}
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.ch-btn');if(!a)return;
+    var h=a.getAttribute('href')||'',buy=h.indexOf('mailto:')===0;
+    try{fetch(U,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K,Prefer:'return=minimal'},body:JSON.stringify({event:buy?'buy_click':'demo_start',props:{app:app(h)}})}).catch(function(){})}catch(_){}
+  });
+})();
+</script>
 </body></html>
