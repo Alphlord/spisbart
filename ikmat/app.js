@@ -305,7 +305,12 @@ function drawToday() {
 
   drawHmsToday();
   var od = clear($('#overdue'));
-  var odRows = S.overdue.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, r.overdueDay); });
+  var nowM0 = new Date().getHours() * 60 + new Date().getMinutes(), carry = {};
+  var odRows = S.overdue.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, r.overdueDay); }).filter(function (r) {
+    var b = S.day === ymd(new Date()) ? blockOf(tById[r.task_id]) : null;
+    if (b && blockNight(b) && nowM0 <= minOf(b.end_time)) { (carry[b.id] = carry[b.id] || []).push(r); return false; }
+    return true;
+  });
   if (odRows.length) {
     var box = h('div', { class: 'group' }, h('header', null, h('h3', null, 'Ikke gjort i går'), h('span', { class: 'pill r' }, odRows.length)));
     odRows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay)); });
@@ -318,13 +323,14 @@ function drawToday() {
   var areaOrder = S.areas.map(function (a) { return a.id; });
   function gFor(title, key) { var g = groups.filter(function (x) { return x.key === key; })[0]; if (!g) { g = { key: key, title: title, rows: [] }; groups.push(g); } return g; }
   var open = [], mid = [], close = [], blocked = {};
+  (S.blocks || []).filter(function (b) { return carry[b.id]; }).forEach(function (b) { var g = gFor(b.name + ' · fra i går · ' + blockSpan(b), 'c' + b.id); g.rows = carry[b.id]; g.now = true; g.carry = true; });
   var nowM = new Date().getHours() * 60 + new Date().getMinutes(), isToday = S.day === ymd(new Date());
   rows.forEach(function (r) { var t = tById[r.task_id], b = blockOf(t); if (b) { (blocked[b.id] = blocked[b.id] || []).push(r); } else (r.routine === 'apning' ? open : r.routine === 'stenging' ? close : mid).push(r); });
   (S.blocks || []).filter(function (b) { return blocked[b.id]; }).sort(function (a, b) { return (a.start_time || '') < (b.start_time || '') ? -1 : 1; }).forEach(function (b) {
     var arn = b.area_id ? ((S.areas.filter(function (a) { return a.id === b.area_id; })[0] || {}).name || '') : '';
     var g = gFor(b.name + (arn && b.name.indexOf(arn) < 0 ? ' · ' + arn : '') + ' · ' + blockSpan(b), 'b' + b.id); g.rows = blocked[b.id]; g.block = b;
     var sm = b.start_time ? +hm(b.start_time).slice(0, 2) * 60 + +hm(b.start_time).slice(3) : 0, em = b.end_time ? +hm(b.end_time).slice(0, 2) * 60 + +hm(b.end_time).slice(3) : 1440;
-    g.now = isToday && nowM >= sm && nowM <= em && (b.start_time || b.end_time);
+    g.now = isToday && (b.start_time || b.end_time) && nowM >= sm && (blockNight(b) || nowM <= em);
   });
   function perArea(arr, label, prefix) {
     var ids = areaOrder.filter(function (id) { return arr.some(function (r) { return r.area_id === id; }); });
@@ -346,7 +352,7 @@ function drawToday() {
     var d = g.rows.filter(function (r) { return r.run_status; }).length;
     var head = h('header', null, h('h3', null, g.title), g.now && d !== g.rows.length ? h('span', { class: 'pill a' }, 'Pågår nå') : null, h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
     var box = h('div', { class: 'group' }, head);
-    g.rows.forEach(function (r) { box.appendChild(taskRow(r, S.day)); });
+    g.rows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay || S.day)); });
     list.appendChild(box);
   });
   var cb = clear($('#closeBox'));
@@ -752,7 +758,9 @@ function blockOk(t, dayStr) {
   var b = blockOf(t); if (!b) return true; if (!b.active) return false;
   return !b.weekdays || !b.weekdays.length || b.weekdays.indexOf(isoDow(typeof dayStr === 'string' ? parseYmd(dayStr) : dayStr)) >= 0;
 }
-function blockSpan(b) { return b.start_time || b.end_time ? hm(b.start_time) + '–' + hm(b.end_time) : 'Hele døgnet'; }
+function blockNight(b) { return !!(b.start_time && b.end_time && hm(b.end_time) < hm(b.start_time)); }
+function minOf(t) { return +hm(t).slice(0, 2) * 60 + +hm(t).slice(3); }
+function blockSpan(b) { return b.start_time || b.end_time ? hm(b.start_time) + '–' + hm(b.end_time) + (blockNight(b) ? ' (natt)' : '') : 'Hele døgnet'; }
 function blockDays(b) { return b.weekdays && b.weekdays.length && b.weekdays.length < 7 ? b.weekdays.slice().sort().map(function (n) { return WD[n - 1]; }).join(', ') : 'Alle dager'; }
 var MOD = {
   rut: ['Rutiner', 'Bygg rutiner i rutinesamlinger for steder, vakter og tider på døgnet. Hver rutinesamling blir en egen gruppe i I dag-listen.'],
@@ -1212,13 +1220,13 @@ function blockDialog(b) {
   var presets = isNew ? h('div', { class: 'chips' }, BLOCK_PRESETS.map(function (p) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': 'false', onclick: function () { name.value = p[0]; st.value = p[1]; en.value = p[2]; } }, p[0]); })) : null;
   openDlg([h('h2', null, isNew ? 'Ny rutinesamling' : 'Endre rutinesamling'), presets, h('label', { class: 'f' }, 'Navn', name), h('label', { class: 'f' }, 'Sted eller avdeling', area),
     h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Fra klokka', st), h('label', { class: 'f grow' }, 'Til klokka', en)),
+    h('p', { class: 'small muted' }, 'Er sluttida før starttida, går rutinesamlingen over midnatt. Den hører da til dagen den starter, og rutinene kan kvitteres også etter midnatt.'),
     h('div', { class: 'f' }, 'Dager samlingen gjelder', wdBox),
     isNew ? null : h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Slå av for å skjule rutinesamlingen og rutinene i den uten å slette dem.'))), out,
     h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'),
       isNew ? null : h('button', { class: 'btn alt', onclick: async function () { var r = await sb.from('routine_blocks').delete().eq('id', b.id); if (r.error) { msg(out, 'err', errText(r.error)); return; } closeDlg(); await reloadBlocks(); go('mod'); toast('Rutinesamlingen er slettet. Rutinene ligger igjen uten samling.'); } }, 'Slett'),
       h('button', { class: 'btn grow', onclick: async function (ev) {
         if (!name.value.trim()) { msg(out, 'err', 'Gi rutinesamlingen et navn.'); return; }
-        if (st.value && en.value && st.value > en.value) { msg(out, 'err', 'Sluttid må være etter starttid. For natt, bruk to rutinesamlinger.'); return; }
         var days = $$('button', wdBox).filter(function (x) { return x.getAttribute('aria-pressed') === 'true'; }).map(function (x) { return +x.dataset.n; });
         if (!days.length) { msg(out, 'err', 'Velg minst én dag.'); return; }
         var row = { name: name.value.trim(), area_id: area.value || null, start_time: st.value || null, end_time: en.value || null, weekdays: days.length === 7 ? null : days, active: isNew ? true : act.checked };
