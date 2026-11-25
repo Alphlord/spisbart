@@ -632,6 +632,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
         </button>
         <div class="settings-menu" id="settings-menu">
           <button class="settings-opt" data-action="matboksen">Matboksen</button>
+          <button class="settings-opt" data-action="catalog">Spisbart-katalog</button>
           <button class="settings-opt" data-action="stats">Nøkkeltall</button>
           <button class="settings-opt" data-action="packages">Ukespakker</button>
           <button class="settings-opt" data-action="bestilt">Bestilt</button>
@@ -693,6 +694,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
           <button class="settings-opt" data-action="packages">Ukespakker</button>
           <button class="settings-opt" data-action="bestilt">Bestilt</button>
         <button class="settings-opt" data-action="snack">Ettermiddagsmat</button>
+        <button class="settings-opt" data-action="catalog">Spisbart-katalog</button>
         <button class="settings-opt" data-action="newrecipe">Ny oppskrift</button>
         <button class="settings-opt" data-action="user">Min konto</button>
         <button class="settings-opt" data-action="children">Barn</button>
@@ -5134,6 +5136,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
     else if (action === 'suppliers') openSuppliers();
     else if (action === 'pantry') openPantryEditor();
     else if (action === 'export') openExport();
+    else if (action === 'catalog') openCatalog();
   }
   settingsMenu.querySelectorAll('.settings-opt').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -5360,6 +5363,89 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
     storageShim = shim;
   }
 
+
+  // ───────── Spisbart-katalog (felles rettkatalog og pakker fra backoffice) ─────────
+  function bbCatRecipeToLocal(row) {
+    const d = row.data || {};
+    return { ...d, id: 'cat-' + row.id, name: row.name || d.name, cat: d.cat || row.category || 'Annet', catalogId: row.id, catalogVersion: row.version || 1, fromCatalog: true };
+  }
+  async function openCatalog() {
+    if (!bbCloud) {
+      openModalHtml(`<div class="settings-card"><h2>Spisbart-katalog</h2><p style="font-size:13px;color:var(--muted);line-height:1.6;">Katalogen er tilgjengelig når du er logget inn med barnehagens konto.</p></div>`);
+      return;
+    }
+    openModalHtml(`<div class="settings-card"><h2>Spisbart-katalog</h2><p style="font-size:13px;color:var(--muted);">Henter …</p></div>`);
+    const c = bbCloud.client;
+    const [r, p, pi] = await Promise.all([
+      c.from('catalog_recipes').select('id,name,category,tags,data,version').eq('published', true).order('name'),
+      c.from('catalog_packs').select('id,name,description,tags').eq('published', true).order('name'),
+      c.from('catalog_pack_items').select('pack_id,recipe_id')
+    ]);
+    if (r.error || p.error) { openModalHtml(`<div class="settings-card"><h2>Spisbart-katalog</h2><p style="font-size:13px;color:var(--p);">Kunne ikke hente katalogen. Prøv igjen om litt.</p></div>`); return; }
+    const recipes = r.data || [], packs = p.data || [], items = pi.data || [];
+    const byId = Object.fromEntries(recipes.map(x => [x.id, x]));
+    const have = () => new Set(customRecipes.filter(x => x.catalogId).map(x => x.catalogId));
+    let q = '';
+    function render() {
+      const h = have();
+      const rl = recipes.filter(x => !q || (x.name || '').toLowerCase().includes(q) || (x.tags || []).some(t => t.toLowerCase().includes(q)));
+      const packHtml = packs.map(pk => {
+        const ids = items.filter(i => i.pack_id === pk.id).map(i => i.recipe_id).filter(id => byId[id]);
+        const missing = ids.filter(id => !h.has(id)).length;
+        return `<div class="supplier-card" style="margin-bottom:10px;">
+          <div class="sup-head"><strong style="font-size:13px;">${escapeHtml(pk.name)}</strong><span class="recipe-tag diet" style="flex-shrink:0;">${ids.length} retter</span></div>
+          ${pk.description ? `<div style="font-size:12px;color:var(--muted);margin:4px 0;">${escapeHtml(pk.description)}</div>` : ''}
+          <div class="osc-actions" style="margin-top:8px;"><button class="icon-btn primary" data-cat-pack="${pk.id}" ${missing ? '' : 'disabled'}>${missing ? `Last ned pakke (${missing} nye)` : 'Allerede lastet ned'}</button></div>
+        </div>`;
+      }).join('');
+      const recHtml = rl.map(x => {
+        const d = x.data || {};
+        const mine = h.has(x.id);
+        return `<div class="supplier-card" style="margin-bottom:8px;">
+          <div class="sup-head"><strong style="font-size:13px;">${escapeHtml(x.name)}</strong><span class="recipe-tag diet" style="flex-shrink:0;">Spisbart</span></div>
+          <div style="font-size:12px;color:var(--muted);margin:3px 0;">${escapeHtml(x.category || d.cat || '')}${(x.tags || []).length ? ' · ' + escapeHtml(x.tags.join(', ')) : ''}</div>
+          <div class="osc-actions" style="margin-top:6px;"><button class="icon-btn ${mine ? '' : 'primary'}" data-cat-add="${x.id}" ${mine ? 'disabled' : ''}>${mine ? 'Lagt til' : 'Legg til'}</button></div>
+        </div>`;
+      }).join('');
+      document.getElementById('modal-content').innerHTML = `<div class="settings-card">
+        <h2>Spisbart-katalog</h2>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.5;">Ferdige retter og pakker fra Spisbart. Når du legger dem til, får du en egen kopi du kan endre fritt – vi overskriver aldri det du har tilpasset.</p>
+        ${packs.length ? `<h3 style="font-size:14px;margin:6px 0 8px;">Pakker</h3>${packHtml}` : ''}
+        <h3 style="font-size:14px;margin:14px 0 8px;">Retter</h3>
+        <input id="cat-q" placeholder="Søk i katalogen …" value="${escapeHtml(q)}" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font:inherit;font-size:13px;margin-bottom:10px;">
+        ${recHtml || '<p style="font-size:13px;color:var(--muted);">Ingen retter å vise ennå.</p>'}
+      </div>`;
+      const qi = document.getElementById('cat-q');
+      qi.addEventListener('input', () => { q = qi.value.trim().toLowerCase(); const pos = qi.selectionStart; render(); const n = document.getElementById('cat-q'); n.focus(); n.setSelectionRange(pos, pos); });
+      document.querySelectorAll('[data-cat-add]').forEach(b => b.addEventListener('click', async () => { await addMany([b.dataset.catAdd]); }));
+      document.querySelectorAll('[data-cat-pack]').forEach(b => b.addEventListener('click', async () => {
+        await addMany(items.filter(i => i.pack_id === b.dataset.catPack).map(i => i.recipe_id));
+      }));
+    }
+    async function addMany(ids) {
+      const h = have(); let n = 0;
+      for (const id of ids) { const row = byId[id]; if (row && !h.has(id)) { customRecipes.push(bbCatRecipeToLocal(row)); n++; } }
+      if (!n) return;
+      await saveKey('customRecipes', customRecipes);
+      showToast(n === 1 ? 'Rett lagt til' : n + ' retter lagt til');
+      renderDishList(); renderCalendar(); render();
+    }
+    render();
+  }
+
+  // Abonnementsstatus: vis tydelig melding når kontoen er satt på pause eller avsluttet (skriving er da stengt i databasen)
+  async function bbCheckSubscription() {
+    if (!bbCloud) return;
+    try {
+      const { data } = await bbCloud.client.from('subscriptions').select('status,paid_until').eq('kindergarten_id', bbCloud.kgId).maybeSingle();
+      if (!data || !['suspended', 'cancelled'].includes(data.status)) return;
+      const b = document.createElement('div');
+      b.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9999;background:#C8376A;color:#fff;padding:10px 16px;font:600 13px/1.4 Barlow,Arial,sans-serif;text-align:center;';
+      b.textContent = (data.status === 'suspended' ? 'Abonnementet er satt på pause' : 'Abonnementet er avsluttet') + ' – du kan se dataene dine, men ikke endre dem. Kontakt post@spisbart.no.';
+      document.body.appendChild(b);
+    } catch (e) {}
+  }
+
   function bbDemoBanner() {
     const b = document.createElement('div');
     b.style.cssText = 'position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9998;background:#1A7A6E;color:#fff;padding:8px 14px;border-radius:999px;font:600 13px Barlow,Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px)';
@@ -5370,6 +5456,7 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
 
   (async () => {
     await bbAuthGate();
+    bbCheckSubscription();
     if (BB_DEMO) bbDemoBanner();
     if (BB_DEMO) { // første besøk: legg inn en eksempelplan for to uker
       try {
