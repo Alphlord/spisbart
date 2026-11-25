@@ -375,15 +375,15 @@ const EKSAMEN_COL='#ffffff';
 const PENSUM={
 salg:[
   {h:'Aldersgrenser',paras:[
-    {id:'s1',t:'Aldersgrensen for kjøp av øl og vin (inntil 22% alkohol) er 18 år. Dette gjelder i butikk, på Vinmonopolet og på skjenkesteder.'},
-    {id:'s2',t:'Aldersgrensen for kjøp av brennevin (over 22% alkohol) er 20 år. Brennevin selges kun på Vinmonopolet eller skjenkes på steder med riktig bevilling.'},
-    {id:'s3',t:'Lettøl med under 0,7% alkohol regnes ikke som alkohol etter loven og kan kjøpes uten aldersgrense.'},
+    {id:'s1',t:'Aldersgrensen for kjøp av øl og vin (under 22% alkohol) er 18 år. Dette gjelder i butikk, på Vinmonopolet og på skjenkesteder.'},
+    {id:'s2',t:'Aldersgrensen for kjøp av drikk med 22% alkohol eller mer (brennevin) er 20 år. Brennevin selges kun på Vinmonopolet eller skjenkes på steder med riktig bevilling.'},
+    {id:'s3',t:'Alkoholfri drikk (under 0,7% alkohol) har ingen aldersgrense. Aldersgrensen på 18 år gjelder all drikk med mer enn 0,7%, også lettøl (0,7–2,5%).'},
   ]},
   {h:'Salgssteder og alkoholinnhold',paras:[
     {id:'s4',t:'Dagligvarebutikker kan kun selge drikke med inntil 4,7 volumprosent alkohol – øl, cider og rusbrus innenfor grensen.'},
     {id:'s5',t:'Vinmonopolet er det eneste lovlige salgsstedet for drikke med mer enn 4,7% alkohol til privatkunder.'},
     {id:'s6',t:'Taxfree-salg ved norske flyplasser reguleres av egne kvoter for innreisende, separat fra alkoholloven.'},
-    {id:'s6b',t:'Det er forbudt å selge alkohol på kreditt. Alkohol kan ikke selges mot utsatt betaling eller på regning til kunder.'},
+    {id:'s6b',t:'Alkohol kan ikke brukes som gevinst eller premie i konkurranser, og ikke i auksjoner (§ 8-6). Gratis utdeling til forbrukere i markedsføringsøyemed er også forbudt.'},
   ]},
   {h:'Salgstider',paras:[
     {id:'s7',t:'Salg av øl og annen drikke inntil 4,7 volumprosent i butikk har normaltid kl. 08–18 på hverdager. Kommunen kan utvide til maksimaltid kl. 20. Dagen før søn- og helligdager (også lørdag) er normaltid til kl. 15 og maksimaltid kl. 18.'},
@@ -393,7 +393,7 @@ salg:[
   ]},
   {h:'Legitimasjon og ID-kontroll',paras:[
     {id:'s11',t:'Ansatte plikter å kreve legitimasjon dersom det er tvil om at kunden har nådd aldersgrensen. Er du i tvil, skal du spørre.'},
-    {id:'s12',t:'Godkjent legitimasjon er pass, bankkort med bilde, nasjonalt ID-kort eller førerkort. Kopi av legitimasjon godtas ikke.'},
+    {id:'s12',t:'Godkjent legitimasjon er blant annet pass, bankkort med bilde, nasjonalt ID-kort, førerkort og digitalt ID i BankID-appen. Kopi eller bilde av legitimasjon og utløpt legitimasjon godtas ikke.'},
     {id:'s13',t:'Dersom en kunde fremviser falsk ID, fritas den ansatte fra ansvar ved god tro – men plikten til å vurdere troverdighet gjelder alltid.'},
   ]},
 ],
@@ -407,7 +407,7 @@ bevilling:[
   {h:'Kommunens rolle og alkoholpolitisk plan',paras:[
     {id:'b5',t:'Det er kommunen – ikke staten – som gir og trekker tilbake skjenke- og salgsbevillinger. Kommunestyret fatter vedtaket.'},
     {id:'b6',t:'Alle kommuner er pålagt å utarbeide en alkoholpolitisk plan. Planen regulerer antall bevillinger, åpningstider og lokale retningslinjer.'},
-    {id:'b7',t:'Bevillingen er tidsbegrenset, normalt til fire år (kommunevalgperioden). Den må fornyes ved periodens slutt.'},
+    {id:'b7',t:'Bevillingen er tidsbegrenset, normalt til fire år (kommunevalgperioden). Den utløper senest 30. september året etter at nytt kommunestyre har tiltrådt, og må fornyes.'},
     {id:'b8x',t:'Bevillingen er knyttet til et bestemt lokale og kan ikke overføres til ny eier uten ny søknad til kommunen.'},
   ]},
   {h:'Styrer og stedfortreder',paras:[
@@ -418,7 +418,7 @@ bevilling:[
   {h:'Prikksystem og sanksjoner',paras:[
     {id:'b11',t:'Alkoholloven bruker et prikksystem. Ulike lovbrudd utløser 1–8 prikker avhengig av alvorlighetsgrad.'},
     {id:'b12',t:'Skjenking til mindreårig: 8 prikker. Skjenking til åpenbart påvirket: 4 prikker. Brudd på skjenketid: 4 prikker.'},
-    {id:'b13',t:'Når et sted har fått 12 prikker i løpet av to år, skal bevillingen inndras i minst én uke.'},
+    {id:'b13',t:'Når et sted har fått 12 prikker i løpet av to år, skal bevillingen som hovedregel inndras i én uke (lengre ved flere prikker).'},
     {id:'b14',t:'Grove brudd – som skjenking til mindreårige – kan gi umiddelbar inndragning uavhengig av prikktallet.'},
   ]},
 ],
@@ -522,7 +522,7 @@ salg:[
   {num:'§ 1-5',title:'Aldersgrenser',body:'Forbudt å selge alkohol (gruppe 1 og 2) til under 18 år. Brennevin (gruppe 3) ikke til under 20 år.'},
   {num:'§ 3-1',title:'Salgsbevilling',body:'Salg av alkohol gruppe 1–2 krever kommunal salgsbevilling. Gruppe 3 selges bare av AS Vinmonopolet.'},
   {num:'§ 3-7',title:'Salgstider',body:'Normaltid kl. 08–18 hverdager (maks kl. 20). Dagen før søn-/helligdag: normaltid til kl. 15, maks kl. 18. Forbudt søndager, helligdager, 1. og 17. mai. Kommunen kan fastsette andre tider innenfor maksimaltid.'},
-  {num:'§ 8-6',title:'Kredittsalg forbudt',body:'Det er forbudt å selge alkohol på kreditt. Alkohol kan ikke selges mot utsatt betaling.'},
+  {num:'§ 8-6',title:'Alkohol som premie',body:'Alkoholholdig drikk kan ikke brukes som gevinst eller premie i konkurranser, og ikke i auksjoner. Gratis utdeling i markedsføringsøyemed er forbudt (§ 8-6a).'},
 ],
 bevilling:[
   {num:'§ 4-1',title:'Skjenkebevilling',body:'Skjenking av alkohol krever kommunal skjenkebevilling, knyttet til bestemt lokale og tidsrom.'},
@@ -537,8 +537,8 @@ skjenketider:[
 ],
 kunde:[
   {num:'§ 8-11',title:'Forbud mot skjenking i visse tilfeller',body:'Forbudt å skjenke åpenbart påvirkede og mindreårige. Ansatte plikter løpende vurdering av gjestenes tilstand.'},
-  {num:'§ 8-6',title:'Legitimasjonskrav',body:'Den som selger/skjenker alkohol plikter å kreve ID ved tvil om alder. Gyldig: pass, bankkort m/bilde, nasjonalt ID-kort, førerkort.'},
-  {num:'§ 4-7',title:'Ordensmessige krav',body:'Skjenkestedet plikter å opprettholde god orden. Forstyrrende gjester kan bortvises. Ordensproblemer kan gi inndragning.'},
+  {num:'§ 2-4',title:'Legitimasjonskrav (alkoholforskriften)',body:'Den som selger/skjenker alkohol har rett og plikt til å kreve dokumentert alder ved tvil, jf. alkoholloven § 1-5. Gyldig: pass, bankkort m/bilde, nasjonalt ID-kort, førerkort, BankID-ID. Ikke kopi eller utløpt.'},
+  {num:'§ 4-7',title:'Utøvelse av bevillingen',body:'Skjenking skal skje ansvarlig og i ordnede former. Brudd på kravet til forsvarlig drift gir 8 prikker.'},
   {num:'§ 1-9',title:'Straffeansvar',body:'Forsettlig eller uaktsomt brudd på alkoholloven kan gi bøter eller fengsel inntil 1 år. Medvirkning straffes likt.'},
 ],
 internkontroll:[
@@ -565,10 +565,10 @@ salg:[
   {q:'Hva er normaltiden for salg av øl i butikk på julaften (dagen før helligdag)?',opts:['Kl. 15:00','Kl. 18:00','Kl. 20:00','Ingen salg'],c:0,e:'Dagen før søn-/helligdag er normaltid til kl. 15. Maksimaltid er kl. 18.',h:['s7']},
   {q:'Hva skal ansatte gjøre ved tvil om kundens alder?',opts:['Selge likevel','Ringe sjefen','Be om legitimasjon','Nekte automatisk'],c:2,e:'Ved tvil om alder plikter ansatte alltid å be om gyldig legitimasjon.',h:['s11']},
   {q:'Hva er gyldig legitimasjon ved alkoholkjøp?',opts:['Studentbevis','Pass','Bibliotekskort','Treningskort'],c:1,e:'Gyldig ID: pass, bankkort med bilde, nasjonalt ID-kort eller førerkort.',h:['s12']},
-  {q:'Hva er lettøl definert som i alkoholloven?',opts:['Under 2,5%','Under 1,0%','Under 0,7%','Under 4,7%'],c:2,e:'Drikke med under 0,7% alkohol regnes ikke som alkohol.',h:['s3']},
-  {q:'Er det tillatt å selge alkohol på kreditt?',opts:['Ja','Nei, det er forbudt','Bare ved kjøp over 500 kr','Bare på Vinmonopolet'],c:1,e:'Det er forbudt å selge alkohol på kreditt etter alkoholloven § 8-6.',h:['s6b']},
+  {q:'Fra hvilken alkoholprosent gjelder aldersgrensene i alkoholloven?',opts:['Fra 0,0%','Fra 0,7%','Fra 2,5%','Fra 4,7%'],c:1,e:'Aldersgrensene gjelder drikk med mer enn 0,7 volumprosent, også lettøl (0,7–2,5%).',h:['s3']},
+  {q:'Er det tillatt å bruke alkohol som premie i en konkurranse?',opts:['Ja','Nei, det er forbudt','Bare øl','Bare for ansatte'],c:1,e:'Alkoholloven § 8-6 forbyr alkohol som gevinst eller premie i konkurranser og auksjoner.',h:['s6b']},
   {q:'Kan kommunen forlenge salgstiden for øl utover nasjonale grenser?',opts:['Ja, alltid','Ja, med søknad','Nei','Bare i helger'],c:2,e:'Kommunen kan kun innskrenke salgstidene – aldri utvide dem.',h:['s10']},
-  {q:'Er kopi av legitimasjon godkjent ved alkoholkjøp?',opts:['Ja','Nei','Bare digital kopi','Bare pass-kopi'],c:1,e:'Kopi av legitimasjon godtas ikke – original må fremvises.',h:['s12']},
+  {q:'Er kopi av legitimasjon godkjent ved alkoholkjøp?',opts:['Ja','Nei','Bare digital kopi','Bare pass-kopi'],c:1,e:'Kopi eller bilde av legitimasjon godtas ikke. Original må fremvises.',h:['s12']},
   {q:'Hva gjelder for salg av alkohol på helligdager?',opts:['Til kl. 15','Til kl. 18','Ingen salg','Normalt salg'],c:2,e:'Salg av alkohol i butikk er forbudt på søndager og helligdager.',h:['s9']},
   {q:'Hva kan dagligvarebutikker selge av alkohol?',opts:['Alt under 6%','Bare øl','Øl, cider og rusbrus inntil 4,7%','Øl og vin'],c:2,e:'Dagligvarebutikker kan selge øl, cider og rusbrus med inntil 4,7% alkohol.',h:['s4']},
   {q:'Hva er den seneste tiden kommunen kan tillate salg av øl i butikk på pinseaften?',opts:['Kl. 16:00','Kl. 18:00','Kl. 20:00','Ingen salg'],c:1,e:'Pinseaften er dagen før en søndag. Maksimaltid er kl. 18, normaltid kl. 15. Salg er ikke forbudt nasjonalt.',h:['s8']},
@@ -586,7 +586,7 @@ bevilling:[
   {q:'Hva kreves av styrer og stedfortreder?',opts:['Ingen krav','Bestå kunnskapsprøven','5 års erfaring','Statlig godkjenning'],c:1,e:'Styrer og stedfortreder må ha bestått kunnskapsprøven om alkoholloven.',h:['b8']},
   {q:'Hvor mange prikker gir skjenking til mindreårig?',opts:['2 prikker','4 prikker','8 prikker','12 prikker'],c:2,e:'Skjenking til mindreårig gir 8 prikker – det høyeste antallet for ett brudd.',h:['b12']},
   {q:'Hvor mange prikker gir skjenking til åpenbart påvirket person?',opts:['1 prikk','2 prikker','4 prikker','8 prikker'],c:2,e:'Skjenking til åpenbart påvirket person gir 4 prikker.',h:['b12']},
-  {q:'Hvor mange prikker gir automatisk inndragning av bevilling?',opts:['6 prikker','8 prikker','10 prikker','12 prikker'],c:3,e:'Ved 12 prikker innen to år skal bevillingen inndras i minst én uke.',h:['b13']},
+  {q:'Hvor mange prikker gir automatisk inndragning av bevilling?',opts:['6 prikker','8 prikker','10 prikker','12 prikker'],c:3,e:'Ved 12 prikker innen to år skal bevillingen som hovedregel inndras i én uke (lengre ved flere prikker).',h:['b13']},
   {q:'Kan en skjenkebevilling overføres til ny eier?',opts:['Ja, automatisk','Ja, med melding','Nei, ny søknad kreves','Bare midlertidig'],c:2,e:'Bevillingen kan ikke overføres – ny eier må søke på nytt.',h:['b8x']},
   {q:'Hva skjer ved grove brudd uavhengig av prikktallet?',opts:['Ingenting ekstra','Kun bøter','Umiddelbar inndragning','Kun advarsel'],c:2,e:'Grove brudd kan gi umiddelbar inndragning.',h:['b14']},
   {q:'Hva er en salgsbevilling?',opts:['Brennevinsskjenking','Salg av øl i butikk','Alkoholimport','Vinmonopolets lisens'],c:1,e:'Salgsbevilling gjelder dagligvarebutikker som vil selge øl inntil 4,7%.',h:['b2']},
