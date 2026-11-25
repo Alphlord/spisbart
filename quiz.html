@@ -250,6 +250,10 @@ a{text-underline-offset:3px}
 .sqs{font-size:clamp(56px,16vw,84px);margin-top:.183em;margin-bottom:.1em;display:flex;flex-direction:column;gap:clamp(4px,.9vw,7px);width:clamp(30px,6vw,46px)}
 .sqs i{flex:1;display:block}
 .sqs i:nth-child(1){background:#E8B84B}.sqs i:nth-child(2){background:#C8376A}.sqs i:nth-child(3){background:#5C7A39}.sqs i:nth-child(4){background:#1B4F7A}
+.card h3:has(.ci){display:flex;align-items:center;gap:10px}
+.ci{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;font-size:18px;line-height:1;flex:none;font-family:Barlow,Arial,sans-serif;font-weight:700}
+.ci-l{color:#2E7D32;background:#E6F2E7}.ci-r{color:#1B4F7A;background:#E4EDF5}.ci-s{color:#C8376A;background:#FBE9EF}.ci-t{color:#1a1a1a;background:#EFEBE0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ci-l{background:#233a25;color:#8fd194}:root:not([data-theme="light"]) .ci-r{background:#1d2f40;color:#8fb8dd}:root:not([data-theme="light"]) .ci-s{background:#40202b;color:#f08aa9}:root:not([data-theme="light"]) .ci-t{background:#34302a;color:#f3efe4}}
 .bartlogo{width:56px;height:auto;margin-right:10px;flex:none}
 .pg-barn #bart{animation:none;fill:#E8B84B}.pg-kafe #bart{animation:none;fill:#5C7A39}.pg-prove #bart{animation:none;fill:#C8376A}
 @media (prefers-reduced-motion:reduce){.pg-barn #bart,.pg-kafe #bart,.pg-prove #bart{animation:none}}
@@ -282,10 +286,10 @@ html,body{overflow-x:clip}
     <h1>Quiz deg til kunnskap</h1>
     <p class="pitch" style="margin-top:28px">Etter hvert spørsmål bestemmer du selv hva som skjer videre. Du velger om spørsmålet skal gjentas, om du vil lese deg opp, eller om du har lært det.</p>
     <div class="cards">
-      <div class="card"><h3>Lært</h3><p>Du kan den. Spørsmålet legges bort fra køen, så du bruker tiden på resten.</p></div>
-      <div class="card"><h3>Repeter</h3><p>Du er usikker. Spørsmålet kommer tilbake senere i runden, helt til du kan det.</p></div>
-      <div class="card"><h3>Les</h3><p>Du vil forstå hvorfor. Åpne pensumteksten ved siden av spørsmålet og gå tilbake når du er klar.</p></div>
-      <div class="card"><h3>Lytt</h3><p>Pensum kan leses opp for deg som en lydbok, tema for tema. Du velger hastighet og kan hoppe mellom avsnitt.</p></div>
+      <div class="card"><h3><span class="ci ci-l" aria-hidden="true">✓</span>Lært</h3><p>Du kan den. Spørsmålet legges bort fra køen, så du bruker tiden på resten.</p></div>
+      <div class="card"><h3><span class="ci ci-r" aria-hidden="true">↺</span>Repeter</h3><p>Du er usikker. Spørsmålet kommer tilbake senere i runden, helt til du kan det.</p></div>
+      <div class="card"><h3><span class="ci ci-s" aria-hidden="true">📖</span>Les</h3><p>Du vil forstå hvorfor. Åpne pensumteksten ved siden av spørsmålet og gå tilbake når du er klar.</p></div>
+      <div class="card"><h3><span class="ci ci-t" aria-hidden="true">▶</span>Lytt</h3><p>Pensum kan leses opp for deg som en lydbok, tema for tema. Du velger hastighet og kan hoppe mellom avsnitt.</p></div>
     </div>
     <p class="pitch" style="margin-top:26px">Det er lett å gi mest oppmerksomhet til det man allerede kan. Her får det du ikke kan mest plass. Når du føler deg klar, tar du en skikkelig test med full eksamen. Fremgangen din lagres i nettleseren.</p>
 
