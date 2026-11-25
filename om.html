@@ -212,11 +212,11 @@ a{text-underline-offset:3px}
 .topbar{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
 .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
 .brand{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:26px;color:var(--fg);text-decoration:none}
-.burger{width:46px;height:46px;border-radius:10px;border:1.5px solid var(--fg);background:transparent;cursor:pointer;display:grid;place-content:center;gap:5px;padding:0}
-.burger i{display:block;width:22px;height:2.5px;background:var(--fg);border-radius:2px;transition:transform .2s,opacity .2s}
-.burger[aria-expanded="true"] i:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
-.burger[aria-expanded="true"] i:nth-child(2){opacity:0}
-.burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+.burger{width:46px;height:46px;border-radius:10px;border:1.5px solid var(--fg);background:transparent;cursor:pointer;display:grid;place-content:center;gap:3px;padding:0}
+.burger i{display:block;width:22px;height:4.5px;transition:transform .25s}
+.burger i:nth-child(1){background:#E8B84B}.burger i:nth-child(2){background:#C8376A}.burger i:nth-child(3){background:#5C7A39}.burger i:nth-child(4){background:#1B4F7A}
+.burger[aria-expanded="true"]{grid-auto-flow:column;gap:3px}
+.burger[aria-expanded="true"] i{width:4.5px;height:22px}
 .menu-panel{position:absolute;left:0;right:0;top:100%;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 18px 30px rgba(0,0,0,.08);display:none}
 .menu-panel.open{display:block}
 .menu-panel ul{list-style:none;margin:0 auto;padding:10px max(16px,env(safe-area-inset-left,0px)) 18px;max-width:960px}
@@ -273,7 +273,7 @@ html,body{overflow-x:clip}
 </style>
 </head><body class="">
 <div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>Spisbart</span></a>
-<button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i></button></div>
+<button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i><i></i></button></div>
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html">Quizzapp</a></li><li><a href="om.html" aria-current="page">Om oss</a></li></ul></nav></div>
 <noscript><style>.menu-panel{display:block;position:static}.burger{display:none}</style></noscript>
 <main>
