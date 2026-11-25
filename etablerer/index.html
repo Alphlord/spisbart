@@ -1334,7 +1334,7 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
     if(cur)out.push(cur);return out;}
   function collect(){var body=el('read-body');items=[];idx=0;if(!body)return;
     body.querySelectorAll('.psec-h,.pp,.lov-header,.lov-para').forEach(function(n){var t=norm(textOf(n));if(t)items.push({el:n,t:t});});}
-  function mark(){document.querySelectorAll('.tts-on').forEach(function(n){n.classList.remove('tts-on')});
+  function mark(){if(single)return;document.querySelectorAll('.tts-on').forEach(function(n){n.classList.remove('tts-on')});
     var it=items[idx];if(it){it.el.classList.add('tts-on');try{it.el.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}}}
   function status(msg){var s=el('tts-st');if(!s)return;
     if(msg){s.textContent=msg;return;}
