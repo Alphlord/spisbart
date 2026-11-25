@@ -279,7 +279,8 @@ async function renderToday() {
   try {
     rows = applyQueue(await fetchDay(day), day);
     S.dayRows = rows;
-    if (day === today) {
+    var startDay = S.org && S.org.created_at ? ymd(new Date(S.org.created_at)) : null;
+    if (day === today && (!startDay || startDay < today)) {
       var prev = applyQueue(await fetchDay(addDays(day, -1)), addDays(day, -1));
       S.overdue = prev.filter(function (r) { return !r.run_status; }).map(function (r) { r.overdueDay = addDays(day, -1); return r; });
     } else S.overdue = [];
