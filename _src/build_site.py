@@ -76,7 +76,7 @@ html,body{overflow-x:clip}
 '''
 head_css=head_css.replace('</style>',extra+'</style>')
 
-PAGES=[('index.html','Forside'),('produkter.html','Produkter'),('barnehage.html','For barnehage'),('horeca.html','For horeca'),('quiz.html','quizzMe'),('om.html','Om oss')]
+PAGES=[('index.html','Forside'),('produkter.html','Produkter'),('barnehage.html','For barnehage'),('horeca.html','For horeca'),('quiz.html','quizzMeg'),('om.html','Om oss')]
 def topbar(cur):
     items=''.join('<li><a href="%s"%s>%s</a></li>'%(h,' aria-current="page"' if h==cur else '',t) for h,t in PAGES)
     return '''<div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>spisbart.no</span></a>
@@ -135,7 +135,7 @@ barn=h1(barn); kafe=h1(kafe); prove=h1(prove)
 tiles='''<nav class="chapters" aria-label="Velg område">
   <a class="tile t-barn" href="barnehage.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-5"/></svg><strong>For barnehage</strong><span>Enkel planlegging, gode oppskrifter og automatisk bestilling til barnehagekjøkkenet</span></a>
   <a class="tile t-kafe" href="horeca.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14c-3 0-4-4-1.5-5.5C6 5 10 4 12 6c2-2 6-1 6.5 2.5C21 10 20 14 17 14z"/><path d="M7 14v6h10v-6"/></svg><strong>For horeca</strong><span>En innholdsrik og spesialisert kalkulator for kjøkkenet</span></a>
-  <a class="tile t-prove" href="quiz.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9.5c0-3 6-3 6 0 0 2-3 2-3 4"/><path d="M12 17h.01"/></svg><strong>quizzMe</strong><span>Quizz deg smartere</span></a>
+  <a class="tile t-prove" href="quiz.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9.5c0-3 6-3 6 0 0 2-3 2-3 4"/><path d="M12 17h.01"/></svg><strong>quizzMeg</strong><span>Øv til etablerer- og skjenkeprøven ved hjelp av denne morsomme quizappen</span></a>
 </nav>'''
 showcase='''<section class="showcase">
   <h2>Se appene i bruk</h2>
@@ -143,7 +143,7 @@ showcase='''<section class="showcase">
   <div class="fan">
     <a class="t-barn" href="barnehage.html"><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil: ukevelger og varsel om allergier" loading="lazy"><span>Barnehage</span></a>
     <a class="t-kafe" href="horeca.html"><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett" loading="lazy"><span>Horeca</span></a>
-    <a class="t-prove" href="quiz.html"><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="QuizzMeg: ett spørsmål om gangen" loading="lazy"><span>quizzMe</span></a>
+    <a class="t-prove" href="quiz.html"><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="QuizzMeg: ett spørsmål om gangen" loading="lazy"><span>quizzMeg</span></a>
   </div>
 </section>'''
 
@@ -161,8 +161,8 @@ def prod(c,tag,name,desc,demo,page_,mail):
 prods=''.join([
  prod('ch-barn','For barnehage','Bare Barnemat','Kalenderen der du planlegger månedens måltider. Du får varsel når en rett ikke passer for et barn med allergi eller spesialkost, og ser hva måneden koster.','barnemat/?demo=1','barnehage.html','Kj%C3%B8p%20Bare%20Barnemat'),
  prod('ch-kafe','For horeca','Auto·Mat','Regner ut varekost, påslag og margin for hver rett. Bestilling, svinn og allergener ligger i samme app, for proffkjøkken, kafeer og serveringssteder.','automat/','horeca.html','Kj%C3%B8p%20Auto%C2%B7Mat'),
- prod('ch-prove','quizzMe','QuizzMeg Skjenkeprøven','Over 100 spørsmål fordelt på seks temaer: salg, bevilling, skjenketider, kunde, internkontroll og reklame.','skjenkeprove/','quiz.html#skjenke','Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven'),
- prod('ch-prove','quizzMe','QuizzMeg Etablererprøven','Nesten 150 spørsmål fordelt på 15 temaer: serveringsloven, daglig leder, mva og skatt, regnskap og kassasystem, arbeidsmiljø, konkurs og alkoholloven.','etablerer/','quiz.html#etablerer','Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven'),
+ prod('ch-prove','quizzMeg','QuizzMeg Skjenkeprøven','Over 100 spørsmål fordelt på seks temaer: salg, bevilling, skjenketider, kunde, internkontroll og reklame.','skjenkeprove/','quiz.html#skjenke','Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven'),
+ prod('ch-prove','quizzMeg','QuizzMeg Etablererprøven','Nesten 150 spørsmål fordelt på 15 temaer: serveringsloven, daglig leder, mva og skatt, regnskap og kassasystem, arbeidsmiljø, konkurs og alkoholloven.','etablerer/','quiz.html#etablerer','Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven'),
 ])
 pbody='<section class="pagehead"><div class="wrap"><h1>Produkter</h1><p class="lead2">Fire apper, og alle kan prøves som demo uten innlogging.</p><div class="prodgrid">%s</div></div></section>'%prods
 page('produkter.html','Produkter – spisbart.no','Bare Barnemat, Auto·Mat og QuizzMeg: apper for barnehage, kjøkken og kunnskapsprøver.',pbody)
