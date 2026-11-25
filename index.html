@@ -9,17 +9,17 @@
 /* Layout: sentrert logo-hero, deretter appkort, leverandørstripe og kontakt */
 :root{
   --bg:#FFFDF8; --fg:#1B1A17; --muted:#5E5A50; --line:#E6E0D2; --card:#FFFFFF; --band:#F4EFE2;
-  --yellow:#E8B84B; --pink:#E8B84B; --green:#5C7A39; --blue:#1B4F7A;
-  --logo:#111111; --accent:#E8B84B; --on-accent:#1B1A17;
+  --yellow:#E9D09A; --pink:#E9D09A; --green:#66794D; --blue:#1B4F7A;
+  --logo:#111111; --accent:#E9D09A; --on-accent:#1B1A17;
   --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
   --body:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
-  --pink:#E8B84B; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E8B84B; --on-accent:#16150F; color-scheme:dark}}
+  --pink:#E9D09A; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E9D09A; --on-accent:#16150F; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
-  --pink:#E8B84B; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E8B84B; --on-accent:#16150F; color-scheme:dark}
+  --pink:#E9D09A; --green:#9BBF5A; --blue:#5FA8DC; --logo:#F3EFE4; --accent:#E9D09A; --on-accent:#16150F; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
 .wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -139,9 +139,9 @@ footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap;justify-content:space-betw
 .tile strong{display:block;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(28px,4.4vw,44px);line-height:1}
 .tile span{display:block;margin-top:10px;font-size:17px;max-width:20em}
 .tile:hover{filter:brightness(1.08)}
-.tile.t-barn,.ch-barn{background:#E8B84B}
-.tile.t-kafe,.ch-kafe{background:#5C7A39}
-.tile.t-prove,.ch-prove{background:#C8376A}
+.tile.t-barn,.ch-barn{background:#E9D09A}
+.tile.t-kafe,.ch-kafe{background:#66794D}
+.tile.t-prove,.ch-prove{background:#A94B65}
 .tile.t-barn,.ch-barn,.ch-barn h2,.ch-barn .sub-app h3,.ch-barn .chapter a{color:#1B1A17}
 .chapter.ch-barn,.chapter.ch-barn h2,.chapter.ch-barn .pitch,.chapter.ch-barn .ch-note{color:#1B1A17}
 .ch-barn .ch-btn{background:#1B1A17;color:#fff;border-color:#1B1A17}
