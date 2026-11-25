@@ -151,6 +151,7 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
 .tts-bar button,.tts-bar select{font:600 13px Barlow,Arial,sans-serif;border:1.5px solid #bdb7a8;background:#fff;color:#1a1a1a;border-radius:999px;padding:6px 12px;cursor:pointer}
 .tts-bar .tts-main{background:#1a1a1a;color:#fff;border-color:#1a1a1a;padding:6px 16px}
 .tts-bar button:focus-visible,.tts-bar select:focus-visible,.tts-bar input:focus-visible{outline:3px solid #1B4F7A;outline-offset:2px}
+.tts-gap{display:flex;align-items:center;gap:6px}
 .tts-auto{display:flex;align-items:center;gap:5px;cursor:pointer}
 .tts-st{flex:1 1 100%;min-height:15px;color:#666}
 .tts-on{background:#FFF8E1!important;border-left-color:#E8B84B!important;box-shadow:0 0 0 2px #E8B84B55}
@@ -344,6 +345,7 @@ body{font-family:'Barlow',sans-serif;background:#fff;display:flex;justify-conten
         <button type="button" id="tts-prev" aria-label="Forrige avsnitt">⏮</button>
         <button type="button" id="tts-next" aria-label="Neste avsnitt">⏭</button>
         <select id="tts-rate" aria-label="Hastighet"><option value="0.85">Sakte</option><option value="1" selected>Normal</option><option value="1.2">Rask</option><option value="1.4">Raskere</option></select>
+        <label class="tts-gap">Pause <select id="tts-gap" aria-label="Pause mellom avsnitt"><option value="0">Ingen</option><option value="1.5">Kort</option><option value="3">Normal</option><option value="6">Lang</option><option value="10">Lengre</option></select></label>
         <label class="tts-auto"><input type="checkbox" id="tts-auto" checked> Fortsett til neste tema</label>
         <div class="tts-st" id="tts-st" aria-live="polite"></div>
       </div>
@@ -1059,9 +1061,9 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
   if(!syn||!window.SpeechSynthesisUtterance){if(bar)bar.style.display='none';document.documentElement.classList.add('no-tts');return;}
   var KEY=(location.pathname.indexOf('etablerer')>-1?'ep':'qs')+'-tts';
   var el=function(i){return document.getElementById(i)};
-  var items=[],idx=0,playing=false,rate=1,auto=true,voice=null,tok=0,endMsg='',single=false;
-  try{var sv=JSON.parse(localStorage.getItem(KEY)||'{}');if(sv.rate)rate=sv.rate;if(sv.auto===false)auto=false;}catch(e){}
-  function save(){try{localStorage.setItem(KEY,JSON.stringify({rate:rate,auto:auto}))}catch(e){}}
+  var items=[],idx=0,playing=false,rate=1,auto=true,voice=null,tok=0,endMsg='',single=false,gap=3;
+  try{var sv=JSON.parse(localStorage.getItem(KEY)||'{}');if(sv.rate)rate=sv.rate;if(typeof sv.gap==='number')gap=sv.gap;if(sv.auto===false)auto=false;}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify({rate:rate,auto:auto,gap:gap}))}catch(e){}}
   function pick(){var v=syn.getVoices()||[];voice=null;
     for(var i=0;i<v.length;i++){if(/^(nb|no)([-_]|$)/i.test(v[i].lang)){voice=v[i];break;}}
     if(!voice)for(var j=0;j<v.length;j++){if(/^nn/i.test(v[j].lang)){voice=v[j];break;}}
@@ -1111,7 +1113,7 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
     try{syn.cancel()}catch(e){}
     (function go(){
       if(my!==tok||!playing)return;
-      if(k>=parts.length){idx++;speak();return;}
+      if(k>=parts.length){var wait=single?0:(items[idx].el.classList.contains('psec-h')?Math.min(gap,1.2):gap)*1000;idx++;if(wait>0){setTimeout(function(){if(my===tok&&playing)speak();},wait);}else speak();return;}
       var u=new SpeechSynthesisUtterance(parts[k++]);u.lang=voice?voice.lang:'nb-NO';if(voice)u.voice=voice;u.rate=rate;
       u.onend=go;u.onerror=function(e){if(my===tok&&e&&e.error!=='interrupted'&&e.error!=='canceled'){stop(false);status('Kunne ikke spille av lyden på denne enheten.');}};
       syn.speak(u);})();}
@@ -1138,6 +1140,7 @@ function toast(m){const t=document.getElementById('toast-el');t.textContent=m;t.
   var r=el('tts-rate'),a=el('tts-auto');
   r.value=String(rate);if(r.value!==String(rate))r.value='1';
   a.checked=auto;
+  var g=el('tts-gap');if(g){g.value=String(gap);if(g.value!==String(gap))g.value='3';g.addEventListener('change',function(){gap=parseFloat(g.value)||0;save();});}
   r.addEventListener('change',function(){rate=parseFloat(r.value)||1;save();if(playing)speak();});
   a.addEventListener('change',function(){auto=a.checked;save();});
   var nt=window.navTo;window.navTo=function(p){if(p!=='read')stop(true);return nt.apply(this,arguments);};
