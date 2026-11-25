@@ -254,6 +254,8 @@ a{text-underline-offset:3px}
 .ci{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;font-size:18px;line-height:1;flex:none;font-family:Barlow,Arial,sans-serif;font-weight:700}
 .ci-l{color:#2E7D32;background:#E6F2E7}.ci-r{color:#1B4F7A;background:#E4EDF5}.ci-s{color:#C8376A;background:#FBE9EF}.ci-t{color:#1a1a1a;background:#EFEBE0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ci-l{background:#233a25;color:#8fd194}:root:not([data-theme="light"]) .ci-r{background:#1d2f40;color:#8fb8dd}:root:not([data-theme="light"]) .ci-s{background:#40202b;color:#f08aa9}:root:not([data-theme="light"]) .ci-t{background:#34302a;color:#f3efe4}}
+.word{font-size:clamp(34px,11.5vw,84px)}
+.txt{flex-direction:column;align-items:flex-start}
 .bartlogo{width:56px;height:auto;margin-right:10px;flex:none}
 .pg-barn #bart{animation:none;fill:#E8B84B}.pg-kafe #bart{animation:none;fill:#5C7A39}.pg-prove #bart{animation:none;fill:#C8376A}
 @media (prefers-reduced-motion:reduce){.pg-barn #bart,.pg-kafe #bart,.pg-prove #bart{animation:none}}
@@ -276,7 +278,7 @@ html,body{overflow-x:clip}
 .tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head><body class="pg-barn">
-<div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>Spisbart</span></a>
+<div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>spisbart.no</span></a>
 <button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i><i></i></button></div>
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html" aria-current="page">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html">Quizzapp</a></li><li><a href="om.html">Om oss</a></li></ul></nav></div>
 <noscript><style>.menu-panel{display:block;position:static}.burger{display:none}</style></noscript>
@@ -325,7 +327,7 @@ html,body{overflow-x:clip}
 </main>
 <footer class="sitefoot"><div class="wrap">
 <ul class="trust-row"><li>Data lagres i EU</li><li>Ingen sporingsinfokapsler</li><li>Databehandleravtale før bruk</li><li>Norsk virksomhet, org.nr. 925 412 309</li></ul>
-<div><span>© 2026 Spisbart</span><span><a href="personvern.html">Personvern</a> · <a href="vilkar.html">Vilkår</a> · <a href="mailto:post@spisbart.no">post@spisbart.no</a></span></div></div></footer>
+<div><span>© 2026 spisbart.no</span><span><a href="personvern.html">Personvern</a> · <a href="vilkar.html">Vilkår</a> · <a href="mailto:post@spisbart.no">post@spisbart.no</a></span></div></div></footer>
 <script>
 (function(){var b=document.getElementById('burger'),m=document.getElementById('menu');if(!b)return;
 function set(o){m.classList.toggle('open',o);b.setAttribute('aria-expanded',o?'true':'false')}
