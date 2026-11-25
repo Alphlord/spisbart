@@ -66,7 +66,7 @@ function csvCell(v) { v = v == null ? '' : String(v); return /[;"\n\r]/.test(v) 
 
 /* ---------- tilstand ---------- */
 var S = {
-  user: null, mems: [], org: null, role: 'ansatt', areas: [], tasks: [], names: {},
+  user: null, mems: [], org: null, role: 'ansatt', areas: [], tasks: [], units: [], names: {},
   day: ymd(new Date()), area: 'all', month: null, devFilter: 'alle', devs: [], dayRows: [], overdue: [], screen: 'auth', cameFrom: 'more'
 };
 function isLeder() { return S.role === 'leder'; }
@@ -177,10 +177,11 @@ async function selectOrg(m) {
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
     sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'),
-    sb.from('members').select('user_id, role, display_name').eq('org_id', S.org.id)
+    sb.from('members').select('user_id, role, display_name').eq('org_id', S.org.id),
+    sb.from('units').select('*').eq('org_id', S.org.id).order('created_at')
   ]);
   res.forEach(function (x) { if (x.error) throw x.error; });
-  S.areas = res[0].data; S.tasks = res[1].data;
+  S.areas = res[0].data; S.tasks = res[1].data; S.units = res[3].data;
   S.names = {}; S.members = res[2].data;
   S.members.forEach(function (x) { S.names[x.user_id] = x.display_name || 'Uten navn'; });
 }
@@ -603,6 +604,98 @@ function devDialog(d) {
     } }, 'Lagre'))]);
 }
 
+
+/* ================= KJØLESKAP OG FRYSERE ================= */
+var UNIT_LABEL = { kjol: 'Kjøl', frys: 'Frys' };
+var UNIT_GENERIC = { kjol: /kjøl/i, frys: /frys/i };
+function unitTitle(kind, name, closing) { return UNIT_LABEL[kind] + ': ' + name + (closing ? ' ved stenging' : ''); }
+async function unitLimits(orgId) {
+  var lim = { kjol: 4, frys: -18 };
+  var r = await sb.from('haccp_plans').select('plan').eq('org_id', orgId).order('version', { ascending: false }).limit(1);
+  if (!r.error && r.data && r.data[0] && r.data[0].plan && r.data[0].plan.ccps) {
+    r.data[0].plan.ccps.forEach(function (c) { if (lim.hasOwnProperty(c.id) && typeof c.value === 'number') lim[c.id] = c.value; });
+  }
+  return lim;
+}
+/* list: [{kind:'kjol'|'frys', name, area_id}] */
+async function createUnits(orgId, list, limits) {
+  list = list.filter(function (x) { return x.name && x.name.trim(); });
+  if (!list.length) return [];
+  var lim = limits || await unitLimits(orgId);
+  var ins = await sb.from('units').insert(list.map(function (x) { return { org_id: orgId, area_id: x.area_id || null, kind: x.kind, name: x.name.trim() }; })).select();
+  if (ins.error) throw ins.error;
+  var rows = [];
+  ins.data.forEach(function (u, i) {
+    [false, true].forEach(function (closing) {
+      rows.push({ org_id: orgId, area_id: u.area_id, unit_id: u.id, domain: 'mat', routine: closing ? 'stenging' : 'apning', title: unitTitle(u.kind, u.name, closing),
+        hint: 'Mål og skriv inn. Grensen kommer fra HACCP-planen.', kind: 'measure', unit: '°C', max_value: lim[u.kind], recurrence: { freq: 'daily' }, source: 'haccp', sort: 1000 + i * 2 + (closing ? 1 : 0) });
+    });
+  });
+  var tr = await sb.from('tasks').insert(rows);
+  if (tr.error) throw tr.error;
+  // de generelle kjøl- og fryse-målingene erstattes av enhetene
+  var gen = await sb.from('tasks').select('id, title, area_id').eq('org_id', orgId).eq('source', 'mal').eq('active', true).eq('unit', '°C').is('unit_id', null);
+  if (!gen.error) {
+    var off = gen.data.filter(function (t) {
+      return ins.data.some(function (u) { return UNIT_GENERIC[u.kind].test(t.title) && (!u.area_id || !t.area_id || u.area_id === t.area_id); });
+    });
+    for (var j = 0; j < off.length; j++) await sb.from('tasks').update({ active: false }).eq('id', off[j].id);
+  }
+  return ins.data;
+}
+async function reloadUnits() {
+  var a = await sb.from('units').select('*').eq('org_id', S.org.id).order('created_at');
+  var b = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title');
+  if (!a.error) S.units = a.data; if (!b.error) S.tasks = b.data;
+}
+function unitsDialog() {
+  var areaName = {}; S.areas.forEach(function (a) { areaName[a.id] = a.name; });
+  var list = h('div', { class: 'stack' });
+  if (!S.units.length) list.appendChild(h('p', { class: 'muted' }, 'Ingen registrert ennå. Legg til hvert kjøleskap og hver fryser, så får de egne målinger i dagslisten.'));
+  S.units.slice().sort(function (a, b) { return (b.active - a.active) || a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name, 'nb'); }).forEach(function (u) {
+    list.appendChild(h('div', { class: 'trow' + (u.active ? '' : ' off') },
+      h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, u.name), h('div', { class: 'small muted' }, UNIT_LABEL[u.kind] + (u.area_id ? ' · ' + (areaName[u.area_id] || '') : '') + (u.active ? '' : ' · Ikke i bruk'))),
+      h('button', { class: 'btn soft small', type: 'button', onclick: function () { unitEditDialog(u); } }, 'Endre')));
+  });
+  openDlg([h('h2', null, 'Kjøleskap og frysere'), list,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Lukk'), h('button', { class: 'btn grow', onclick: function () { unitAddDialog(); } }, 'Legg til')) ]);
+}
+function unitAddDialog() {
+  var kind = h('select', { id: 'u-kind' }, h('option', { value: 'kjol' }, 'Kjøleskap eller kjølerom'), h('option', { value: 'frys' }, 'Fryser eller fryserom'));
+  var name = h('input', { type: 'text', id: 'u-name', maxlength: 100, placeholder: 'For eksempel Kjøl 1 eller Fryser bak' });
+  var area = h('select', { id: 'u-area' }, h('option', { value: '' }, 'Hele stedet'), S.areas.map(function (a) { return h('option', { value: a.id }, a.name); }));
+  var out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Legg til'), h('label', { class: 'f' }, 'Type', kind), h('label', { class: 'f' }, 'Navn', name), h('label', { class: 'f' }, 'Avdeling', area),
+    h('p', { class: 'small muted' }, 'Enheten får målinger ved åpning og stenging. De generelle målingene for kjøl og frys i samme avdeling slås av.'), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: unitsDialog }, 'Tilbake'), h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!name.value.trim()) { msg(out, 'err', 'Gi enheten et navn.'); return; }
+      ev.target.disabled = true;
+      try { await createUnits(S.org.id, [{ kind: kind.value, name: name.value, area_id: area.value || null }]); }
+      catch (e) { msg(out, 'err', errText(e)); ev.target.disabled = false; return; }
+      await reloadUnits(); toast('Lagt til'); renderMore(); unitsDialog();
+    } }, 'Lagre'))]);
+}
+function unitEditDialog(u) {
+  var name = h('input', { type: 'text', id: 'ue-name', maxlength: 100, value: u.name });
+  var act = h('input', { type: 'checkbox', id: 'ue-act', checked: u.active });
+  var out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Endre ' + UNIT_LABEL[u.kind].toLowerCase()), h('label', { class: 'f' }, 'Navn', name),
+    h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'I bruk'), h('span', null, 'Fjern haken når enheten tas ut av drift. Tidligere målinger beholdes.'))), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: unitsDialog }, 'Tilbake'), h('button', { class: 'btn grow', onclick: async function (ev) {
+      if (!name.value.trim()) { msg(out, 'err', 'Gi enheten et navn.'); return; }
+      ev.target.disabled = true;
+      var r1 = await sb.from('units').update({ name: name.value.trim(), active: act.checked }).eq('id', u.id);
+      if (r1.error) { msg(out, 'err', errText(r1.error)); ev.target.disabled = false; return; }
+      var ts = S.tasks.filter(function (t) { return t.unit_id === u.id; });
+      for (var i = 0; i < ts.length; i++) {
+        var closing = ts[i].routine === 'stenging';
+        var r2 = await sb.from('tasks').update({ title: unitTitle(u.kind, name.value.trim(), closing), active: act.checked }).eq('id', ts[i].id);
+        if (r2.error) { msg(out, 'err', errText(r2.error)); ev.target.disabled = false; return; }
+      }
+      await reloadUnits(); toast('Lagret'); renderMore(); unitsDialog();
+    } }, 'Lagre'))]);
+}
+
 /* ================= MER ================= */
 function moreItem(title, sub, fn) {
   return h('button', { class: 'dev', type: 'button', onclick: fn }, h('div', { class: 't' }, title), sub ? h('div', { class: 'small muted' }, sub) : null);
@@ -613,6 +706,7 @@ function renderMore() {
   l.appendChild(moreItem('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
   l.appendChild(moreItem('Tilsynsmappe', 'Plan, kvitteringer og avvik for en periode. Skriv ut eller last ned.', showFolder));
   if (isLeder()) {
+    l.appendChild(moreItem('Kjøleskap og frysere', S.units.filter(function (u) { return u.active; }).length + ' registrert. Gi dem navn og mål hver for seg.', unitsDialog));
     l.appendChild(moreItem('Team og invitasjon', 'Se hvem som har tilgang og lag invitasjonskode', teamDialog));
     l.appendChild(moreItem('Endringslogg', 'Hvem som endret hva, og når', showAudit));
   }
@@ -742,10 +836,10 @@ async function showAudit() {
 
 /* ================= VEIVISER ================= */
 var W = null;
-var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Oppsummering'];
+var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Kjøl og frys', 'Oppsummering'];
 function startWizard() {
   var D = window.DATA;
-  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {} };
+  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [] };
   D.ccps.forEach(function (c) { W.ccp[c.id] = { value: c.value, monitor: c.monitor, action: c.action, verify: c.verify }; });
   go('wiz'); drawWiz();
 }
@@ -805,9 +899,28 @@ function drawWiz() {
         h('label', { class: 'f' }, 'Overvåking', mo), h('label', { class: 'f' }, 'Hvis grensen brytes', ac), h('label', { class: 'f' }, 'Verifisering', ve)));
     });
     if (!any) b.appendChild(h('p', { class: 'muted' }, 'Ingen styringspunkter for stegene du har valgt.'));
+  } else if (W.step === 6) {
+    b.appendChild(h('p', { class: 'muted' }, 'Gi hvert kjøleskap og hver fryser et navn, så får de egne målinger hver dag. Du kan også legge til flere senere under Mer.'));
+    var cu = h('div', { class: 'stack' });
+    function drawUnits() {
+      clear(cu);
+      W.units.forEach(function (u, i) {
+        var nm = h('input', { type: 'text', maxlength: 100, value: u.name, placeholder: u.kind === 'kjol' ? 'For eksempel Kjøl 1' : 'For eksempel Fryser bak', 'aria-label': 'Navn', oninput: function () { u.name = nm.value; } });
+        var ar = h('select', { 'aria-label': 'Avdeling', onchange: function () { u.area = ar.value; } }, W.areas.map(function (x) { return h('option', { value: x }, D.areas.filter(function (y) { return y[0] === x; })[0][1]); }));
+        ar.value = u.area || W.areas[0];
+        cu.appendChild(h('div', { class: 'card stack' }, h('div', { class: 'small muted' }, u.kind === 'kjol' ? 'Kjøleskap eller kjølerom' : 'Fryser eller fryserom'),
+          nm, h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Avdeling', ar), h('button', { class: 'btn soft small', type: 'button', onclick: function () { W.units.splice(i, 1); drawUnits(); } }, 'Fjern'))));
+      });
+    }
+    drawUnits();
+    b.appendChild(cu);
+    b.appendChild(h('div', { class: 'row' },
+      h('button', { class: 'btn alt grow', type: 'button', onclick: function () { W.units.push({ kind: 'kjol', name: '', area: W.areas[0] }); drawUnits(); } }, 'Legg til kjøleskap'),
+      h('button', { class: 'btn alt grow', type: 'button', onclick: function () { W.units.push({ kind: 'frys', name: '', area: W.areas[0] }); drawUnits(); } }, 'Legg til fryser')));
+    b.appendChild(h('div', { class: 'note' }, 'Hopp over hvis du vil bruke de generelle målingene for kjøl og frys.'));
   } else {
     var a2 = W.areas.map(function (x) { return D.areas.filter(function (y) { return y[0] === x; })[0][1]; });
-    b.appendChild(h('div', { class: 'card stack' }, h('div', null, h('b', null, W.name || 'Uten navn')), h('div', { class: 'muted' }, D.businessTypes.filter(function (x) { return x[0] === W.btype; })[0][1] + ' · ' + (a2.join(', ') || 'ingen avdelinger') + (W.alk ? ' · skjenkebevilling' : '')),
+    b.appendChild(h('div', { class: 'card stack' }, h('div', null, h('b', null, W.name || 'Uten navn')), h('div', { class: 'muted' }, D.businessTypes.filter(function (x) { return x[0] === W.btype; })[0][1] + ' · ' + (a2.join(', ') || 'ingen avdelinger') + (W.alk ? ' · skjenkebevilling' : '') + (W.units.filter(function (u) { return u.name.trim(); }).length ? ' · ' + W.units.filter(function (u) { return u.name.trim(); }).length + ' kjøle- og fryseenheter' : '')),
       h('div', null, W.steps.length + ' steg, ' + W.ghp.length + ' hygienerutiner og ' + D.ccps.filter(function (c) { return W.steps.indexOf(c.step) >= 0; }).length + ' styringspunkter.')));
     b.appendChild(h('div', { class: 'note' }, 'Når du oppretter, lages planen som utkast, og kalenderen fylles med åpne- og stengerutiner for hver avdeling. Du kan endre alt etterpå.'));
   }
@@ -853,6 +966,12 @@ async function finishWizard() {
     }
   }
   var kj = (ar.data || []).filter(function (a) { return a.kind === 'kjokken'; })[0];
+  var wl = W.units.filter(function (u) { return u.name.trim(); });
+  if (wl.length) {
+    var amap = {}; (ar.data || []).forEach(function (a) { amap[a.kind] = a.id; });
+    var lim = { kjol: W.ccp.kjol ? W.ccp.kjol.value : 4, frys: W.ccp.frys ? W.ccp.frys.value : -18 };
+    await createUnits(orgId, wl.map(function (u) { return { kind: u.kind, name: u.name, area_id: amap[u.area] || null }; }), lim);
+  }
   var extra = [['varme', 'Kjernetemperatur ved varmebehandling', 'min'], ['varmhold', 'Temperatur ved varmholding', 'min'], ['nedkjol', 'Temperatur etter nedkjøling', 'max']];
   for (var k = 0; k < extra.length; k++) {
     var cc = plan.ccps.filter(function (x) { return x.id === extra[k][0]; })[0];
