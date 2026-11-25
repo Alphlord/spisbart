@@ -290,6 +290,7 @@ async function renderToday() {
 function chip(text, on, fn) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick: fn }, text); }
 
 function drawToday() {
+  $('#addToday').hidden = !isLeder();
   var rows = S.dayRows.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
   var done = rows.filter(function (r) { return r.run_status; }).length;
   $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
@@ -325,7 +326,7 @@ function drawToday() {
     if (rs.length) { var g = gFor('Faste kontroller · ' + DOMAIN_LABEL[dm], 'm' + dm); g.rows = rs; }
   });
   perArea(close, 'Stenging', 's');
-  if (!groups.length) list.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver er planlagt denne dagen. Legg til oppgaver i kalenderen.'));
+  if (!groups.length) list.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver er planlagt denne dagen. Trykk «Ny rutine» for å legge til.'));
   groups.forEach(function (g) {
     var d = g.rows.filter(function (r) { return r.run_status; }).length;
     var head = h('header', null, h('h3', null, g.title), h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
@@ -465,6 +466,7 @@ async function photoImg(path) {
 $('#mPrev').addEventListener('click', function () { S.month = new Date(S.month.getFullYear(), S.month.getMonth() - 1, 1); renderCal(); });
 $('#mNext').addEventListener('click', function () { S.month = new Date(S.month.getFullYear(), S.month.getMonth() + 1, 1); renderCal(); });
 $('#addTask').addEventListener('click', function () { taskDialog(null); });
+$('#addToday').addEventListener('click', function () { taskDialog(null); });
 
 async function renderCal() {
   if (!S.org) return;
@@ -523,7 +525,7 @@ function taskDialog(t) {
   var every = h('input', { type: 'number', id: 't-every', min: 1, max: 99, value: rec.every || 1, 'aria-label': 'Intervall' });
   var evUnit = h('span', null, '');
   var startD = h('input', { type: 'date', id: 't-start', value: rec.start || '' });
-  var evWrap = h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Hvor ofte (hver ... )', h('div', { class: 'row' }, every, evUnit)), h('label', { class: 'f grow' }, 'Starter', startD));
+  var evWrap = h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Hver ...', h('div', { class: 'row' }, every, evUnit)), h('label', { class: 'f grow' }, 'Starter', startD));
   var wd = (rec.weekdays || (rec.freq === 'weekly' ? [1] : [1, 2, 3, 4, 5, 6, 7])).map(Number);
   var wdBox = h('div', { class: 'chips' }, WD.map(function (w, i) {
     var b = h('button', { class: 'chip', type: 'button', 'aria-pressed': wd.indexOf(i + 1) >= 0 ? 'true' : 'false', onclick: function () { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); } }, w); b.dataset.n = i + 1; return b;
@@ -541,15 +543,19 @@ function taskDialog(t) {
   kind.addEventListener('change', sync); freq.addEventListener('change', sync); sync();
   var act = h('input', { type: 'checkbox', id: 't-act', checked: t.active });
   var out = h('div', { role: 'status' });
-  openDlg([h('h2', null, isNew ? 'Ny oppgave' : 'Endre oppgave'),
-    h('label', { class: 'f' }, 'Tittel', title), h('label', { class: 'f' }, 'Hjelpetekst', hint),
+  var adv = h('div', { class: 'stack' }, h('label', { class: 'f' }, 'Hjelpetekst', hint),
     h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Avdeling', area), h('label', { class: 'f grow' }, 'Område', dom)),
-    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Rutine', rout), h('label', { class: 'f grow' }, 'Type', kind)),
-    measure, h('label', { class: 'f' }, 'Gjentas', freq), evWrap, wdWrap, dayWrap, monWrap,
-    h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Fjern haken for å slutte å bruke oppgaven. Historikken beholdes.'))),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Rutine', rout), h('label', { class: 'f grow' }, 'Type', kind)), measure);
+  adv.hidden = isNew;
+  var advBtn = h('button', { class: 'btn soft small', type: 'button', onclick: function () { adv.hidden = !adv.hidden; advBtn.textContent = adv.hidden ? 'Flere valg' : 'Færre valg'; } }, 'Flere valg');
+  openDlg([h('h2', null, isNew ? 'Ny rutine' : 'Endre rutine'),
+    h('label', { class: 'f' }, 'Hva skal gjøres?', title),
+    h('label', { class: 'f' }, 'Hvor ofte', freq), evWrap, wdWrap, dayWrap, monWrap,
+    isNew ? advBtn : null, adv,
+    isNew ? null : h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Fjern haken for å slutte å bruke oppgaven. Historikken beholdes.'))),
     out,
     h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', onclick: async function (ev) {
-      if (!title.value.trim()) { msg(out, 'err', 'Oppgaven trenger en tittel.'); return; }
+      if (!title.value.trim()) { msg(out, 'err', 'Skriv hva som skal gjøres.'); return; }
       var r2 = { freq: freq.value };
       if (freq.value === 'daily' || freq.value === 'weekly') {
         r2.weekdays = $$('button', wdBox).filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; }).map(function (b) { return +b.dataset.n; });
