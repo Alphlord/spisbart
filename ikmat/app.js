@@ -185,6 +185,7 @@ async function selectOrg(m) {
   ]);
   res.forEach(function (x) { if (x.error) throw x.error; });
   S.areas = res[0].data; S.tasks = res[1].data; S.units = res[3].data;
+  var bl = await sb.from('routine_blocks').select('*').eq('org_id', S.org.id).order('start_time'); S.blocks = bl.error ? [] : bl.data;
   S.names = {}; S.members = res[2].data;
   S.members.forEach(function (x) { S.names[x.user_id] = x.display_name || 'Uten navn'; });
 }
@@ -295,14 +296,16 @@ async function renderToday() {
 function chip(text, on, fn) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick: fn }, text); }
 
 function drawToday() {
-  var rows = S.dayRows.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
+  var tById = {}; S.tasks.forEach(function (t) { tById[t.id] = t; });
+  function visible(r, day) { var t = tById[r.task_id]; return !t || blockOk(t, day); }
+  var rows = S.dayRows.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, S.day); });
   var done = rows.filter(function (r) { return r.run_status; }).length;
   $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
   $('#progTxt').textContent = rows.length ? done + ' av ' + rows.length + ' oppgaver er kvittert' : 'Ingen oppgaver denne dagen.';
 
   drawHmsToday();
   var od = clear($('#overdue'));
-  var odRows = S.overdue.filter(function (r) { return S.area === 'all' || r.area_id === S.area; });
+  var odRows = S.overdue.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, r.overdueDay); });
   if (odRows.length) {
     var box = h('div', { class: 'group' }, h('header', null, h('h3', null, 'Ikke gjort i går'), h('span', { class: 'pill r' }, odRows.length)));
     odRows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay)); });
@@ -314,8 +317,15 @@ function drawToday() {
   var groups = [];
   var areaOrder = S.areas.map(function (a) { return a.id; });
   function gFor(title, key) { var g = groups.filter(function (x) { return x.key === key; })[0]; if (!g) { g = { key: key, title: title, rows: [] }; groups.push(g); } return g; }
-  var open = [], mid = [], close = [];
-  rows.forEach(function (r) { (r.routine === 'apning' ? open : r.routine === 'stenging' ? close : mid).push(r); });
+  var open = [], mid = [], close = [], blocked = {};
+  var nowM = new Date().getHours() * 60 + new Date().getMinutes(), isToday = S.day === ymd(new Date());
+  rows.forEach(function (r) { var t = tById[r.task_id], b = blockOf(t); if (b) { (blocked[b.id] = blocked[b.id] || []).push(r); } else (r.routine === 'apning' ? open : r.routine === 'stenging' ? close : mid).push(r); });
+  (S.blocks || []).filter(function (b) { return blocked[b.id]; }).sort(function (a, b) { return (a.start_time || '') < (b.start_time || '') ? -1 : 1; }).forEach(function (b) {
+    var arn = b.area_id ? ((S.areas.filter(function (a) { return a.id === b.area_id; })[0] || {}).name || '') : '';
+    var g = gFor(b.name + (arn && b.name.indexOf(arn) < 0 ? ' · ' + arn : '') + ' · ' + blockSpan(b), 'b' + b.id); g.rows = blocked[b.id]; g.block = b;
+    var sm = b.start_time ? +hm(b.start_time).slice(0, 2) * 60 + +hm(b.start_time).slice(3) : 0, em = b.end_time ? +hm(b.end_time).slice(0, 2) * 60 + +hm(b.end_time).slice(3) : 1440;
+    g.now = isToday && nowM >= sm && nowM <= em && (b.start_time || b.end_time);
+  });
   function perArea(arr, label, prefix) {
     var ids = areaOrder.filter(function (id) { return arr.some(function (r) { return r.area_id === id; }); });
     if (arr.some(function (r) { return !r.area_id; })) ids.push(null);
@@ -334,7 +344,7 @@ function drawToday() {
   if (!groups.length) list.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver er planlagt denne dagen. Trykk «Ny rutine» for å legge til.'));
   groups.forEach(function (g) {
     var d = g.rows.filter(function (r) { return r.run_status; }).length;
-    var head = h('header', null, h('h3', null, g.title), h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
+    var head = h('header', null, h('h3', null, g.title), g.now && d !== g.rows.length ? h('span', { class: 'pill a' }, 'Pågår nå') : null, h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
     var box = h('div', { class: 'group' }, head);
     g.rows.forEach(function (r) { box.appendChild(taskRow(r, S.day)); });
     list.appendChild(box);
@@ -489,7 +499,7 @@ async function renderCal() {
   for (var i = 0; i < lead; i++) g.appendChild(h('div'));
   for (var d = 1; d <= days; d++) {
     var dt = new Date(m.getFullYear(), m.getMonth(), d), key = ymd(dt);
-    var due = S.tasks.filter(function (t) { return t.active && dueOn(t.recurrence, dt); }).length;
+    var due = S.tasks.filter(function (t) { return t.active && dueOn(t.recurrence, dt) && blockOk(t, dt); }).length;
     var n2 = done[key] || 0, cls = '';
     if (due) cls = n2 >= due ? 'g' : n2 > 0 ? 'a' : (key < today ? 'r' : '');
     (function (k) {
@@ -512,8 +522,8 @@ function drawTaskAdmin() {
     box.appendChild(row);
   });
 }
-function taskDialog(t, preDomain) {
-  var isNew = !t; t = t || { title: '', domain: preDomain || 'mat', routine: 'annet', kind: 'check', recurrence: { freq: 'daily' }, active: true, area_id: null, unit: '', hint: '' };
+function taskDialog(t, preDomain, preBlock) {
+  var isNew = !t; t = t || { title: '', block_id: preBlock || null, domain: preDomain || 'mat', routine: 'annet', kind: 'check', recurrence: { freq: 'daily' }, active: true, area_id: null, unit: '', hint: '' };
   var title = h('input', { type: 'text', id: 't-title', value: t.title, maxlength: 200 });
   var hint = h('textarea', { id: 't-hint' }, t.hint || '');
   var area = h('select', { id: 't-area' }, h('option', { value: '' }, 'Hele stedet'), S.areas.map(function (a) { return h('option', { value: a.id }, a.name); }));
@@ -546,6 +556,7 @@ function taskDialog(t, preDomain) {
     evUnit.textContent = { daily: '. dag', weekly: '. uke', monthly: '. måned', yearly: '. år' }[freq.value];
   }
   kind.addEventListener('change', sync); freq.addEventListener('change', sync); sync();
+  var blk = h('select', { id: 't-blk' }, h('option', { value: '' }, 'Ingen bolk'), (S.blocks || []).map(function (b) { return h('option', { value: b.id }, b.name + ' · ' + blockSpan(b)); })); blk.value = t.block_id || '';
   var act = h('input', { type: 'checkbox', id: 't-act', checked: t.active });
   var out = h('div', { role: 'status' });
   var adv = h('div', { class: 'stack' }, h('label', { class: 'f' }, 'Hjelpetekst', hint),
@@ -555,7 +566,7 @@ function taskDialog(t, preDomain) {
   var advBtn = h('button', { class: 'btn soft small', type: 'button', onclick: function () { adv.hidden = !adv.hidden; advBtn.textContent = adv.hidden ? 'Flere valg' : 'Færre valg'; } }, 'Flere valg');
   openDlg([h('h2', null, isNew ? 'Ny rutine' : 'Endre rutine'),
     h('label', { class: 'f' }, 'Hva skal gjøres?', title),
-    h('label', { class: 'f' }, 'Hvor ofte', freq), evWrap, wdWrap, dayWrap, monWrap,
+    h('label', { class: 'f' }, 'Hvor ofte', freq), evWrap, wdWrap, dayWrap, monWrap, h('label', { class: 'f' }, 'Bolk (sted, vakt eller tid på døgnet)', blk),
     isNew ? advBtn : null, adv,
     isNew ? null : h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Fjern haken for å slutte å bruke oppgaven. Historikken beholdes.'))),
     out,
@@ -575,13 +586,13 @@ function taskDialog(t, preDomain) {
       var row = { org_id: S.org.id, area_id: area.value || null, domain: dom.value, routine: rout.value, title: title.value.trim(), hint: hint.value.trim() || null,
         kind: kind.value, unit: kind.value === 'measure' ? (unit.value.trim() || null) : null,
         min_value: kind.value === 'measure' ? num(mn.value) : null, max_value: kind.value === 'measure' ? num(mx.value) : null,
-        recurrence: r2, active: act.checked };
+        recurrence: r2, active: act.checked, block_id: blk.value || null };
       ev.target.disabled = true;
       var res = isNew ? await sb.from('tasks').insert(Object.assign(row, { source: 'egen' })) : await sb.from('tasks').update(row).eq('id', t.id);
       if (res.error) { msg(out, 'err', errText(res.error)); ev.target.disabled = false; return; }
       closeDlg(); toast('Lagret');
       var rt = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'); if (!rt.error) S.tasks = rt.data;
-      if (S.screen === 'today') renderToday(); else if (S.screen === 'mod') renderMod(); else renderCal();
+      if (S.screen === 'today') renderToday(); else if (S.screen === 'mod') renderMod(); else if (S.screen === 'sub') refreshSub(); else renderCal();
     } }, 'Lagre'))]);
 }
 
@@ -735,16 +746,27 @@ function unitEditDialog(u) {
 }
 
 /* ================= MER ================= */
+function hm(t) { return t ? String(t).slice(0, 5) : ''; }
+function blockOf(t) { return t && t.block_id ? (S.blocks || []).filter(function (b) { return b.id === t.block_id; })[0] : null; }
+function blockOk(t, dayStr) {
+  var b = blockOf(t); if (!b) return true; if (!b.active) return false;
+  return !b.weekdays || !b.weekdays.length || b.weekdays.indexOf(isoDow(typeof dayStr === 'string' ? parseYmd(dayStr) : dayStr)) >= 0;
+}
+function blockSpan(b) { return b.start_time || b.end_time ? hm(b.start_time) + '–' + hm(b.end_time) : 'Hele døgnet'; }
+function blockDays(b) { return b.weekdays && b.weekdays.length && b.weekdays.length < 7 ? b.weekdays.slice().sort().map(function (n) { return WD[n - 1]; }).join(', ') : 'Alle dager'; }
 var MOD = {
+  rut: ['Rutiner', 'Bygg rutiner i bolker for steder, vakter og tider på døgnet. Hver bolk blir en egen gruppe i I dag-listen.'],
   mat: ['IK-mat', 'Internkontroll for mat: HACCP-plan, temperaturer, renhold og avvik.'],
   alkohol: ['IK-alkohol', 'Internkontroll for servering av alkohol: ansvar, opplæring og hendelser.'],
   hms: ['HMS', 'Helse, miljø og sikkerhet: vernerunder, brann, førstehjelp og risiko.']
 };
 function renderMod() {
   var m = S.mod || 'mat';
-  $('#modTitle').textContent = MOD[m][0]; $('#modInfo').textContent = MOD[m][1] + ' Alle rutinene vises også i I dag-listen.';
+  $('#modTitle').textContent = MOD[m][0]; $('#modInfo').textContent = MOD[m][1] + (m === 'rut' ? '' : ' Alle rutinene vises også i I dag-listen.');
   var l = clear($('#modLinks'));
-  if (m === 'hms' || m === 'alkohol') { if (m === 'alkohol' && !S.org.has_alcohol) l.appendChild(h('div', { class: 'note' }, 'Stedet er ikke registrert med alkohol. Du kan likevel bruke modulen.')); var hb = h('div', { class: 'stack' }); l.appendChild(hb); renderHms(hb); }
+  $('#modTasksWrap').hidden = m === 'rut';
+  if (m === 'rut') renderRut(l);
+  else if (m === 'hms' || m === 'alkohol') { if (m === 'alkohol' && !S.org.has_alcohol) l.appendChild(h('div', { class: 'note' }, 'Stedet er ikke registrert med alkohol. Du kan likevel bruke modulen.')); var hb = h('div', { class: 'stack' }); l.appendChild(hb); renderHms(hb); }
   else if (m === 'mat') {
     l.appendChild(moreItem('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
     l.appendChild(moreItem('Tilsynsmappe', 'Plan, kvitteringer og avvik for en periode', showFolder));
@@ -753,6 +775,7 @@ function renderMod() {
     l.appendChild(h('div', { class: 'note' }, 'Stedet er ikke registrert med alkohol. Rutiner du legger inn her vises likevel i I dag-listen.'));
   }
   $('#modAdd').hidden = !isLeder();
+  if (m === 'rut') return;
   var box = clear($('#modTasks'));
   var ts = S.tasks.filter(function (t) { return t.domain === m; }).sort(function (a, b) { return (b.active - a.active) || a.title.localeCompare(b.title, 'nb'); });
   if (!ts.length) box.appendChild(h('div', { class: 'note' }, 'Ingen rutiner ennå.'));
@@ -1122,6 +1145,109 @@ async function finishWizard() {
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
 }
+/* ---------- RUTINER: BOLKER ---------- */
+async function reloadBlocks() {
+  var a = await sb.from('routine_blocks').select('*').eq('org_id', S.org.id).order('start_time');
+  var b = await sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title');
+  if (!a.error) S.blocks = a.data; if (!b.error) S.tasks = b.data;
+}
+function renderRut(l) {
+  var leder = isLeder(), blocks = S.blocks || [];
+  if (leder) l.appendChild(h('button', { class: 'btn', onclick: function () { blockDialog(null); } }, 'Ny bolk'));
+  if (leder && !blocks.length) {
+    l.appendChild(h('div', { class: 'note' }, 'Ingen bolker ennå. En bolk er en gruppe rutiner for et sted, en vakt eller en tid på døgnet, for eksempel «Kafé åpning» 07:00–10:00 eller «Bar kveld» 17:00–24:00.'));
+    l.appendChild(h('button', { class: 'btn alt', onclick: autoBlocks }, 'Lag bolker fra åpning og stenging'));
+    l.appendChild(h('p', { class: 'small muted' }, 'Lager én bolk for åpning og én for stenging per avdeling, og flytter rutinene dit. Klokkeslettene er forslag, så endre dem.'));
+  }
+  blocks.slice().sort(function (a, b) { return (a.start_time || '') < (b.start_time || '') ? -1 : 1; }).forEach(function (b) {
+    var n = S.tasks.filter(function (t) { return t.block_id === b.id && t.active; }).length, ar = S.areas.filter(function (a) { return a.id === b.area_id; })[0];
+    l.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { openSub(b.name, function (box) { blockScreen(box, b.id); }); } },
+      h('div', { class: 't' }, b.name + (b.active ? '' : ' (av)')),
+      h('div', { class: 'small muted' }, [blockSpan(b), blockDays(b), ar ? ar.name : 'Hele stedet', n + ' rutiner'].join(' · '))));
+  });
+  var free = S.tasks.filter(function (t) { return t.active && !t.block_id; });
+  if (blocks.length && free.length) {
+    var det = h('details', { class: 'card' }, h('summary', { style: 'font-weight:600;cursor:pointer' }, 'Rutiner uten bolk (' + free.length + ')'));
+    det.appendChild(h('p', { class: 'small muted' }, 'Disse vises i I dag-listen som før. Legg dem i en bolk for å styre når de vises.'));
+    free.forEach(function (t) { det.appendChild(h('div', { class: 'trow' }, h('div', { class: 'grow' }, t.title, h('div', { class: 'small muted' }, recText(t.recurrence))), leder ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { taskDialog(t); } }, 'Endre') : null)); });
+    l.appendChild(det);
+  }
+}
+function blockScreen(box, id) {
+  var b = (S.blocks || []).filter(function (x) { return x.id === id; })[0], leder = isLeder();
+  if (!b) { box.appendChild(h('div', { class: 'note' }, 'Bolken finnes ikke lenger.')); return; }
+  var ar = S.areas.filter(function (a) { return a.id === b.area_id; })[0];
+  box.appendChild(h('div', { class: 'card stack' }, h('div', null, h('b', null, blockSpan(b)), ' · ' + blockDays(b)), h('div', { class: 'small muted' }, (ar ? ar.name : 'Hele stedet') + (b.active ? '' : ' · Slått av')),
+    leder ? h('div', { class: 'row' }, h('button', { class: 'btn soft small', onclick: function () { blockDialog(b); } }, 'Endre bolk'), h('button', { class: 'btn soft small', onclick: function () { taskDialog(null, 'mat', b.id); } }, 'Ny rutine i bolken'), h('button', { class: 'btn soft small', onclick: function () { addToBlock(b); } }, 'Legg til eksisterende')) : null));
+  var ts = S.tasks.filter(function (t) { return t.block_id === id; }).sort(function (a, c) { return (c.active - a.active) || a.title.localeCompare(c.title, 'nb'); });
+  if (!ts.length) box.appendChild(h('div', { class: 'note' }, 'Ingen rutiner i bolken ennå.'));
+  ts.forEach(function (t) {
+    box.appendChild(h('div', { class: 'trow' + (t.active ? '' : ' off') }, h('div', { class: 'grow' }, h('div', { style: 'font-weight:600' }, t.title), h('div', { class: 'small muted' }, [DOMAIN_LABEL[t.domain], recText(t.recurrence)].join(' · '))),
+      leder ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { taskDialog(t); } }, 'Endre') : null,
+      leder ? h('button', { class: 'btn soft small', type: 'button', onclick: async function () { var r = await sb.from('tasks').update({ block_id: null }).eq('id', t.id); if (r.error) toast(errText(r.error)); else { await reloadBlocks(); refreshSub(); } } }, 'Ta ut') : null));
+  });
+}
+function addToBlock(b) {
+  var free = S.tasks.filter(function (t) { return t.active && t.block_id !== b.id; }), picked = {};
+  var list = h('div', { class: 'stack', style: 'max-height:50vh;overflow:auto' }, free.map(function (t) {
+    var cb = h('input', { type: 'checkbox', onchange: function () { picked[t.id] = cb.checked; } });
+    var other = blockOf(t);
+    return h('label', { class: 'chk' }, cb, h('div', null, h('b', null, t.title), h('span', null, other ? 'Ligger i «' + other.name + '»' : recText(t.recurrence))));
+  }));
+  openDlg([h('h2', null, 'Legg til i «' + b.name + '»'), list, h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', onclick: async function () {
+    var ids = Object.keys(picked).filter(function (k) { return picked[k]; });
+    if (ids.length) { var r = await sb.from('tasks').update({ block_id: b.id }).in('id', ids); if (r.error) { toast(errText(r.error)); return; } }
+    closeDlg(); await reloadBlocks(); refreshSub();
+  } }, 'Legg til'))]);
+}
+var BLOCK_PRESETS = [['Åpning', '07:00', '11:00'], ['Lunsj', '11:00', '15:00'], ['Kveld', '16:00', '23:00'], ['Stenging', '21:00', '23:59']];
+function blockDialog(b) {
+  var isNew = !b; b = b || { name: '', area_id: null, start_time: '', end_time: '', weekdays: null, active: true };
+  var name = h('input', { type: 'text', value: b.name, maxlength: 100, placeholder: 'F.eks. Kafé åpning, Bar kveld, Helgevakt' });
+  var area = h('select', null, h('option', { value: '' }, 'Hele stedet'), S.areas.map(function (a) { return h('option', { value: a.id }, a.name); })); area.value = b.area_id || '';
+  var st = h('input', { type: 'time', value: hm(b.start_time) }), en = h('input', { type: 'time', value: hm(b.end_time) });
+  var wd = (b.weekdays && b.weekdays.length ? b.weekdays : [1, 2, 3, 4, 5, 6, 7]).map(Number);
+  var wdBox = h('div', { class: 'chips' }, WD.map(function (w, i) { var c = h('button', { class: 'chip', type: 'button', 'aria-pressed': wd.indexOf(i + 1) >= 0 ? 'true' : 'false', onclick: function () { c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); } }, w); c.dataset.n = i + 1; return c; }));
+  var act = h('input', { type: 'checkbox', checked: b.active }), out = h('div', { role: 'status' });
+  var presets = isNew ? h('div', { class: 'chips' }, BLOCK_PRESETS.map(function (p) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': 'false', onclick: function () { name.value = p[0]; st.value = p[1]; en.value = p[2]; } }, p[0]); })) : null;
+  openDlg([h('h2', null, isNew ? 'Ny bolk' : 'Endre bolk'), presets, h('label', { class: 'f' }, 'Navn', name), h('label', { class: 'f' }, 'Sted eller avdeling', area),
+    h('div', { class: 'row' }, h('label', { class: 'f grow' }, 'Fra klokka', st), h('label', { class: 'f grow' }, 'Til klokka', en)),
+    h('div', { class: 'f' }, 'Dager bolken gjelder', wdBox),
+    isNew ? null : h('label', { class: 'chk' }, act, h('div', null, h('b', null, 'Aktiv'), h('span', null, 'Slå av for å skjule bolken og rutinene i den uten å slette dem.'))), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', onclick: closeDlg }, 'Avbryt'),
+      isNew ? null : h('button', { class: 'btn alt', onclick: async function () { var r = await sb.from('routine_blocks').delete().eq('id', b.id); if (r.error) { msg(out, 'err', errText(r.error)); return; } closeDlg(); await reloadBlocks(); go('mod'); toast('Bolken er slettet. Rutinene ligger igjen uten bolk.'); } }, 'Slett'),
+      h('button', { class: 'btn grow', onclick: async function (ev) {
+        if (!name.value.trim()) { msg(out, 'err', 'Gi bolken et navn.'); return; }
+        if (st.value && en.value && st.value > en.value) { msg(out, 'err', 'Sluttid må være etter starttid. For natt, bruk to bolker.'); return; }
+        var days = $$('button', wdBox).filter(function (x) { return x.getAttribute('aria-pressed') === 'true'; }).map(function (x) { return +x.dataset.n; });
+        if (!days.length) { msg(out, 'err', 'Velg minst én dag.'); return; }
+        var row = { name: name.value.trim(), area_id: area.value || null, start_time: st.value || null, end_time: en.value || null, weekdays: days.length === 7 ? null : days, active: isNew ? true : act.checked };
+        ev.target.disabled = true;
+        var r = isNew ? await sb.from('routine_blocks').insert(Object.assign(row, { org_id: S.org.id })) : await sb.from('routine_blocks').update(row).eq('id', b.id);
+        if (r.error) { msg(out, 'err', errText(r.error)); ev.target.disabled = false; return; }
+        closeDlg(); toast('Lagret'); await reloadBlocks();
+        if (S.screen === 'sub') { $('#subTitle').textContent = row.name; refreshSub(); } else renderMod();
+      } }, 'Lagre'))]);
+}
+async function autoBlocks() {
+  if (!isLeder()) return;
+  var specs = [], seen = {};
+  S.tasks.filter(function (t) { return t.active && (t.routine === 'apning' || t.routine === 'stenging'); }).forEach(function (t) {
+    var key = t.routine + '|' + (t.area_id || ''); if (seen[key]) return; seen[key] = 1;
+    var ar = S.areas.filter(function (a) { return a.id === t.area_id; })[0], op = t.routine === 'apning';
+    specs.push({ key: key, routine: t.routine, area_id: t.area_id, name: (op ? 'Åpning' : 'Stenging') + (ar ? ' · ' + ar.name : ''), start_time: op ? '07:00' : '21:00', end_time: op ? '11:00' : '23:59' });
+  });
+  if (!specs.length) { toast('Fant ingen åpnings- eller stengerutiner å lage bolker av.'); return; }
+  var r = await sb.from('routine_blocks').insert(specs.map(function (x) { return { org_id: S.org.id, name: x.name, area_id: x.area_id, start_time: x.start_time, end_time: x.end_time, active: true }; })).select();
+  if (r.error) { toast(errText(r.error)); return; }
+  for (var i = 0; i < r.data.length; i++) {
+    var sp = specs[i], q = sb.from('tasks').update({ block_id: r.data[i].id }).eq('org_id', S.org.id).eq('routine', sp.routine).eq('active', true);
+    q = sp.area_id ? q.eq('area_id', sp.area_id) : q.is('area_id', null);
+    var u = await q; if (u.error) { toast(errText(u.error)); return; }
+  }
+  await reloadBlocks(); renderMod(); toast(specs.length + ' bolker er laget. Endre klokkeslettene så de passer dere.');
+}
+
 /* ---------- HMS-MODUL ---------- */
 var HMSL = null;
 function hms() { return window.DATA[S.mod === 'alkohol' ? 'alk' : 'hms']; }
@@ -1214,7 +1340,7 @@ function openSub(title, fn) {
 }
 async function refreshSub() {
   var b = clear($('#subBody'));
-  try { await loadHms(); S.subFn(b); } catch (e) { b.appendChild(h('div', { class: 'err' }, errText(e))); }
+  try { if (S.mod !== 'rut') await loadHms(); S.subFn(b); } catch (e) { b.appendChild(h('div', { class: 'err' }, errText(e))); }
 }
 function renderHms(box) {
   var l = clear(box);

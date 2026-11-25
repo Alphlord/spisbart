@@ -66,7 +66,7 @@ button{cursor:pointer}
 .top .wrap{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px}
 .brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;color:var(--fg)}
 .mods{display:flex;gap:2px;min-width:0}
-.mods button{border:0;background:transparent;font-family:var(--display);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);padding:12px 8px 8px;border-bottom:3px solid transparent;cursor:pointer}
+.mods button{border:0;background:transparent;font-family:var(--display);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.01em;color:var(--muted);padding:12px 5px 8px;border-bottom:3px solid transparent;cursor:pointer}
 .mods button[aria-current=true]{color:var(--fg);border-bottom-color:#E8B84B}
 @media(max-width:519px){.top .org{display:none}}
 .top .org{background:none;border:0;font:inherit;cursor:pointer;padding:8px 0 8px 8px;margin-left:0;font-size:14px;color:var(--muted);max-width:50%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -178,6 +178,7 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div id="offline" class="offline" hidden>Ingen nett. Kvitteringer lagres her og sendes når du er på nett igjen.</div>
 <header class="top" id="top" hidden><div class="wrap">
   <nav class="mods" id="mods" aria-label="Moduler">
+    <button type="button" data-mod="rut">Rutiner</button>
     <button type="button" data-mod="mat">IK-mat</button>
     <button type="button" data-mod="alkohol">IK-alkohol</button>
     <button type="button" data-mod="hms">HMS</button>
@@ -315,6 +316,6 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="data.js?v=19"></script>
-<script src="app.js?v=19"></script>
+<script src="data.js?v=20"></script>
+<script src="app.js?v=20"></script>
 </body></html>
