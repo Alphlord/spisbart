@@ -237,3 +237,88 @@ window.DATA.hms = {
     ['Forskrift om arbeidsplasser og arbeidslokaler', 'Innemiljø, lys, ventilasjon, garderobe, toalett og pauserom.']
   ]
 };
+
+/* ---------- IK-alkohol: forslag og standardtekster (alkoholloven, alkoholforskriften kap. 8) ---------- */
+window.DATA.alk = {
+  bad: ['Ingen følger', 'Merknad', 'Prikker ved kontroll', 'Mange prikker eller advarsel', 'Inndragning av bevilling'],
+  badLong: ['Ingen følger', 'Merknad fra kommunen eller politiet', 'Prikker ved kontroll', 'Mange prikker eller advarsel', 'Bevillingen kan bli inndratt'],
+  label: { PRP: 'Lav', CP: 'Middels', OPRP: 'Høy', CCP: 'Svært høy', NONE: 'Ikke vurdert' },
+  text: {
+    PRP: 'Lav risiko. Følg vanlige rutiner. Tiltak er valgfritt.',
+    CP: 'Middels risiko. Bør ha et tiltak, og tiltaket bør følges opp.',
+    OPRP: 'Høy risiko. Må ha tiltak med ansvarlig og frist, og vises i I dag-listen til det er gjort.',
+    CCP: 'Svært høy risiko. Gjør tiltak nå. Brudd kan koste bevillingen.'
+  },
+  t: { name: 'IK-alkohol', risks: 'Risiko og tiltak', round: 'Skjenkekontroll', hazardQ: 'Hva kan gå galt?', total: 6, reg: 'alkoholforskriften kapittel 8',
+    roundIntro: 'Observer en vanlig vakt, helst i travle perioder. Alt er satt til «I orden». Trykk «Avvik» der noe ikke følges. Hvert avvik blir et tiltak med frist om 14 dager.',
+    docTitle: 'IK-alkohol-mappe', injured: 'Involverte', trainTitle: 'Opplæring og kunnskapsprøve',
+    reviewIntro: 'Gå gjennom systemet jevnlig, og minst én gang i året. Tallene under er hentet automatisk fra siste 12 måneder.',
+    seedInfo: 'Fyller inn forslag til ansvar, rutiner og 13 vanlige risikoer for steder med skjenkebevilling, med vurdering og tiltak. Du gjennomgår og retter selv etterpå.',
+    incNote: 'Ved kontroll fra kommunen eller politiet: skriv hva som ble kontrollert, eventuelle merknader og prikker. Gjentatte brudd kan føre til inndragning av bevillingen.' },
+  goals: [
+    'Ingen skjenking til mindreårige eller åpenbart påvirkede.',
+    'Alle som skjenker har opplæring før første vakt.',
+    'Ingen prikker ved kontroll.',
+    'Alle hendelser loggføres samme vakt og følges opp.'
+  ],
+  roles: [
+    ['Bevillingshaver / daglig leder', 'Har ansvaret for at bevillingen og kravene overholdes, og for at internkontrollen fungerer.'],
+    ['Styrer', 'Er ansvarlig for skjenkingen i det daglige. Har bestått kunnskapsprøven i alkoholloven.'],
+    ['Stedfortreder for styrer', 'Overtar styrers ansvar ved fravær. Har bestått kunnskapsprøven i alkoholloven.'],
+    ['Ansvarlig for opplæring', 'Sørger for at alle som skjenker får opplæring og at den registreres.'],
+    ['Skjenkepersonale', 'Følger rutinene, kontrollerer alder og nekter servering til påvirkede.'],
+    ['Dørvakt', 'Kontrollerer alder og påvirkning ved inngang, og håndterer uro.']
+  ],
+  participation: 'Ansatte som skjenker er med på å gjennomgå risikoer og rutiner. Rutinene henger synlig for personalet. Hendelser, nektet servering og vanskelige situasjoner tas opp på personalmøte, og alle kan foreslå endringer.',
+  avvik: 'Alle som skjenker melder hendelser, vanskelige situasjoner og feil til styrer eller stedfortreder, i appen eller muntlig. Hendelsen loggføres samme vakt: hva skjedde, hvem var involvert og hva ble gjort. Styrer finner årsak, bestemmer tiltak og følger opp til saken er lukket. Åpne hendelser og tiltak vises i leders I dag-liste. Skjenkekontroll og hendelseslogg brukes til å vurdere om rutinene virker. Overtredelser rettes opp og følges opp slik at de ikke gjentas.',
+  // [område, risiko, sannsynlighet 0-4, konsekvens 0-4, tiltak]
+  hazards: [
+    ['Hele stedet', 'Skjenking til person under aldersgrensen (18 år for drikke under 22 %, 20 år for sterkere)', 3, 3, 'Legitimasjon fra alle som ser ut til å være under 25, ved døra og i baren. Bare gyldig legitimasjon med bilde. Nekt ved tvil. Alderspåminnelse i kassa der det er mulig.'],
+    ['Hele stedet', 'Skjenking til åpenbart påvirket gjest', 3, 3, 'Dørvakt og servitører følger med gjennom kvelden. Snakk med gjesten, tilby vann og alkoholfritt, nekt servering. Begrens shots og runder i travle perioder. Logg alle nektelser.'],
+    ['Hele stedet', 'Skjenking utenfor bevilget skjenketid', 2, 3, 'Siste bestilling ropes ut i god tid. Ansvarlig på vakt sjekker klokka. Utdrikking etter kommunens vilkår.'],
+    ['Hele stedet', 'Styrer eller stedfortreder er ikke til stede når det skjenkes', 2, 3, 'Vaktplanen viser navngitt ansvarlig hver vakt. Varslingsrutine hvis vedkommende må forlate stedet.'],
+    ['Bar', 'Rabatter og tilbud som oppfordrer til høyt forbruk', 2, 2, 'Tilbud vurderes mot regelverket før de lanseres. Alkoholfrie alternativer og vann er alltid tilgjengelig og til gode priser.'],
+    ['Hele stedet', 'Medbrakt alkohol og alkohol tatt med ut av skjenkeområdet', 3, 2, 'Tydelig skilting. Vakt følger med ved inngang og utgang. Glass tas fra gjester som skal ut.'],
+    ['Hele stedet', 'Skjenking utenfor området bevillingen gjelder', 2, 2, 'Skjenkeområdet er tydelig avgrenset. Uteservering og ekstra områder avklares med kommunen før de brukes.'],
+    ['Hele stedet', 'Ansatte som skjenker mangler opplæring', 2, 3, 'Opplæringsplan. Alle får kurs og gjennomgang av rutiner før første vakt. Opplæring registreres i appen.'],
+    ['Hele stedet', 'Bevillingen utløper eller vilkår brytes', 1, 4, 'Utløpsdato ligger i appen og varsler i god tid. Vilkår i bevillingen gjennomgås med styrer og stedfortreder.'],
+    ['Hele stedet', 'Omsetningsoppgave og avgift ikke levert til kommunen i tide', 1, 2, 'Årlig påminnelse i I dag-listen. Sjekk frist og skjema hos kommunen.'],
+    ['Hele stedet', 'Uro, vold eller narkotika i lokalet', 2, 3, 'Dørvakt og vaktrutine. Kontakt politiet ved vold, trusler eller narkotika. Loggfør hendelsen og snakk om den etterpå.'],
+    ['Bar', 'Konflikt når gjest nektes servering', 4, 1, 'Fortell gjesten hvorfor, vær rolig og høflig. Be kollega eller dørvakt om hjelp, tilkall styrer. Refunder forhåndsbetalt drikke.'],
+    ['Hele stedet', 'Hendelser loggføres ikke', 3, 2, 'Hendelseslogg føres samme vakt. Styrer gjennomgår loggen ukentlig.']
+  ],
+  round: [
+    'Bevillingen henger synlig og er gyldig',
+    'Skjenketidene overholdes',
+    'Styrer eller stedfortreder er til stede og ansvarlig',
+    'Alderskontroll gjøres, og bare gyldig legitimasjon godtas',
+    'Ingen skjenkes når de er åpenbart påvirket',
+    'Alkoholfrie alternativer og vann er tilgjengelig',
+    'Ingen drikker alkohol utenfor skjenkeområdet',
+    'Medbrakt alkohol blir stoppet',
+    'Ansatte som skjenker har fått opplæring',
+    'Hendelseslogg er ført for forrige vakt'
+  ],
+  topics: ['Opplæring i alkoholloven (før første vakt)', 'Kunnskapsprøve i alkoholloven (styrer)', 'Kunnskapsprøve i alkoholloven (stedfortreder)', 'Alderskontroll og legitimasjon', 'Håndtering av påvirkede gjester', 'Konflikthåndtering', 'Oppfriskning av rutiner'],
+  kinds: { nektet: 'Nektet servering', paavirket: 'Påvirket gjest', alder: 'Alderskontroll eller falsk ID', konflikt: 'Konflikt, vold eller trusler', kontroll: 'Kontroll fra kommune eller politi', annet: 'Annet' },
+  laws: [
+    ['Alkoholloven', 'Bevilling, aldersgrenser, skjenking til påvirkede, skjenketider, styrer og stedfortreder, kontroll og inndragning.'],
+    ['Alkoholforskriften', 'Kunnskapsprøve (kap. 5), internkontroll (kap. 8) og kontroll med bevillinger (kap. 9).'],
+    ['Kommunens alkoholpolitiske retningslinjer og bevillingsvilkår', 'Skjenketider, skjenkeområde, vilkår og gebyr varierer fra kommune til kommune. Se vedtaket om bevillingen.'],
+    ['Prikktildelingssystemet', 'Brudd ved kontroll gir prikker. For mange prikker kan føre til at bevillingen inndras.']
+  ],
+  routines: [
+    ['alder', 'Alderskontroll', 'Alle som ser ut til å være under 25 år bes om legitimasjon, ved døra og i baren. Vi godtar bare gyldig legitimasjon med bilde (pass, førerkort eller bankkort med bilde). Ved tvil eller falsk ID nektes servering, og hendelsen loggføres. Aldersgrensen er 18 år for drikke under 22 volumprosent og 20 år for sterkere drikke. Kassa minner om alderskontroll der det er mulig.'],
+    ['paavirket', 'Påvirkede gjester', 'Vi skjenker aldri til åpenbart påvirkede gjester. Dørvakt og servitører følger med gjennom kvelden. Ved tvil snakker vi med gjesten, tilbyr vann og alkoholfritt, og nekter servering ved behov. Vi begrenser shots og runder i travle perioder. Styrer eller stedfortreder tilkalles ved konflikt. Alle nektelser loggføres.'],
+    ['tider', 'Skjenketider', 'Vi skjenker bare innenfor tidene i bevillingen. Siste bestilling ropes ut i god tid. Utdrikking og stenging skjer etter kommunens vilkår. Ansvarlig på vakt kontrollerer at ingen drikker etter at tiden er ute.'],
+    ['opplaering', 'Opplæring', 'Alle som skjenker får opplæring i alkoholloven og våre rutiner før første vakt. Styrer og stedfortreder har bestått kunnskapsprøven i alkoholloven. Opplæring registreres i appen, og rutinene frisker vi opp minst én gang i året.'],
+    ['konflikt', 'Konflikthåndtering', 'Vi forteller gjester at vi har plikt til å nekte servering. Vi er rolige og høflige. Be kolleger eller dørvakt om hjelp og tilkall styrer eller stedfortreder. Ved vold, trusler eller narkotika kontaktes politiet. Hendelsen loggføres, og vi snakker om den etterpå.'],
+    ['ansvar', 'Styrer og stedfortreder på vakt', 'Styrer eller stedfortreder er til stede og ansvarlig hver gang det skjenkes. Vaktplanen viser hvem som har ansvaret. Alle ansatte vet hvordan de når vedkommende.']
+  ]
+};
+window.DATA.hms.t = { name: 'HMS', risks: 'Farer og tiltak', round: 'Vernerunde', hazardQ: 'Hva kan gå galt?', total: 8, reg: 'internkontrollforskriften § 5',
+  roundIntro: 'Gå gjennom stedet sammen med verneombud. Alt er satt til «I orden». Trykk «Avvik» der noe mangler. Hvert avvik blir et tiltak med frist om 14 dager.',
+  docTitle: 'HMS-mappe', injured: 'Skadet person', trainTitle: 'Opplæring',
+  reviewIntro: 'Gå gjennom HMS-arbeidet minst én gang i året (internkontrollforskriften § 5 punkt 8). Tallene under er hentet automatisk fra siste 12 måneder.',
+  seedInfo: 'Fyller inn forslag til mål, roller, medvirkning og 16 vanlige farer for serveringssteder med vurdering og tiltak. Du gjennomgår og retter det selv etterpå.',
+  incNote: null };

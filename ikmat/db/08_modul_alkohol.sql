@@ -1,0 +1,2 @@
+-- Modul-kolonne på HMS-tabellene slik at IK-alkohol bruker samme register. Anvendt som migrasjon ikmat_08_modul_alkohol.
+-- (Se migrasjonen i Supabase for full SQL: module-kolonner, unik (org_id, module), relaksert kind, ny mal for omsetningsoppgave.)
