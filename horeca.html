@@ -242,8 +242,30 @@ a{text-underline-offset:3px}
 .prod .ch-btn.alt{background:transparent;color:var(--fg);border-color:var(--fg)}
 .pagehead{padding-block:44px 0}
 .pagehead h1{font-size:clamp(40px,8vw,72px);line-height:1}
+
+.chapter h1::before,.chapter h2::before{display:none}
+.brand{display:inline-flex;align-items:center}
+.brand::before{content:"";width:40px;height:9px;border-radius:5px;margin-right:12px;background:var(--bar,linear-gradient(90deg,#E9D09A 0 33.3%,#66794D 33.3% 66.6%,#A94B65 66.6%))}
+.pg-barn{--bar:#E9D09A}.pg-kafe{--bar:#66794D}.pg-prove{--bar:#A94B65}
+.hero{position:relative;isolation:isolate}
+html,body{overflow-x:clip}
+.hero::before{content:"";position:absolute;inset:-8% -25% -30%;z-index:-1;pointer-events:none;background:radial-gradient(38% 46% at 18% 30%,rgba(233,208,154,.55),transparent 70%),radial-gradient(34% 42% at 84% 22%,rgba(169,75,101,.22),transparent 70%),radial-gradient(34% 34% at 62% 66%,rgba(102,121,77,.22),transparent 70%)}
+.showcase{max-width:960px;margin:44px auto 0;padding:0 16px 70px;overflow-x:clip}
+.showcase h2{text-align:center;font-size:clamp(28px,4.5vw,40px);margin-bottom:6px}
+.showcase p.lede{text-align:center;color:var(--muted);margin-bottom:28px}
+.fan{display:flex;justify-content:center;align-items:flex-end;padding:14px 0 10px}
+.fan a{display:block;flex:0 1 29%;max-width:260px;margin:0 -1%;border-radius:22px;background:var(--card);border:1px solid var(--line);border-top:8px solid var(--c);padding:8px;box-shadow:0 16px 34px rgba(0,0,0,.14);transition:transform .25s}
+.fan a:nth-child(1){transform:rotate(-5deg) translateY(14px)}
+.fan a:nth-child(2){transform:translateY(-8px);z-index:2}
+.fan a:nth-child(3){transform:rotate(5deg) translateY(14px)}
+.fan a:hover,.fan a:focus-visible{transform:translateY(-14px) rotate(0);z-index:3}
+.fan img{display:block;width:100%;height:auto;aspect-ratio:3/4.3;object-fit:cover;object-position:top;border-radius:14px}
+.fan span{display:block;text-align:center;font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:18px;color:var(--fg);padding:8px 0 4px}
+@media (max-width:560px){.showcase{padding-inline:6px}.fan a{flex-basis:34%;padding:5px;border-radius:14px;margin:0 -3%}.fan span{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.fan a{transition:none}}
+.tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
-</head><body>
+</head><body class="pg-kafe">
 <div class="topbar"><div class="wrap"><a class="brand" href="index.html">Spisbart</a>
 <button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i></button></div>
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html" aria-current="page">For horeca</a></li><li><a href="quiz.html">Quizzapp</a></li><li><a href="om.html">Om oss</a></li></ul></nav></div>

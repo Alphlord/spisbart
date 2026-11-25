@@ -242,8 +242,30 @@ a{text-underline-offset:3px}
 .prod .ch-btn.alt{background:transparent;color:var(--fg);border-color:var(--fg)}
 .pagehead{padding-block:44px 0}
 .pagehead h1{font-size:clamp(40px,8vw,72px);line-height:1}
+
+.chapter h1::before,.chapter h2::before{display:none}
+.brand{display:inline-flex;align-items:center}
+.brand::before{content:"";width:40px;height:9px;border-radius:5px;margin-right:12px;background:var(--bar,linear-gradient(90deg,#E9D09A 0 33.3%,#66794D 33.3% 66.6%,#A94B65 66.6%))}
+.pg-barn{--bar:#E9D09A}.pg-kafe{--bar:#66794D}.pg-prove{--bar:#A94B65}
+.hero{position:relative;isolation:isolate}
+html,body{overflow-x:clip}
+.hero::before{content:"";position:absolute;inset:-8% -25% -30%;z-index:-1;pointer-events:none;background:radial-gradient(38% 46% at 18% 30%,rgba(233,208,154,.55),transparent 70%),radial-gradient(34% 42% at 84% 22%,rgba(169,75,101,.22),transparent 70%),radial-gradient(34% 34% at 62% 66%,rgba(102,121,77,.22),transparent 70%)}
+.showcase{max-width:960px;margin:44px auto 0;padding:0 16px 70px;overflow-x:clip}
+.showcase h2{text-align:center;font-size:clamp(28px,4.5vw,40px);margin-bottom:6px}
+.showcase p.lede{text-align:center;color:var(--muted);margin-bottom:28px}
+.fan{display:flex;justify-content:center;align-items:flex-end;padding:14px 0 10px}
+.fan a{display:block;flex:0 1 29%;max-width:260px;margin:0 -1%;border-radius:22px;background:var(--card);border:1px solid var(--line);border-top:8px solid var(--c);padding:8px;box-shadow:0 16px 34px rgba(0,0,0,.14);transition:transform .25s}
+.fan a:nth-child(1){transform:rotate(-5deg) translateY(14px)}
+.fan a:nth-child(2){transform:translateY(-8px);z-index:2}
+.fan a:nth-child(3){transform:rotate(5deg) translateY(14px)}
+.fan a:hover,.fan a:focus-visible{transform:translateY(-14px) rotate(0);z-index:3}
+.fan img{display:block;width:100%;height:auto;aspect-ratio:3/4.3;object-fit:cover;object-position:top;border-radius:14px}
+.fan span{display:block;text-align:center;font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:18px;color:var(--fg);padding:8px 0 4px}
+@media (max-width:560px){.showcase{padding-inline:6px}.fan a{flex-basis:34%;padding:5px;border-radius:14px;margin:0 -3%}.fan span{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.fan a{transition:none}}
+.tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
-</head><body>
+</head><body class="">
 <div class="topbar"><div class="wrap"><a class="brand" href="index.html">Spisbart</a>
 <button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i></button></div>
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html" aria-current="page">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html">Quizzapp</a></li><li><a href="om.html">Om oss</a></li></ul></nav></div>
@@ -267,10 +289,19 @@ a{text-underline-offset:3px}
   <p class="lead">Verktøy for kjøkken og barnehager som vil vite hva som serveres, hva det inneholder og hva det koster. Alle appene kan prøves her på siden.</p>
 </header>
 <nav class="chapters" aria-label="Velg område">
-  <a class="tile t-barn" href="barnehage.html"><strong>For barnehage</strong><span>Planlegg månedens måltider</span></a>
-  <a class="tile t-kafe" href="horeca.html"><strong>For horeca</strong><span>Se hva hver rett koster og tjener</span></a>
-  <a class="tile t-prove" href="quiz.html"><strong>Quizzapp</strong><span>Øv til skjenke- og etablererprøven</span></a>
+  <a class="tile t-barn" href="barnehage.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-5"/></svg><strong>For barnehage</strong><span>Planlegg månedens måltider</span></a>
+  <a class="tile t-kafe" href="horeca.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14c-3 0-4-4-1.5-5.5C6 5 10 4 12 6c2-2 6-1 6.5 2.5C21 10 20 14 17 14z"/><path d="M7 14v6h10v-6"/></svg><strong>For horeca</strong><span>Se hva hver rett koster og tjener</span></a>
+  <a class="tile t-prove" href="quiz.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9.5c0-3 6-3 6 0 0 2-3 2-3 4"/><path d="M12 17h.01"/></svg><strong>Quizzapp</strong><span>Øv til skjenke- og etablererprøven</span></a>
 </nav>
+<section class="showcase">
+  <h2>Se appene i bruk</h2>
+  <p class="lede">Trykk på et bilde for å lese mer.</p>
+  <div class="fan">
+    <a class="t-barn" href="barnehage.html"><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil: ukevelger og varsel om allergier" loading="lazy"><span>Barnehage</span></a>
+    <a class="t-kafe" href="horeca.html"><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett" loading="lazy"><span>Horeca</span></a>
+    <a class="t-prove" href="quiz.html"><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="QuizzMeg: ett spørsmål om gangen" loading="lazy"><span>Quizzapp</span></a>
+  </div>
+</section>
 <section class="band">
   <div class="wrap teaser">
     <h2>Om Spisbart</h2>
