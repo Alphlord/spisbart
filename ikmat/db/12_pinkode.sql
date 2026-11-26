@@ -11,4 +11,4 @@ create table public.org_pair_codes (org_id uuid primary key references public.or
 alter table public.org_pair_codes enable row level security;
 revoke all on public.org_pair_codes from anon, authenticated;
 -- Funksjonene staff_set_pin, staff_check_pin (lås etter 5 feil, 15 min) og org_pair_code_new: se migrasjon ikmat_15_pinkode i Supabase.
--- Edge-funksjonen staff-auth (verify_jwt av, egen sjekk av leder) hentes med get_edge_function.
+-- Edge-funksjonen staff-auth (verify_jwt av, egen sjekk av leder): se db/functions/staff-auth/index.ts.
