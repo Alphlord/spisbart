@@ -134,7 +134,7 @@ $('#resetPw').addEventListener('click', async function () {
   var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
   msg($('#authMsg'), r.error ? 'err' : 'ok', r.error ? errText(r.error) : 'Hvis adressen finnes, har vi sendt en lenke for nytt passord.');
 });
-async function logout() { await sb.auth.signOut(); S.org = null; S.mems = []; $('#orgName').textContent = ''; go('auth'); }
+async function logout() { await sb.auth.signOut(); S.org = null; S.mems = []; go('auth'); }
 $('#startOut').addEventListener('click', logout);
 
 function recoveryDialog() {
@@ -175,7 +175,6 @@ async function afterLogin() {
 }
 async function selectOrg(m) {
   S.org = m.organizations; S.role = m.role; lsSet('ikmat-org', m.org_id);
-  $('#orgName').textContent = S.org.name + (S.mems.length > 1 ? ' ▾' : '');
   S.area = 'all';
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
@@ -1697,6 +1696,37 @@ function drawHmsToday() {
   });
   $('#homeBtn').addEventListener('click', function () { S.day = ymd(new Date()); go('today'); });
 })();
-$('#orgName').addEventListener('click', function () { if (S.org && S.mems.length > 1) orgSwitch(); });
+/* Hamburgermeny: virksomhet, planer og mapper, innstillinger og utlogging. */
+(function () {
+  var panel = $('#menuPanel'), btn = $('#burger');
+  function close() { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+  function item(title, sub, fn) {
+    return h('button', { class: 'mi', type: 'button', role: 'menuitem', onclick: function () { close(); fn(); } }, title, sub ? h('small', null, sub) : null);
+  }
+  function build() {
+    clear(panel);
+    if (!S.org) return;
+    panel.appendChild(h('div', { class: 'mh' }, h('b', null, S.org.name), h('span', { class: 'small muted' }, isLeder() ? 'Leder' : 'Ansatt')));
+    panel.appendChild(item('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
+    panel.appendChild(item('Tilsynsmappe', 'Plan, kvitteringer og avvik', showFolder));
+    if (isLeder()) {
+      panel.appendChild(item('Kjøleskap og frysere', null, unitsDialog));
+      panel.appendChild(item('Team og invitasjon', null, teamDialog));
+      panel.appendChild(item('Endringslogg', 'Hvem som endret hva', showAudit));
+    }
+    panel.appendChild(h('hr'));
+    panel.appendChild(item('Mitt navn', nameOf(S.user.id), nameDialog));
+    if (S.mems.length > 1) panel.appendChild(item('Bytt virksomhet', null, orgSwitch));
+    panel.appendChild(item('Personvern og vilkår', null, function () { location.href = '../personvern.html'; }));
+    panel.appendChild(item('Logg ut', S.user && S.user.email, logout));
+  }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!panel.hidden) { close(); return; }
+    build(); panel.hidden = false; btn.setAttribute('aria-expanded', 'true');
+  });
+  document.addEventListener('click', function (e) { if (!panel.hidden && !panel.contains(e.target)) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { close(); btn.focus(); } });
+})();
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
