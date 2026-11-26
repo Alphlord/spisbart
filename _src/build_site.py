@@ -62,15 +62,17 @@ html,body{overflow-x:clip}
 .showcase{max-width:960px;margin:44px auto 0;padding:0 16px 70px;overflow-x:clip}
 .showcase h2{text-align:center;font-size:clamp(28px,4.5vw,40px);margin-bottom:6px}
 .showcase p.lede{text-align:center;color:var(--muted);margin-bottom:28px}
+.t-fort{--c:#F2B544;--ink:#1B1A17}
 .fan{display:flex;justify-content:center;align-items:flex-end;padding:14px 0 10px}
-.fan a{display:block;flex:0 1 29%;max-width:260px;margin:0 -1%;border-radius:22px;background:var(--card);border:1px solid var(--line);border-top:8px solid var(--c);padding:8px;box-shadow:0 16px 34px rgba(0,0,0,.14);transition:transform .25s}
-.fan a:nth-child(1){transform:rotate(-5deg) translateY(14px)}
-.fan a:nth-child(2){transform:translateY(-8px);z-index:2}
-.fan a:nth-child(3){transform:rotate(5deg) translateY(14px)}
+.fan a{display:block;flex:0 1 24%;max-width:260px;margin:0 -1%;border-radius:22px;background:var(--card);border:1px solid var(--line);border-top:8px solid var(--c);padding:8px;box-shadow:0 16px 34px rgba(0,0,0,.14);transition:transform .25s}
+.fan a:nth-child(1){transform:rotate(-6deg) translateY(16px)}
+.fan a:nth-child(2){transform:rotate(-2deg) translateY(-6px);z-index:2}
+.fan a:nth-child(3){transform:rotate(2deg) translateY(-6px);z-index:2}
+.fan a:nth-child(4){transform:rotate(6deg) translateY(16px)}
 .fan a:hover,.fan a:focus-visible{transform:translateY(-14px) rotate(0);z-index:3}
 .fan img{display:block;width:100%;height:auto;aspect-ratio:3/4.3;object-fit:cover;object-position:top;border-radius:14px}
-.fan span{display:block;text-align:center;font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:18px;color:var(--fg);padding:8px 0 4px}
-@media (max-width:560px){.showcase{padding-inline:6px}.fan a{flex-basis:34%;padding:5px;border-radius:14px;margin:0 -3%}.fan span{font-size:13px}}
+.fan span{display:block;text-align:center;font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:16px;color:var(--fg);padding:8px 0 4px}
+@media (max-width:560px){.showcase{padding-inline:6px}.fan a{flex-basis:27%;padding:4px;border-radius:12px;margin:0 -2.5%;border-top-width:5px}.fan span{font-size:10px;letter-spacing:0}}
 @media (prefers-reduced-motion:reduce){.fan a{transition:none}}
 .tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 '''
@@ -141,8 +143,9 @@ showcase='''<section class="showcase">
   <h2>Se appene i bruk</h2>
   <p class="lede">Trykk på et bilde for å lese mer.</p>
   <div class="fan">
-    <a class="t-barn" href="barnehage.html"><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil: ukevelger og varsel om allergier" loading="lazy"><span>Barnehage</span></a>
-    <a class="t-kafe" href="horeca.html"><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett" loading="lazy"><span>Horeca</span></a>
+    <a class="t-barn" href="barnehage.html"><img src="bilder/mobil.webp" width="760" height="1088" alt="Bare Barnemat på mobil: ukevelger og varsel om allergier" loading="lazy"><span>Barnemat</span></a>
+    <a class="t-kafe" href="horeca.html"><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Auto·Mat på mobil: margin per rett" loading="lazy"><span>Auto·Mat</span></a>
+    <a class="t-fort" href="horeca.html#fortgjort"><img src="bilder/fortgjort-1.webp" width="520" height="1013" alt="FORTGJORT på mobil: dagens rutiner og kvitteringer" loading="lazy"><span>Fortgjort</span></a>
     <a class="t-prove" href="quiz.html"><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="QuizzMeg: ett spørsmål om gangen" loading="lazy"><span>quizzMeg</span></a>
   </div>
 </section>'''
@@ -161,11 +164,12 @@ def prod(c,tag,name,desc,demo,page_,mail):
 prods=''.join([
  prod('ch-barn','For barnehage','Bare Barnemat','Kalenderen der du planlegger månedens måltider. Du får varsel når en rett ikke passer for et barn med allergi eller spesialkost, og ser hva måneden koster.','barnemat/?demo=1','barnehage.html','Kj%C3%B8p%20Bare%20Barnemat'),
  prod('ch-kafe','For horeca','Auto·Mat','Regner ut varekost, påslag og margin for hver rett. Bestilling, svinn og allergener ligger i samme app, for proffkjøkken, kafeer og serveringssteder.','automat/','horeca.html','Kj%C3%B8p%20Auto%C2%B7Mat'),
+ prod('ch-kafe','For horeca','FORTGJORT – dine rutiner','Dagens rutiner, internkontroll for mat og alkohol, HMS, avvik og opplæring i én app. Alle kvitterer med navn og tid, og alt samles i en logg til tilsyn.','ikmat/demo.html','horeca.html#fortgjort','FORTGJORT'),
  prod('ch-prove','quizzMeg','QuizzMeg Skjenkeprøven','Over 100 spørsmål fordelt på seks temaer: salg, bevilling, skjenketider, kunde, internkontroll og reklame.','skjenkeprove/','quiz.html#skjenke','Kj%C3%B8p%20QuizzMeg%20Skjenkepr%C3%B8ven'),
  prod('ch-prove','quizzMeg','QuizzMeg Etablererprøven','Nesten 150 spørsmål fordelt på 15 temaer: serveringsloven, daglig leder, mva og skatt, regnskap og kassasystem, arbeidsmiljø, konkurs og alkoholloven.','etablerer/','quiz.html#etablerer','Kj%C3%B8p%20QuizzMeg%20Etablererpr%C3%B8ven'),
 ])
-pbody='<section class="pagehead"><div class="wrap"><h1>Produkter</h1><p class="lead2">Fire apper, og alle kan prøves som demo uten innlogging.</p><div class="prodgrid">%s</div></div></section>'%prods
-page('produkter.html','Produkter – spisbart.no','Bare Barnemat, Auto·Mat og QuizzMeg: apper for barnehage, kjøkken og kunnskapsprøver.',pbody)
+pbody='<section class="pagehead"><div class="wrap"><h1>Produkter</h1><p class="lead2">Fem apper, og alle kan prøves som demo uten innlogging.</p><div class="prodgrid">%s</div></div></section>'%prods
+page('produkter.html','Produkter – spisbart.no','Bare Barnemat, Auto·Mat, FORTGJORT og QuizzMeg: apper for barnehage, kjøkken og kunnskapsprøver.',pbody)
 page('barnehage.html','For barnehage – Bare Barnemat','Bare Barnemat: planlegg månedens måltider, få varsel om allergier og se hva måneden koster.',barn+'\n'+trygg,'','pg-barn')
 fortgjort = """<section class="chapter ch-kafe" id="fortgjort">
   <div class="wrap">
