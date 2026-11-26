@@ -285,12 +285,14 @@ async function renderToday() {
   }
   var rows;
   try {
+    if (day === today && S.closedFor !== S.org.id + today) { S.closedFor = S.org.id + today; try { await sb.rpc('close_missed', { p_org: S.org.id }); } catch (e) { /* ikke kritisk */ } }
     rows = applyQueue(await fetchDay(day), day);
     S.dayRows = rows;
     var startDay = S.org && S.org.created_at ? ymd(new Date(S.org.created_at)) : null;
     if (day === today && (!startDay || startDay < today)) {
       var prev = applyQueue(await fetchDay(addDays(day, -1)), addDays(day, -1));
-      S.overdue = prev.filter(function (r) { return !r.run_status; }).map(function (r) { r.overdueDay = addDays(day, -1); return r; });
+      var todayIds = {}; rows.forEach(function (r) { todayIds[r.task_id] = 1; });
+      S.overdue = prev.filter(function (r) { return !r.run_status && !todayIds[r.task_id]; }).map(function (r) { r.overdueDay = addDays(day, -1); return r; });
     } else S.overdue = [];
     S.hmsItems = [];
     if (day === today && isLeder()) { try { S.hmsItems = await hmsTodayItems(); } catch (e) { S.hmsItems = []; } }
@@ -384,23 +386,20 @@ function drawToday() {
   function visible(r, day) { var t = tById[r.task_id]; return !t || blockOk(t, day); }
   var rows = S.dayRows.filter(function (r) { return inCover(r) && visible(r, S.day); });
   var otherRows = S.dayRows.filter(function (r) { return !inCover(r) && visible(r, S.day); });
-  var done = rows.filter(function (r) { return r.run_status; }).length;
+  /* Uregistrert fra i går: daglige er logget som «ikke registrert». Resten flyttes til dagens liste. */
+  var nowM0 = new Date().getHours() * 60 + new Date().getMinutes(), carry = {};
+  S.overdue.filter(function (r) { return inCover(r) && visible(r, r.overdueDay); }).forEach(function (r) {
+    var t = tById[r.task_id], b = S.day === ymd(new Date()) ? blockOf(t) : null;
+    if (b && blockNight(b) && nowM0 <= minOf(b.end_time)) { (carry[b.id] = carry[b.id] || []).push(r); return; }
+    if (t && (!t.recurrence || (t.recurrence.freq || 'daily') === 'daily')) return;
+    rows.push(r);
+  });
+  var done = rows.filter(function (r) { return r.run_status && r.run_status !== 'missed'; }).length;
   $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
   $('#progTxt').textContent = rows.length ? done + ' av ' + rows.length + ' oppgaver er kvittert' : 'Ingen oppgaver denne dagen.';
 
   drawHmsToday();
-  var od = clear($('#overdue'));
-  var nowM0 = new Date().getHours() * 60 + new Date().getMinutes(), carry = {};
-  var odRows = S.overdue.filter(function (r) { return inCover(r) && visible(r, r.overdueDay); }).filter(function (r) {
-    var b = S.day === ymd(new Date()) ? blockOf(tById[r.task_id]) : null;
-    if (b && blockNight(b) && nowM0 <= minOf(b.end_time)) { (carry[b.id] = carry[b.id] || []).push(r); return false; }
-    return true;
-  });
-  if (odRows.length) {
-    var box = h('div', { class: 'group' }, h('header', null, h('h3', null, 'Ikke gjort i går'), h('span', { class: 'pill r' }, odRows.length)));
-    odRows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay)); });
-    od.appendChild(box);
-  }
+  clear($('#overdue'));
 
   var list = clear($('#taskList'));
   function area(r) { return r.area_name || ''; }
@@ -434,14 +433,14 @@ function drawToday() {
   perArea(close, 'Stenging', 's');
   if (!groups.length) list.appendChild(h('div', { class: 'note' }, 'Ingen oppgaver er planlagt denne dagen. Trykk «Ny rutine» for å legge til.'));
   groups.forEach(function (g) {
-    var d = g.rows.filter(function (r) { return r.run_status; }).length;
+    var d = g.rows.filter(function (r) { return r.run_status && r.run_status !== 'missed'; }).length;
     var head = h('header', null, h('h3', null, g.title), g.now && d !== g.rows.length ? h('span', { class: 'pill a' }, 'Pågår nå') : null, h('span', { class: 'pill ' + (d === g.rows.length ? 'g' : '') }, d === g.rows.length ? 'Ferdig' : d + ' av ' + g.rows.length));
     var box = h('div', { class: 'group' }, head);
     g.rows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay || S.day)); });
     list.appendChild(box);
   });
   if (otherRows.length) {
-    var od2 = otherRows.filter(function (r) { return r.run_status; }).length, det = h('details', { class: 'other' }, h('summary', null, 'Andre rutiner · ' + od2 + ' av ' + otherRows.length));
+    var od2 = otherRows.filter(function (r) { return r.run_status && r.run_status !== 'missed'; }).length, det = h('details', { class: 'other' }, h('summary', null, 'Andre rutiner · ' + od2 + ' av ' + otherRows.length));
     otherRows.forEach(function (r) { det.appendChild(taskRow(r, S.day)); });
     list.appendChild(det);
   }
@@ -452,13 +451,13 @@ function drawToday() {
 function taskRow(r, day) {
   var st = r.run_status;
   var tick = h('button', { class: 'tick', type: 'button', 'aria-label': st ? 'Se detaljer for ' + r.title : 'Kvitter ' + r.title,
-    onclick: function () { onTick(r, day); } }, st === 'done' ? '✓' : st === 'skipped' ? '↷' : '');
+    onclick: function () { onTick(r, day); } }, st === 'done' ? '✓' : st === 'skipped' ? '↷' : st === 'missed' ? '✕' : '');
   var meta = h('div', { class: 'meta' });
   if (r.kind === 'measure' && (r.min_value != null || r.max_value != null)) meta.appendChild(h('span', null, 'Grense: ' + (r.min_value != null ? 'min ' + r.min_value : '') + (r.min_value != null && r.max_value != null ? ', ' : '') + (r.max_value != null ? 'maks ' + r.max_value : '') + ' ' + (r.unit || '')));
   if (st) {
-    var who = nameOf(r.run_done_by) + ' ' + fmtTs(r.run_done_at);
+    var who = st === 'missed' ? '' : nameOf(r.run_done_by) + ' ' + fmtTs(r.run_done_at);
     if (r.run_value != null) meta.appendChild(h('span', null, r.run_value + ' ' + (r.unit || '')));
-    meta.appendChild(h('span', null, st === 'skipped' ? 'Hoppet over av ' + who : who));
+    meta.appendChild(h('span', null, st === 'missed' ? 'Ikke registrert' : st === 'skipped' ? 'Hoppet over av ' + who : who));
     if (r.pending) meta.appendChild(h('span', { class: 'pill a' }, 'Venter på nett'));
     if (r.run_value != null && ((r.min_value != null && r.run_value < r.min_value) || (r.max_value != null && r.run_value > r.max_value))) meta.appendChild(h('span', { class: 'pill r' }, 'Utenfor grense'));
   }
@@ -474,6 +473,7 @@ function taskRow(r, day) {
 }
 
 function onTick(r, day) {
+  if (r.run_status === 'missed') { toast('Ikke registrert'); return; }
   if (r.run_status) { toast(nameOf(r.run_done_by) + ' · ' + fmtTs(r.run_done_at)); return; }
   if (r.kind === 'check') { saveRun(r, day, { status: 'done' }); return; }
   var note = h('textarea', { id: 'rnote', placeholder: 'Valgfritt notat' });
@@ -1010,7 +1010,7 @@ async function buildFolder(from, to) {
   for (var i = 0; i < res.length; i++) if (res[i].error) { toast(errText(res[i].error)); return; }
   var plan = res[0].data[0] || {}, runs = res[1].data, devs = res[2].data;
   var areaName = {}; S.areas.forEach(function (a) { areaName[a.id] = a.name; });
-  var runRows = runs.map(function (r) { var t = r.tasks || {}; return [r.due_date, areaName[t.area_id] || 'Hele stedet', DOMAIN_LABEL[t.domain] || '', t.title || '', r.status === 'done' ? 'Utført' : 'Hoppet over', r.value == null ? '' : r.value + ' ' + (t.unit || ''), r.note || r.skip_reason || '', nameOf(r.done_by), fmtTs(r.done_at)]; });
+  var runRows = runs.map(function (r) { var t = r.tasks || {}; return [r.due_date, areaName[t.area_id] || 'Hele stedet', DOMAIN_LABEL[t.domain] || '', t.title || '', r.status === 'done' ? 'Utført' : r.status === 'missed' ? 'Ikke registrert' : 'Hoppet over', r.value == null ? '' : r.value + ' ' + (t.unit || ''), r.note || r.skip_reason || '', r.done_by ? nameOf(r.done_by) : '', r.status === 'missed' ? '' : fmtTs(r.done_at)]; });
   var devRows = devs.map(function (d) { return [fmtTs(d.created_at), DOMAIN_LABEL[d.category], d.title, DEV_STATUS[d.status], d.cause || '', d.action || '', nameOf(d.responsible)]; });
   var nodes = [h('div', { class: 'card stack' }, h('h2', null, 'Tilsynsmappe'), h('div', null, S.org.name + (S.org.orgnr ? ' · org.nr. ' + S.org.orgnr : '')), h('div', { class: 'small muted' }, 'Periode ' + from + ' til ' + to + '. Laget ' + fmtTs(new Date())))]
     .concat(planNodes(plan.plan, plan.version ? 'Versjon ' + plan.version + ' · ' + (plan.status === 'godkjent' ? 'Godkjent' : 'Utkast') : null));
