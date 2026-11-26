@@ -1,6 +1,6 @@
 /* Enkel offline-støtte: appskallet lagres, data hentes alltid fra nett. */
-var CACHE = 'ikmat-v35';
-var SHELL = ['./', 'index.html', 'app.js', 'data.js', 'icon.svg', '../fonts/fonts.css', '../fonts/barlow-latin-400-normal.woff2', '../fonts/barlow-latin-600-normal.woff2', '../fonts/barlow-condensed-latin-800-normal.woff2'];
+var CACHE = 'ikmat-v36';
+var SHELL = ['./', 'index.html', 'app.js', 'data.js', 'learn.js', 'icon.svg', '../fonts/fonts.css', '../fonts/barlow-latin-400-normal.woff2', '../fonts/barlow-latin-600-normal.woff2', '../fonts/barlow-condensed-latin-800-normal.woff2'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); })); });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); }));

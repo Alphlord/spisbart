@@ -73,7 +73,7 @@ function isLeder() { return S.role === 'leder'; }
 function nameOf(id) { return (id && S.names[id]) || 'Ukjent'; }
 
 /* ---------- navigasjon ---------- */
-var TABS = ['today', 'cal', 'dev', 'more', 'mod', 'sub'];
+var TABS = ['today', 'cal', 'dev', 'learn', 'more', 'mod', 'sub'];
 function go(name) {
   S.screen = name;
   $$('.screen').forEach(function (s) { s.classList.remove('on'); s.classList.remove('printing'); });
@@ -89,6 +89,7 @@ function go(name) {
   if (name === 'today') renderToday();
   if (name === 'cal') renderCal();
   if (name === 'dev') loadDevs();
+  if (name === 'learn') renderLearn();
   if (name === 'more') renderMore();
 }
 $$('#tabs button[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
@@ -179,7 +180,7 @@ async function selectOrg(m) {
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
     sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'),
-    sb.from('members').select('user_id, role, display_name').eq('org_id', S.org.id),
+    sb.from('members').select('user_id, role, display_name, work_areas').eq('org_id', S.org.id),
     sb.from('units').select('*').eq('org_id', S.org.id).order('created_at')
   ]);
   res.forEach(function (x) { if (x.error) throw x.error; });
@@ -1821,5 +1822,148 @@ function drawHmsToday() {
   document.addEventListener('click', function (e) { if (!panel.hidden && !panel.contains(e.target)) close(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { close(); btn.focus(); } });
 })();
+
+/* ---------- OPPLÆRING ---------- */
+S.learn = { view: 'list', signs: [], answers: null, order: null, result: null };
+function learnMe() { return (S.members || []).filter(function (m) { return m.user_id === S.user.id; })[0] || { work_areas: [] }; }
+function learnKinds(m) { var ids = m.work_areas || [], k = {}; S.areas.forEach(function (a) { if (ids.indexOf(a.id) >= 0) k[a.kind] = 1; }); return k; }
+function learnApplies(b, kinds) {
+  if (b.mod === 'alk' && !(S.org && S.org.has_alcohol)) return false;
+  return b.areas.some(function (x) { return kinds[x]; });
+}
+function learnSigned(signs, b) {
+  var s = signs.filter(function (x) { return x.module_id === b.id && x.version >= b.v; })[0];
+  if (!s) return null;
+  return { at: s.signed_at, old: (Date.now() - new Date(s.signed_at).getTime()) > 365 * 86400000 };
+}
+async function loadSigns(all) {
+  var q = sb.from('training_signoffs').select('*').eq('org_id', S.org.id).order('signed_at', { ascending: false });
+  if (!all) q = q.eq('user_id', S.user.id);
+  var r = await q; if (r.error) throw r.error; return r.data;
+}
+async function renderLearn() {
+  var box = clear($('#learnBox'));
+  if (!S.org) return;
+  try {
+    if (S.learn.view === 'list') { S.learn.signs = await loadSigns(false); learnList(box); }
+    else if (S.learn.view === 'team') await learnTeam(box);
+    else { if (!S.learn.signs.length) S.learn.signs = await loadSigns(false); learnBolk(box, S.learn.view); }
+  } catch (e) { box.appendChild(h('div', { class: 'err' }, errText(e))); }
+}
+function learnList(box) {
+  var L = window.DATA.learn, me = learnMe(), kinds = learnKinds(me), signs = S.learn.signs;
+  box.appendChild(h('div', { class: 'row' }, h('h1', { class: 'grow' }, 'Opplæring'), isLeder() ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { S.learn.view = 'team'; renderLearn(); } }, 'Teamet') : null));
+  var covRow = h('div', { class: 'cov' }, h('span', { class: 'lab' }, 'Jeg jobber i'), h('div', { class: 'chips' }, S.areas.map(function (a) {
+    var on = (me.work_areas || []).indexOf(a.id) >= 0;
+    return chip(a.name, on, async function () {
+      var cur = (me.work_areas || []).slice(), i = cur.indexOf(a.id); if (i >= 0) cur.splice(i, 1); else cur.push(a.id);
+      var r = await sb.rpc('set_my_work_areas', { p_org: S.org.id, p_areas: cur });
+      if (r.error) { toast(errText(r.error)); return; }
+      me.work_areas = cur; renderLearn();
+    });
+  })));
+  box.appendChild(covRow);
+  var mine = L.bolker.filter(function (b) { return learnApplies(b, kinds); });
+  if (!Object.keys(kinds).length) {
+    box.appendChild(h('div', { class: 'note' }, 'Velg hvor du jobber, så får du opplæringen som passer. Jobber du på kjøkkenet, trenger du for eksempel ikke alkoholloven.'));
+  } else {
+    var done = mine.filter(function (b) { var s = learnSigned(signs, b); return s && !s.old; }).length;
+    box.appendChild(h('div', { class: 'card stack' }, h('div', { class: 'row' }, h('b', { class: 'grow' }, done + ' av ' + mine.length + ' bolker signert'), h('span', { class: 'pill ' + (done === mine.length ? 'g' : '') }, done === mine.length ? 'Ferdig' : 'Pågår')),
+      h('div', { class: 'bar' }, h('i', { style: 'width:' + (mine.length ? 100 * done / mine.length : 0) + '%' }))));
+    L.mods.forEach(function (m) { learnGroup(box, m.name, mine.filter(function (b) { return b.mod === m.id; }), signs); });
+  }
+  var rest = L.bolker.filter(function (b) { return mine.indexOf(b) < 0 && !(b.mod === 'alk' && !S.org.has_alcohol); });
+  if (rest.length && Object.keys(kinds).length) {
+    var det = h('details', { class: 'other' }, h('summary', null, 'Andre bolker (' + rest.length + ')'));
+    L.mods.forEach(function (m) { learnGroup(det, m.name, rest.filter(function (b) { return b.mod === m.id; }), signs); });
+    box.appendChild(det);
+  }
+  box.appendChild(h('p', { class: 'small muted' }, 'Bolkene er forslag til opplæring og må tilpasses stedet. Alkoholbolkene bygger på Helsedirektoratets «Ansvarlig vertskap» og Oslo kommunes Salutt-kurs. De erstatter ikke kommunens krav til kunnskapsprøve for styrer og stedfortreder.'));
+}
+function learnGroup(box, title, list, signs) {
+  if (!list.length) return;
+  var g = h('div', { class: 'group' }, h('header', null, h('h3', null, title), h('span', { class: 'pill' }, list.length)));
+  list.forEach(function (b) {
+    var s = learnSigned(signs, b);
+    g.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { S.learn.view = b.id; S.learn.answers = null; S.learn.result = null; renderLearn(); window.scrollTo(0, 0); } },
+      h('div', { class: 't' }, b.title),
+      h('div', { class: 'small muted' }, b.min + ' min · ' + (s ? (s.old ? 'Frisk opp (signert ' + fmtTs(s.at).split(' ')[0] + ')' : 'Signert ' + fmtTs(s.at).split(' ')[0]) : 'Ikke signert')),
+      s && !s.old ? h('span', { class: 'pill g' }, 'Signert') : null));
+  });
+  box.appendChild(g);
+}
+function learnBolk(box, id) {
+  var b = window.DATA.learn.bolker.filter(function (x) { return x.id === id; })[0];
+  if (!b) { S.learn.view = 'list'; renderLearn(); return; }
+  box.appendChild(h('div', { class: 'row noprint' }, h('button', { class: 'btn alt small', type: 'button', onclick: function () { S.learn.view = 'list'; renderLearn(); } }, 'Tilbake')));
+  box.appendChild(h('h1', null, b.title));
+  box.appendChild(h('p', { class: 'muted' }, b.intro));
+  var signed = learnSigned(S.learn.signs, b);
+  if (signed && !signed.old) box.appendChild(h('div', { class: 'ok' }, 'Du signerte denne bolken ' + fmtTs(signed.at).split(' ')[0] + '.'));
+  b.sections.forEach(function (s) {
+    box.appendChild(h('div', { class: 'card stack' }, h('h3', null, s.h), s.p.map(function (t) { return h('p', null, t); })));
+  });
+  var qbox = h('div', { class: 'stack' });
+  box.appendChild(qbox);
+  learnQuiz(qbox, b);
+}
+function learnQuiz(qbox, b) {
+  clear(qbox);
+  var L = S.learn;
+  if (!L.order) { L.order = b.quiz.map(function (q) { var idx = [0, 1, 2, 3]; for (var i = 3; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = idx[i]; idx[i] = idx[j]; idx[j] = t; } return idx; }); L.answers = [null, null, null, null]; L.result = null; }
+  if (L.result) { learnResult(qbox, b); return; }
+  qbox.appendChild(h('h2', null, 'Fire spørsmål'));
+  qbox.appendChild(h('p', { class: 'muted' }, 'Hvert spørsmål tester en av de fire viktigste delene i bolken. Du må svare riktig på alle fire for å signere.'));
+  b.quiz.forEach(function (q, qi) {
+    var card = h('div', { class: 'card stack' }, h('b', null, (qi + 1) + '. ' + q.q));
+    L.order[qi].forEach(function (oi) {
+      var rid = 'lq' + qi + '-' + oi;
+      var inp = h('input', { type: 'radio', name: 'lq' + qi, id: rid, onchange: function () { L.answers[qi] = oi; btn.disabled = L.answers.indexOf(null) >= 0; } });
+      card.appendChild(h('label', { class: 'qchk', for: rid }, inp, h('span', null, q.o[oi])));
+    });
+    qbox.appendChild(card);
+  });
+  var btn = h('button', { class: 'btn', type: 'button', disabled: true, onclick: function () {
+    L.result = b.quiz.map(function (q, i) { return L.answers[i] === q.a; }); learnQuiz(qbox, b);
+  } }, 'Send inn svar');
+  qbox.appendChild(btn);
+}
+function learnResult(qbox, b) {
+  var L = S.learn, ok = L.result.filter(Boolean).length;
+  qbox.appendChild(h('h2', null, ok + ' av 4 riktige'));
+  b.quiz.forEach(function (q, i) {
+    qbox.appendChild(h('div', { class: 'card stack' }, h('div', { class: 'row' }, h('b', { class: 'grow' }, q.k), h('span', { class: 'pill ' + (L.result[i] ? 'g' : 'r') }, L.result[i] ? 'Du kan dette' : 'Repeter')),
+      L.result[i] ? null : h('p', null, q.w)));
+  });
+  if (ok === 4) {
+    var chk = h('input', { type: 'checkbox', id: 'lsign' });
+    var btn = h('button', { class: 'btn', type: 'button', disabled: true, onclick: async function () {
+      var r = await sb.from('training_signoffs').insert({ org_id: S.org.id, module_id: b.id, version: b.v, score: 4 });
+      if (r.error) { toast(errText(r.error)); return; }
+      toast('Signert: ' + b.title); S.learn.signs = []; S.learn.view = 'list'; S.learn.order = null; renderLearn(); window.scrollTo(0, 0);
+    } }, 'Signer ut bolken');
+    chk.addEventListener('change', function () { btn.disabled = !chk.checked; });
+    qbox.appendChild(h('div', { class: 'card stack' }, h('label', { class: 'qchk', for: 'lsign' }, chk, h('span', null, 'Jeg har lest og forstått «' + b.title + '», og kan de fire viktigste punktene.')), btn));
+  } else {
+    qbox.appendChild(h('p', { class: 'muted' }, 'Les bolken en gang til og prøv på nytt. Du kan ta quizen så mange ganger du vil.'));
+    qbox.appendChild(h('button', { class: 'btn', type: 'button', onclick: function () { L.order = null; learnQuiz(qbox, b); } }, 'Prøv igjen'));
+  }
+}
+async function learnTeam(box) {
+  box.appendChild(h('div', { class: 'row noprint' }, h('button', { class: 'btn alt small', type: 'button', onclick: function () { S.learn.view = 'list'; renderLearn(); } }, 'Tilbake')));
+  box.appendChild(h('h1', null, 'Opplæring i teamet'));
+  var signs = await loadSigns(true), L = window.DATA.learn, nameArea = {};
+  S.areas.forEach(function (a) { nameArea[a.id] = a.name; });
+  var rows = (S.members || []).map(function (m) {
+    var kinds = learnKinds(m), need = L.bolker.filter(function (b) { return learnApplies(b, kinds); });
+    var mine = signs.filter(function (s) { return s.user_id === m.user_id; });
+    var missing = need.filter(function (b) { var s = learnSigned(mine, b); return !s || s.old; });
+    return [nameOf(m.user_id), (m.work_areas || []).map(function (id) { return nameArea[id]; }).filter(Boolean).join(', ') || 'Ikke valgt', need.length ? (need.length - missing.length) + ' av ' + need.length : '–', missing.length ? missing.map(function (b) { return b.title; }).join(', ') : (need.length ? 'Ingen' : '')];
+  });
+  box.appendChild(h('div', { class: 'card stack' }, table(['Navn', 'Jobber i', 'Signert', 'Mangler'], rows)));
+  var logRows = signs.slice(0, 50).map(function (s) { var b = L.bolker.filter(function (x) { return x.id === s.module_id; })[0]; return [fmtTs(s.signed_at), nameOf(s.user_id), b ? b.title : s.module_id, s.score + ' av 4']; });
+  if (logRows.length) box.appendChild(h('div', { class: 'card stack' }, h('h3', null, 'Logg over utsigneringer'), table(['Tid', 'Hvem', 'Bolk', 'Quiz'], logRows)));
+  box.appendChild(h('p', { class: 'small muted' }, 'Hvem som mangler hva beregnes ut fra hvor hver person har sagt at de jobber.'));
+}
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
