@@ -1058,7 +1058,12 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
   // Demo: ?demo i adressen → egen lagring (bbmdemo_), ingen innlogging, ingen kontakt med skyen.
   const BB_DEMO = /[?&]demo(=|&|$)/.test(location.search) && !/demo=(0|false)/.test(location.search);
   const BB_PFX = BB_DEMO ? 'bbmdemo_' : 'bbm_';
-  let storageShim = (hasArtifactStorage && !BB_DEMO) ? window.storage : {
+  const bbDemoMem = new Map(); // demo: alt ligger bare i minnet og forsvinner når siden lastes på nytt
+  let storageShim = BB_DEMO ? {
+    async get(key) { return bbDemoMem.has(key) ? { key, value: bbDemoMem.get(key) } : null; },
+    async set(key, value) { bbDemoMem.set(key, value); return { key, value }; },
+    async delete(key) { bbDemoMem.delete(key); return { key, deleted: true }; }
+  } : hasArtifactStorage ? window.storage : {
     async get(key) {
       const v = localStorage.getItem(BB_PFX + key);
       return v === null ? null : { key, value: v };
@@ -5459,29 +5464,74 @@ select.ed-select { appearance: none; background: url("data:image/svg+xml,%3Csvg 
 
   function bbDemoBanner() {
     const b = document.createElement('div');
-    b.style.cssText = 'position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9998;background:#1A7A6E;color:#fff;padding:8px 14px;border-radius:999px;font:600 13px Barlow,Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px)';
-    b.innerHTML = '<span>Demo – data lagres bare i din nettleser</span><button style="background:#fff;color:#1A7A6E;border:0;border-radius:999px;padding:4px 10px;font:inherit;cursor:pointer">Nullstill</button><a href="/" style="color:#fff;text-decoration:underline">Til spisbart.no</a>';
-    b.querySelector('button').onclick = () => { if (confirm('Nullstille demoen og starte på nytt?')) { try { Object.keys(localStorage).filter(k => k.startsWith('bbmdemo_')).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.reload(); } };
+    b.style.cssText = 'position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9998;background:#1A7A6E;color:#fff;padding:8px 14px;border-radius:999px;font:600 13px Barlow,Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center;max-width:94vw';
+    b.innerHTML = '<span>Demo med fiktive data – ingenting lagres</span><button style="background:#fff;color:#1A7A6E;border:0;border-radius:999px;padding:4px 10px;font:inherit;cursor:pointer">Start på nytt</button><a href="../barnehage.html" style="color:#fff;text-decoration:underline">Tilbake</a>';
+    b.querySelector('button').onclick = () => location.reload();
     document.body.appendChild(b);
   }
 
+  function bbDemoLogin() {
+    return new Promise(resolve => {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#f4f1ea;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Barlow,Arial,sans-serif';
+      d.innerHTML = '<form style="background:#fff;border-radius:14px;padding:24px;max-width:340px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.12)"><h1 style="margin:0 0 4px;font-size:1.3rem">Bare Barnemat – demo</h1><p style="margin:0 0 14px;color:#555;font-size:.92rem">Prøv appen med fiktive data fra «Solsiden barnehage». Ingenting lagres.</p><label style="display:block;font-size:.85rem;margin:10px 0 4px">Brukernavn</label><input style="width:100%;box-sizing:border-box;padding:11px;font-size:1rem;border:1px solid #bbb;border-radius:8px" autocomplete="off"><label style="display:block;font-size:.85rem;margin:10px 0 4px">Passord</label><input type="password" style="width:100%;box-sizing:border-box;padding:11px;font-size:1rem;border:1px solid #bbb;border-radius:8px" autocomplete="off"><button style="margin-top:16px;width:100%;padding:12px;font-size:1rem;border:0;border-radius:8px;background:#1A7A6E;color:#fff;font-weight:600;cursor:pointer">Logg inn</button></form>';
+      d.querySelector('form').onsubmit = e => { e.preventDefault(); d.remove(); resolve(); };
+      document.body.appendChild(d);
+    });
+  }
+
+  const BB_DEMO_TXT = {
+    calendar: ['Kalender', 'Her planlegger du månedens måltider. Trykk på en dag og velg en rett fra menylisten. Appen varsler når en rett ikke passer for et barn med allergi eller spesialkost.'],
+    matboksen: ['Matboksen', 'Matboksen samler det som trengs av mat til dagen eller uken, så du ser hva som skal lages og hvor mye.'],
+    children: ['Barn', 'Barna i demoen er fiktive. Her legger du inn gruppe, allergier, kosthold og fravær, og antall porsjoner regnes ut fra dette.'],
+    suppliers: ['Leverandører', 'Legg inn leverandører med leveringsdager. Appen regner ut når du må bestille for at maten skal være på plass.'],
+    pantry: ['Faste varer og priser', 'Varene du bruker, med mengde, pris og allergener. Prisene gir kostnaden per rett og per måned.'],
+    export: ['Eksporter månedsmeny', 'Lag månedsmenyen som du kan henge opp eller sende til foreldrene.']
+  };
+  function bbDemoGuide() {
+    const seen = {};
+    function show(k) {
+      const t = BB_DEMO_TXT[k]; if (!t || seen[k]) return; seen[k] = true;
+      const o = document.createElement('div');
+      o.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(20,20,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Barlow,Arial,sans-serif';
+      o.innerHTML = '<div style="background:rgba(255,255,255,.96);border-radius:14px;padding:20px;max-width:340px;width:100%;box-shadow:0 6px 30px rgba(0,0,0,.25)"><h2 style="margin:0 0 8px;font-size:1.2rem"></h2><p style="margin:0 0 14px;line-height:1.45"></p><button style="width:100%;padding:11px;font-size:1rem;border:0;border-radius:8px;background:#1A7A6E;color:#fff;font-weight:600;cursor:pointer">Forstått</button></div>';
+      o.querySelector('h2').textContent = t[0]; o.querySelector('p').textContent = t[1];
+      const close = () => o.remove(); o.querySelector('button').onclick = close; o.onclick = e => { if (e.target === o) close(); };
+      document.body.appendChild(o);
+    }
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('.sidebar-tool-btn[data-tool], .settings-opt[data-action]');
+      if (!b) return;
+      const k = b.dataset.tool || b.dataset.action;
+      setTimeout(() => show(k), 300);
+    }, true);
+    setTimeout(() => show('calendar'), 800);
+  }
+
   (async () => {
+    if (BB_DEMO) await bbDemoLogin();
     await bbAuthGate();
     bbCheckSubscription();
     try { if (bbCloud && !sessionStorage.getItem('bb_login_tracked')) { sessionStorage.setItem('bb_login_tracked', '1'); bbTrack('login'); } } catch (e) {}
     if (BB_DEMO) bbDemoBanner();
-    if (BB_DEMO) { // første besøk: legg inn en eksempelplan for to uker
+    if (BB_DEMO) { // fiktive data i minnet: en eksempelplan for to uker og barna på «Solsiden barnehage»
       try {
-        if (!localStorage.getItem('bbmdemo_plan')) {
-          const ids = RECIPES.map(r => r.id), demo = {};
-          const d = new Date(currentWeekStart); let i = 0;
-          for (let n = 0; n < 14; n++, d.setDate(d.getDate() + 1)) {
-            if (d.getDay() === 0 || d.getDay() === 6) continue;
-            demo[dateKey(d.getFullYear(), d.getMonth(), d.getDate())] = { lunch: ids[(i++ * 3) % ids.length] };
-          }
-          localStorage.setItem('bbmdemo_plan', JSON.stringify(demo));
+        const ids = RECIPES.map(r => r.id), demo = {};
+        const d = new Date(currentWeekStart); let i = 0;
+        for (let n = 0; n < 14; n++, d.setDate(d.getDate() + 1)) {
+          if (d.getDay() === 0 || d.getDay() === 6) continue;
+          demo[dateKey(d.getFullYear(), d.getMonth(), d.getDate())] = { lunch: ids[(i++ * 3) % ids.length] };
         }
+        await storageShim.set('plan', JSON.stringify(demo));
+        const K = (name, group, allergens, diets) => ({ name, group, allergens: allergens || [], diets: diets || [], absences: [] });
+        await storageShim.set('children', JSON.stringify([
+          K('Emma', 'storbarn'), K('Noah', 'storbarn', ['milk']), K('Olivia', 'storbarn'), K('Jakob', 'storbarn', ['gluten']),
+          K('Nora', 'storbarn', [], ['vegetarian']), K('Lucas', 'storbarn'), K('Sofie', 'storbarn', ['eggs']), K('Filip', 'storbarn'),
+          K('Ella', 'smaabarn'), K('Oliver', 'smaabarn', ['fish']), K('Sara', 'smaabarn'), K('William', 'smaabarn', ['milk', 'eggs']),
+          K('Amina', 'storbarn', [], ['halal', 'porkfree']), K('Leon', 'smaabarn'), K('Ida', 'storbarn'), K('Mats', 'smaabarn')
+        ]));
       } catch (e) {}
+      bbDemoGuide();
     }
     await loadAll();
     initLogoShuffle();
