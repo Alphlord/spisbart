@@ -280,6 +280,40 @@ html,body{overflow-x:clip}
 @media (prefers-reduced-motion:reduce){.fan a{transition:none}}
 .tile .ic{display:block;width:34px;height:34px;margin-bottom:10px;stroke:var(--fg);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .hero .sub{font-size:clamp(24px,5.4vw,40px);letter-spacing:.06em;line-height:1.2;white-space:normal;margin:0 auto;max-width:18em;text-wrap:balance}
+
+/* ---- forslag til ny åpning ---- */
+.hero::before{display:none}
+.hx{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:36px;align-items:center;padding-block:40px 56px;max-width:1080px}
+.hx h1{font-size:clamp(48px,7.4vw,88px);line-height:.92;letter-spacing:.005em;font-weight:800;text-align:left}
+.hx-lede{margin-top:22px;max-width:30em;color:var(--muted);font-size:clamp(17px,2vw,20px)}
+.verbs{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:8px}
+.verbs a{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"v e" "d d";column-gap:14px;align-items:baseline;padding:10px 14px 10px 16px;border-left:10px solid var(--c);border-radius:0 10px 10px 0;text-decoration:none;color:var(--fg);background:transparent;transition:background .2s,transform .2s,box-shadow .2s}
+.verbs b{grid-area:v;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.4vw,36px);line-height:1}
+.verbs em{grid-area:e;font-style:normal;font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:14px;color:var(--muted)}
+.verbs span{grid-area:d;font-size:15px;color:var(--muted);line-height:1.35;max-height:0;opacity:0;overflow:hidden;transition:max-height .25s,opacity .25s}
+.verbs a.on{background:var(--card);box-shadow:0 8px 22px rgba(0,0,0,.09);transform:translateX(6px)}
+.verbs a.on span{max-height:3.2em;opacity:1;margin-top:2px}
+.hx .hero-cta{justify-content:flex-start}
+.stage{position:relative;height:clamp(420px,46vw,560px);min-width:0}
+.ph{position:absolute;top:50%;left:50%;width:36%;display:block;border-radius:20px;background:var(--card);border:1px solid var(--line);border-top:8px solid var(--c);padding:7px;box-shadow:0 16px 34px rgba(0,0,0,.16);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.ph img{display:block;width:100%;height:auto;aspect-ratio:3/4.9;object-fit:cover;object-position:top;border-radius:13px}
+.ph[data-i="0"]{transform:translate(-132.5%,-46%) rotate(-8deg);z-index:1}
+.ph[data-i="1"]{transform:translate(-77.5%,-52%) rotate(-3deg);z-index:2}
+.ph[data-i="2"]{transform:translate(-22.5%,-52%) rotate(3deg);z-index:2}
+.ph[data-i="3"]{transform:translate(32.5%,-46%) rotate(8deg);z-index:1}
+.ph.on{z-index:5;box-shadow:0 26px 50px rgba(0,0,0,.28)}
+.ph[data-i="0"].on{transform:translate(-132.5%,-58%) rotate(0) scale(1.1)}
+.ph[data-i="1"].on{transform:translate(-77.5%,-58%) rotate(0) scale(1.1)}
+.ph[data-i="2"].on{transform:translate(-22.5%,-58%) rotate(0) scale(1.1)}
+.ph[data-i="3"].on{transform:translate(32.5%,-58%) rotate(0) scale(1.1)}
+@media (max-width:820px){
+  .hx{grid-template-columns:1fr;gap:12px;padding-block:28px 40px}
+  .hx h1{font-size:clamp(48px,15vw,76px)}
+  .hx-copy{display:contents}
+  .hx h1{order:1}.hx-lede{order:2;margin-top:4px}.stage{order:3;height:clamp(300px,84vw,420px);margin-top:0}.verbs{order:4;margin-top:6px}.hx .hero-cta{order:5;margin-top:12px}
+  .ph{padding:4px;border-radius:12px;border-top-width:5px}
+}
+@media (prefers-reduced-motion:reduce){.ph,.verbs a,.verbs span{transition:none}}
 </style>
 </head><body class="">
 <div class="topbar"><div class="wrap"><a class="brand" href="index.html"><svg class="bartlogo" viewBox="0 0 100 38" aria-hidden="true"><defs><path id="half" d="M50,10 C57,3 68,4 75,10 C82,15 90,14 92,6 C93,2 99,3 98,10 C97,27 84,37 71,33 C63,30 56,27 50,19 Z"/><mask id="bite" maskUnits="userSpaceOnUse" x="-5" y="0" width="110" height="45"><rect x="-5" width="110" height="45" fill="#fff"/><circle cx="3" cy="33" r="12.5"/><circle cx="4.96" cy="20.65" r="4.1"/><circle cx="9.99" cy="22.64" r="4.1"/><circle cx="13.71" cy="26.56" r="4.1"/><circle cx="15.43" cy="31.69" r="4.1"/></mask></defs><g id="bart"><use href="#half"/><g mask="url(#bite)"><use href="#half" transform="translate(100 0) scale(-1 1)"/></g></g></svg><span>spisbart.no</span></a>
@@ -287,11 +321,24 @@ html,body{overflow-x:clip}
 <nav class="menu-panel" id="menu" aria-label="Hovedmeny"><ul><li><a href="index.html" aria-current="page">Forside</a></li><li><a href="produkter.html">Produkter</a></li><li><a href="barnehage.html">For barnehage</a></li><li><a href="horeca.html">For horeca</a></li><li><a href="quiz.html">quizzMeg</a></li><li><a href="om.html">Om oss</a></li></ul></nav></div>
 <noscript><style>.menu-panel{display:block;position:static}.burger{display:none}</style></noscript>
 <main>
-<header class="wrap hero">
-  <div class="logo">
-    <div class="txt"><h1 class="sub" id="s">Verktøy for oppskrifter, økonomi, rutiner og kursing</h1></div>
+<header class="wrap hx" id="hx">
+  <div class="hx-copy">
+    <h1>Planlegg.<br>Regn ut.<br>Kontroller.<br>Lær.</h1>
+    <p class="hx-lede">Fem apper som tar jobben fra måltidsplan og varekost til rutiner, tilsyn og prøver. Alle kan prøves her på siden.</p>
+    <ul class="verbs">
+      <li><a class="t-barn" data-i="0" href="barnehage.html"><b>Planlegg</b><span>Måltider, allergier og bestilling til barnehagekjøkkenet</span><em>Barnehageplanlegger</em></a></li>
+      <li><a class="t-kafe" data-i="1" href="horeca.html"><b>Regn ut</b><span>Varekost, margin og svinn for hver rett</span><em>Kjøkkenkalkulator</em></a></li>
+      <li><a class="t-fort" data-i="2" href="horeca.html#fortgjort"><b>Kontroller</b><span>Rutiner, internkontroll og avvik, klart til tilsyn</span><em>Fortgjort</em></a></li>
+      <li><a class="t-prove" data-i="3" href="quiz.html"><b>Lær</b><span>Les, lytt og quiz deg til skjenke- og etablererprøven</span><em>quizzMeg</em></a></li>
+    </ul>
+    <div class="hero-cta"><a class="btn primary" href="#apper">Prøv en demo</a><a class="btn" href="produkter.html">Se alle produktene</a></div>
   </div>
-  <p class="lead">Matrelaterte apper for barnehager, kjøkken og serveringssteder. Planlegg måltidene, regn ut hva rettene koster, hold orden på allergener, rutiner og internkontroll, og øv til skjenke- og etablererprøven. Alle appene kan prøves her på siden.</p>
+  <div class="stage" aria-hidden="false">
+    <a class="ph t-barn" data-i="0" href="barnehage.html"><img src="bilder/mobil.webp" width="760" height="1088" alt="Barnehageplanlegger: ukevelger og varsel om allergier"></a>
+    <a class="ph t-kafe" data-i="1" href="horeca.html"><img src="bilder/automat-oversikt.webp" width="520" height="893" alt="Kjøkkenkalkulator: margin per rett"></a>
+    <a class="ph t-fort" data-i="2" href="horeca.html#fortgjort"><img src="bilder/fortgjort-1.webp" width="520" height="1013" alt="Fortgjort: dagens rutiner og kvitteringer"></a>
+    <a class="ph t-prove" data-i="3" href="quiz.html"><img src="bilder/quizz-sporsmal.webp" width="520" height="900" alt="quizzMeg: ett spørsmål om gangen"></a>
+  </div>
 </header>
 <nav class="chapters" aria-label="Velg område">
   <a class="tile t-barn" href="barnehage.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-5"/></svg><strong>For barnehage</strong><span>Enkel planlegging, gode oppskrifter og automatisk bestilling til barnehagekjøkkenet</span></a>
@@ -351,5 +398,14 @@ window.addEventListener('resize',fit);
     try{fetch(U,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K,Prefer:'return=minimal'},body:JSON.stringify({event:buy?'buy_click':'demo_start',props:{app:app(h)}})}).catch(function(){})}catch(_){}
   });
 })();
+</script>
+<script>
+(function(){var rows=[].slice.call(document.querySelectorAll('.verbs a')),ph=[].slice.call(document.querySelectorAll('.ph')),hx=document.getElementById('hx'),cur=0,t=null,hold=false;
+function set(i){cur=i;rows.forEach(function(r){r.classList.toggle('on',+r.dataset.i===i)});ph.forEach(function(p){p.classList.toggle('on',+p.dataset.i===i)})}
+function tick(){if(!hold)set((cur+1)%rows.length)}
+function start(){if(!window.matchMedia('(prefers-reduced-motion:reduce)').matches&&!t)t=setInterval(tick,3200)}
+rows.concat(ph).forEach(function(el){el.addEventListener('mouseenter',function(){hold=true;set(+el.dataset.i)});el.addEventListener('focus',function(){hold=true;set(+el.dataset.i)})});
+hx.addEventListener('mouseleave',function(){hold=false});
+set(2);start();})();
 </script>
 </body></html>
