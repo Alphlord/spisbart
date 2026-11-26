@@ -130,6 +130,17 @@ textarea{min-height:96px;resize:vertical}
 .datebar .d small{display:block;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--muted)}
 .prog{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
 .prog i{display:block;height:100%;background:var(--green);width:0;transition:width .2s}
+.cov{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cov .chips{flex:1 1 0;min-width:0}
+.cov .lab{font-size:13px;color:var(--muted);flex:0 0 auto}
+.quick{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-bottom:2px}
+.quick .lab{font-size:13px;color:var(--muted);flex:0 0 auto}
+.qbtn{border:2px solid #C25A2E;background:var(--card);color:var(--fg);border-radius:10px;padding:6px 12px;font-weight:700;white-space:nowrap;min-height:38px;font-family:var(--display);font-size:17px;text-transform:uppercase;letter-spacing:.02em}
+.qbtn.more{border-color:var(--line);color:var(--muted)}
+details.other{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 12px}
+details.other summary{cursor:pointer;padding:10px 0;font-family:var(--display);font-weight:800;font-size:19px;text-transform:uppercase}
+.qchk{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:17px}
+.qchk input{width:26px;height:26px;flex:0 0 auto;margin-top:1px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
 .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-weight:600;white-space:nowrap;min-height:38px}
 .chip[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
@@ -273,7 +284,8 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
   </div>
   <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
   <div class="muted small" id="progTxt"></div>
-  <div class="chips" id="areaChips" role="group" aria-label="Avdeling"></div>
+  <div class="quick" id="quickBar" aria-label="Når det skjer"></div>
+  <div class="cov" id="covRow"><span class="lab">Jeg dekker i dag</span><div class="chips" id="areaChips" role="group" aria-label="Jeg dekker i dag"></div></div>
   <div id="hmsToday"></div>
   <div id="overdue"></div>
   <div id="taskList" class="stack"></div>
@@ -335,6 +347,6 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="data.js?v=31"></script>
-<script src="app.js?v=31"></script>
+<script src="data.js?v=32"></script>
+<script src="app.js?v=32"></script>
 </body></html>

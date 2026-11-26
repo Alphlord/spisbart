@@ -322,3 +322,106 @@ window.DATA.hms.t = { name: 'HMS', risks: 'Farer og tiltak', round: 'Vernerunde'
   reviewIntro: 'Gå gjennom HMS-arbeidet minst én gang i året (internkontrollforskriften § 5 punkt 8). Tallene under er hentet automatisk fra siste 12 måneder.',
   seedInfo: 'Fyller inn forslag til mål, roller, medvirkning og 16 vanlige farer for serveringssteder med vurdering og tiltak. Du gjennomgår og retter det selv etterpå.',
   incNote: null };
+
+window.DATA.quick = [
+ {
+  "title": "Varemottak",
+  "intro": "Når leveransen kommer.",
+  "pin": true,
+  "items": [
+   "Sjekk at varene er bestilt og at antallet stemmer",
+   "Mål temperatur på kjølte varer (maks 4 °C) og frosne varer (maks −18 °C)",
+   "Sjekk emballasje, datomerking og at varene ser friske ut",
+   "Avvis varer som ikke er i orden, eller skriv avvik",
+   "Sett kjølevarer rett i kjøl og frysevarer rett i fryser"
+  ]
+ },
+ {
+  "title": "Gjest med allergi",
+  "intro": "Når en gjest sier de ikke tåler noe.",
+  "pin": true,
+  "items": [
+   "Spør hva gjesten ikke tåler, og noter det",
+   "Sjekk ingredienslisten eller allergenoversikten for retten",
+   "Hold maten adskilt: rene redskaper og egen flate",
+   "Merk bestillingen tydelig og følg den hele veien til bordet",
+   "Ved reaksjon med pustebesvær, hevelse eller bevisstløshet: ring 113"
+  ]
+ },
+ {
+  "title": "Temperatur utenfor grensen",
+  "intro": "Når kjøl eller fryser er for varm.",
+  "pin": true,
+  "items": [
+   "Mål på nytt med rent termometer",
+   "Sjekk dør og pakninger, og at ingenting blokkerer luften",
+   "Flytt varene til et annet kjøleskap ved behov",
+   "Vurder varene og kast det du er usikker på",
+   "Skriv avvik med tiltak",
+   "Ring service hvis feilen fortsetter"
+  ]
+ },
+ {
+  "title": "Beruset gjest",
+  "intro": "Når en gjest er påvirket.",
+  "pin": true,
+  "items": [
+   "Ikke skjenk mer alkohol",
+   "Vær rolig og høflig, og forklar at du ikke kan skjenke mer",
+   "Tilby vann og mat",
+   "Sørg for trygg hjemreise",
+   "Ved uro eller trusler: hent vaktleder eller vakt",
+   "Ved fare: ring politiet på 112",
+   "Skriv kort hva som skjedde"
+  ]
+ },
+ {
+  "title": "ID-kontroll",
+  "intro": "Når du er i tvil om alder.",
+  "pin": false,
+  "items": [
+   "Be om gyldig legitimasjon med bilde ved tvil",
+   "Sjekk fødselsdato mot aldersgrensen: 18 år for øl og vin, 20 år for brennevin",
+   "Ikke skjenk eller selg uten gyldig legitimasjon",
+   "Skriv hendelse hvis noe er uvanlig"
+  ]
+ },
+ {
+  "title": "Knust glass",
+  "intro": "Når glass eller servise går i stykker.",
+  "pin": false,
+  "items": [
+   "Stopp trafikk i området",
+   "Fei opp skårene med kost og skuffe, ikke med hendene",
+   "Tørk gulvet med fuktig klut for de minste bitene",
+   "Kast drikke og is som sto i nærheten",
+   "Kast skårene i en egen, merket beholder",
+   "Skriv avvik hvis noen er skadet"
+  ]
+ },
+ {
+  "title": "Brann eller alarm",
+  "intro": "Når det brenner eller alarmen går.",
+  "pin": false,
+  "items": [
+   "Varsle alle og trykk brannalarmen",
+   "Ring 110",
+   "Led gjester og kolleger ut til samlingspunktet",
+   "Bruk slokker bare hvis det er trygt og du har opplæring",
+   "Ikke gå inn igjen før brannvesenet sier ok",
+   "Tell at alle er ute"
+  ]
+ },
+ {
+  "title": "Ulykke eller skade",
+  "intro": "Når noen blir skadet.",
+  "pin": false,
+  "items": [
+   "Sikre området uten å sette deg selv i fare",
+   "Ring 113 ved alvorlig skade",
+   "Gi førstehjelp du har opplæring i, og hent førstehjelpsskrinet",
+   "Noter hva som skjedde, hvem det gjaldt og når",
+   "Meld hendelsen i HMS-modulen under Hendelser"
+  ]
+ }
+];

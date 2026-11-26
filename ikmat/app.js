@@ -175,7 +175,7 @@ async function afterLogin() {
 }
 async function selectOrg(m) {
   S.org = m.organizations; S.role = m.role; lsSet('ikmat-org', m.org_id);
-  S.area = 'all';
+  S.cover = loadCover();
   var res = await Promise.all([
     sb.from('areas').select('*').eq('org_id', S.org.id).order('created_at'),
     sb.from('tasks').select('*').eq('org_id', S.org.id).order('sort').order('title'),
@@ -185,6 +185,7 @@ async function selectOrg(m) {
   res.forEach(function (x) { if (x.error) throw x.error; });
   S.areas = res[0].data; S.tasks = res[1].data; S.units = res[3].data;
   var bl = await sb.from('routine_blocks').select('*').eq('org_id', S.org.id).order('start_time'); S.blocks = bl.error ? [] : bl.data;
+  await reloadQuick();
   S.names = {}; S.members = res[2].data;
   S.members.forEach(function (x) { S.names[x.user_id] = x.display_name || 'Uten navn'; });
 }
@@ -274,10 +275,15 @@ async function renderToday() {
   $('#dNext').disabled = false;
   // avdelingsfilter
   var chips = clear($('#areaChips'));
+  $('#covRow').hidden = S.areas.length < 2;
   if (S.areas.length > 1) {
-    chips.appendChild(chip('Alle', S.area === 'all', function () { S.area = 'all'; renderToday(); }));
-    S.areas.forEach(function (a) { chips.appendChild(chip(a.name, S.area === a.id, function () { S.area = a.id; renderToday(); })); });
+    chips.appendChild(chip('Alle', !S.cover.length, function () { S.cover = []; saveCover(); renderToday(); }));
+    S.areas.forEach(function (a) { chips.appendChild(chip(a.name, S.cover.indexOf(a.id) >= 0, function () {
+      var i = S.cover.indexOf(a.id); if (i >= 0) S.cover.splice(i, 1); else S.cover.push(a.id);
+      saveCover(); renderToday();
+    })); });
   }
+  drawQuickBar();
   var rows;
   try {
     rows = applyQueue(await fetchDay(day), day);
@@ -292,12 +298,108 @@ async function renderToday() {
   } catch (e) { clear($('#taskList')).appendChild(h('div', { class: 'err' }, errText(e))); return; }
   drawToday();
 }
+/* ---------- Jeg dekker i dag ---------- */
+function coverKey() { return 'fg-cover-' + (S.org ? S.org.id : ''); }
+function loadCover() { var v = lsGet(coverKey(), null); return v && v.day === ymd(new Date()) && Array.isArray(v.ids) ? v.ids : []; }
+function saveCover() { lsSet(coverKey(), { day: ymd(new Date()), ids: S.cover }); }
+function inCover(r) { return !S.cover.length || !r.area_id || S.cover.indexOf(r.area_id) >= 0; }
+
+/* ---------- Når det skjer ---------- */
+async function reloadQuick() {
+  var q = await sb.from('quick_routines').select('*').eq('org_id', S.org.id).eq('active', true).order('sort').order('created_at');
+  S.quick = q.error ? [] : q.data;
+}
+function drawQuickBar() {
+  var bar = clear($('#quickBar')), list = S.quick || [];
+  if (!list.length) {
+    if (isLeder()) bar.appendChild(h('button', { class: 'qbtn more', type: 'button', onclick: quickScreen }, '+ Når det skjer'));
+    return;
+  }
+  bar.appendChild(h('span', { class: 'lab' }, 'Når det skjer'));
+  list.filter(function (q) { return q.pinned; }).slice(0, 4).forEach(function (q) {
+    bar.appendChild(h('button', { class: 'qbtn', type: 'button', onclick: function () { quickOpen(q); } }, q.title));
+  });
+  bar.appendChild(h('button', { class: 'qbtn more', type: 'button', onclick: quickScreen }, 'Alle'));
+}
+function quickOpen(q) {
+  var items = Array.isArray(q.items) ? q.items : [], boxes = [], note = h('textarea', { placeholder: 'Valgfritt notat om hva som skjedde' });
+  var rows = items.map(function (t, i) {
+    var c = h('input', { type: 'checkbox', id: 'qk' + i }); boxes.push(c);
+    return h('label', { class: 'qchk', for: 'qk' + i }, c, h('span', null, t));
+  });
+  openDlg([h('h2', null, q.title), q.intro ? h('p', { class: 'muted' }, q.intro) : null, h('div', null, rows), h('label', { class: 'f' }, 'Notat', note),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn', type: 'button', onclick: async function () {
+        var n = boxes.filter(function (b) { return b.checked; }).length;
+        var r = await sb.from('quick_runs').insert({ org_id: S.org.id, routine_id: q.id, title: q.title, ticked: n, note: note.value.trim() || null });
+        if (r.error) { toast(errText(r.error)); return; }
+        closeDlg(); toast('Logget: ' + q.title);
+      } }, 'Ferdig, logg'),
+      h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Lukk')),
+    h('p', { class: 'small muted' }, 'Sjekklisten er et forslag. Tilpass den til stedet. Er noen skadet eller i fare: ring 110, 112 eller 113.')]);
+}
+async function quickScreen() {
+  S.docBack = 'today';
+  var list = S.quick || [], runs = [];
+  try { var rr = await sb.from('quick_runs').select('title,ticked,note,done_by,done_at').eq('org_id', S.org.id).order('done_at', { ascending: false }).limit(10); runs = rr.error ? [] : rr.data; } catch (e) { runs = []; }
+  var nodes = [h('div', { class: 'card stack' }, h('h2', null, 'Når det skjer'),
+    h('p', { class: 'muted' }, 'Korte sjekklister du åpner når noe skjer, uavhengig av vakt og klokkeslett. Alle kan åpne dem.'))];
+  if (!list.length) nodes.push(h('div', { class: 'note' }, isLeder() ? 'Ingen sjekklister ennå. Legg til fra forslag eller lag din egen.' : 'Ingen sjekklister er lagt inn ennå. Be lederen legge dem til.'));
+  list.forEach(function (q) {
+    var n = (q.items || []).length;
+    nodes.push(h('div', { class: 'row' },
+      h('button', { class: 'dev grow', type: 'button', onclick: function () { quickOpen(q); } }, h('div', { class: 't' }, q.title), h('div', { class: 'small muted' }, (q.intro ? q.intro + ' ' : '') + n + ' punkter' + (q.pinned ? ' · knapp i I dag' : ''))),
+      isLeder() ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { quickEdit(q); } }, 'Rediger') : null));
+  });
+  if (isLeder()) nodes.push(h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: function () { quickEdit(null); } }, 'Ny sjekkliste'), h('button', { class: 'btn alt', type: 'button', onclick: quickSuggest }, 'Legg til fra forslag')));
+  if (runs.length) nodes.push(h('div', { class: 'card stack' }, h('h2', null, 'Siste gjennomføringer'), table(['Tid', 'Hvem', 'Sjekkliste', 'Punkter'], runs.map(function (x) { return [fmtTs(x.done_at), nameOf(x.done_by), x.title, x.ticked]; }))));
+  docScreen(nodes, null); $('#docPrint').hidden = true;
+}
+function quickSuggest() {
+  var have = {}; (S.quick || []).forEach(function (q) { have[q.title] = 1; });
+  var sug = window.DATA.quick.filter(function (q) { return !have[q.title]; });
+  if (!sug.length) { toast('Alle forslagene er lagt til'); return; }
+  var boxes = sug.map(function (q, i) { return h('input', { type: 'checkbox', id: 'qs' + i, checked: q.pin }); });
+  openDlg([h('h2', null, 'Forslag'), h('p', { class: 'muted' }, 'Velg hvilke du vil legge til. Du kan endre dem etterpå. Teksten er forslag som må tilpasses stedet.'),
+    h('div', null, sug.map(function (q, i) { return h('label', { class: 'qchk', for: 'qs' + i }, boxes[i], h('span', null, h('b', null, q.title), h('div', { class: 'small muted' }, q.intro))); })),
+    h('button', { class: 'btn', type: 'button', onclick: async function () {
+      var rows = [], base = (S.quick || []).length;
+      sug.forEach(function (q, i) { if (boxes[i].checked) rows.push({ org_id: S.org.id, title: q.title, intro: q.intro, items: q.items, pinned: !!q.pin, sort: base + rows.length }); });
+      if (!rows.length) { closeDlg(); return; }
+      var r = await sb.from('quick_routines').insert(rows);
+      if (r.error) { toast(errText(r.error)); return; }
+      closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen(); toast('Lagt til');
+    } }, 'Legg til valgte')]);
+}
+function quickEdit(q) {
+  var title = h('input', { type: 'text', maxlength: 80, value: q ? q.title : '' }), intro = h('input', { type: 'text', maxlength: 300, value: q && q.intro ? q.intro : '' });
+  var items = h('textarea', { rows: 8, placeholder: 'Ett punkt per linje' }, q ? (q.items || []).join('\n') : '');
+  var pin = h('input', { type: 'checkbox', id: 'q-pin', checked: q ? q.pinned : true });
+  openDlg([h('h2', null, q ? 'Rediger sjekkliste' : 'Ny sjekkliste'), h('label', { class: 'f' }, 'Navn', title), h('label', { class: 'f' }, 'Når brukes den?', intro), h('label', { class: 'f' }, 'Punkter', items),
+    h('label', { class: 'qchk', for: 'q-pin' }, pin, h('span', null, 'Vis som knapp i I dag (maks fire vises)')),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn', type: 'button', onclick: async function () {
+        var name = title.value.trim(), arr = items.value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+        if (!name || !arr.length) { toast('Skriv navn og minst ett punkt'); return; }
+        var row = { title: name, intro: intro.value.trim() || null, items: arr, pinned: pin.checked };
+        var r = q ? await sb.from('quick_routines').update(row).eq('id', q.id) : await sb.from('quick_routines').insert(Object.assign({ org_id: S.org.id, sort: (S.quick || []).length }, row));
+        if (r.error) { toast(errText(r.error)); return; }
+        closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen();
+      } }, 'Lagre'),
+      q ? h('button', { class: 'btn danger', type: 'button', onclick: async function () {
+        if (!confirm('Slette «' + q.title + '»?')) return;
+        var r = await sb.from('quick_routines').delete().eq('id', q.id);
+        if (r.error) { toast(errText(r.error)); return; }
+        closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen();
+      } }, 'Slett') : null)]);
+}
 function chip(text, on, fn) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick: fn }, text); }
 
 function drawToday() {
   var tById = {}; S.tasks.forEach(function (t) { tById[t.id] = t; });
   function visible(r, day) { var t = tById[r.task_id]; return !t || blockOk(t, day); }
-  var rows = S.dayRows.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, S.day); });
+  var rows = S.dayRows.filter(function (r) { return inCover(r) && visible(r, S.day); });
+  var otherRows = S.dayRows.filter(function (r) { return !inCover(r) && visible(r, S.day); });
   var done = rows.filter(function (r) { return r.run_status; }).length;
   $('#progBar').style.width = (rows.length ? 100 * done / rows.length : 0) + '%';
   $('#progTxt').textContent = rows.length ? done + ' av ' + rows.length + ' oppgaver er kvittert' : 'Ingen oppgaver denne dagen.';
@@ -305,7 +407,7 @@ function drawToday() {
   drawHmsToday();
   var od = clear($('#overdue'));
   var nowM0 = new Date().getHours() * 60 + new Date().getMinutes(), carry = {};
-  var odRows = S.overdue.filter(function (r) { return (S.area === 'all' || r.area_id === S.area) && visible(r, r.overdueDay); }).filter(function (r) {
+  var odRows = S.overdue.filter(function (r) { return inCover(r) && visible(r, r.overdueDay); }).filter(function (r) {
     var b = S.day === ymd(new Date()) ? blockOf(tById[r.task_id]) : null;
     if (b && blockNight(b) && nowM0 <= minOf(b.end_time)) { (carry[b.id] = carry[b.id] || []).push(r); return false; }
     return true;
@@ -354,6 +456,11 @@ function drawToday() {
     g.rows.forEach(function (r) { box.appendChild(taskRow(r, r.overdueDay || S.day)); });
     list.appendChild(box);
   });
+  if (otherRows.length) {
+    var od2 = otherRows.filter(function (r) { return r.run_status; }).length, det = h('details', { class: 'other' }, h('summary', null, 'Andre rutiner · ' + od2 + ' av ' + otherRows.length));
+    otherRows.forEach(function (r) { det.appendChild(taskRow(r, S.day)); });
+    list.appendChild(det);
+  }
   var cb = clear($('#closeBox'));
   if (rows.length && done === rows.length) cb.appendChild(h('div', { class: 'ok' }, 'Alt er kvittert for ' + (S.day === ymd(new Date()) ? 'i dag' : fmtDate(S.day)) + '. Bra jobbet.'));
 }
@@ -858,7 +965,7 @@ async function teamDialog() {
 
 /* ---------- dokumenter ---------- */
 function docScreen(nodes, csv) {
-  var b = clear($('#docBody')); add(b, nodes);
+  var b = clear($('#docBody')); add(b, nodes); $('#docPrint').hidden = false;
   $('#docCsv').hidden = !csv; $('#docCsv').onclick = csv || null;
   go('doc'); $('#s-doc').classList.add('printing'); $('#top').hidden = false; $('#tabs').hidden = true;
 }
@@ -1707,6 +1814,7 @@ function drawHmsToday() {
     clear(panel);
     if (!S.org) return;
     panel.appendChild(h('div', { class: 'mh' }, h('b', null, S.org.name), h('span', { class: 'small muted' }, isLeder() ? 'Leder' : 'Ansatt')));
+    panel.appendChild(item('Når det skjer', 'Sjekklister ved hendelser', quickScreen));
     panel.appendChild(item('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
     panel.appendChild(item('Tilsynsmappe', 'Plan, kvitteringer og avvik', showFolder));
     if (isLeder()) {
