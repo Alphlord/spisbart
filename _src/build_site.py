@@ -173,7 +173,7 @@ fortgjort = """<section class="chapter ch-kafe" id="fortgjort">
     <div class="ch-top">
       <div>
         <p class="pitch"><b>FORTGJORT – dine rutiner</b> samler dagens oppgaver, internkontroll for mat og alkohol, HMS, avvik og opplæring i én app. Alle ser hva som skal gjøres i dag, kvitterer med navn og tid, og alt havner i en logg du kan vise frem ved tilsyn.</p>
-        <p class="ch-note">Demoen har fiktive data fra «Kafé Fiktiv». Logg inn med brukernavn <b>navn</b> og pinkode <b>1111</b>. Ingenting lagres: når du laster siden på nytt, starter demoen fra begynnelsen.</p>
+        <p class="ch-note">Demoen har fiktive data fra «Kafé Fiktiv». Logg inn med hva du vil som brukernavn og pinkode. Ingenting lagres: når du laster siden på nytt, starter demoen fra begynnelsen.</p>
       </div>
       <div class="panel">
         <h3>Dette kan du</h3>

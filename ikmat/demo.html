@@ -220,8 +220,7 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="e" id="dge"></div><button>Logg inn</button></form></div>
 <div id="dbar">Demo med fiktive data – alt nullstilles når du laster siden på nytt. <a href="../horeca.html">Tilbake til spisbart.no</a></div>
 <script>document.getElementById('dgf').onsubmit=function(e){e.preventDefault();
-if(document.getElementById('dgu').value.trim().toLowerCase()==='navn'&&document.getElementById('dgp').value==='1111'){document.getElementById('dg').remove();window.__demoOpen();}
-else document.getElementById('dge').textContent='Feil brukernavn eller pinkode.';};</script>
+document.getElementById('dg').remove();window.__demoOpen();};</script>
 
 <div id="offline" class="offline" hidden>Ingen nett. Kvitteringer lagres her og sendes når du er på nett igjen.</div>
 <header class="top" id="top" hidden><div class="wrap">
