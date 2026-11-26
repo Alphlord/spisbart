@@ -5623,7 +5623,7 @@ function buildMenuHTML(m, theme, priceMode, fmt) {
   const imgMaxH=Math.round(mmH*0.09);
   const imgHtml=m.image?`<div class="menu-img-wrap"><img src="${m.image}" alt=""></div>`:'';
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><script src="/gate.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html{width:${mmW}mm;overflow:hidden;}

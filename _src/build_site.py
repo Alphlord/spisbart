@@ -102,7 +102,7 @@ track=seg(419,430)
 def page(fn,title,desc,body,scripts='',cls=''):
     cur=fn
     html='''<!doctype html>
-<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>%s</title><meta name="description" content="%s">
+<html lang="no"><head><meta charset="utf-8"><script src="/gate.js"></script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>%s</title><meta name="description" content="%s">
 <link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts/fonts.css">
 %s
 </head><body class="%s">
