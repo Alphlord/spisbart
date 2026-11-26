@@ -1,4 +1,4 @@
-/* iOrden (tidligere IK-mat). Vanlig JavaScript uten byggesteg. All tilgangsstyring skjer i databasen (RLS), ikke her. */
+/* FORTGJORT (tidligere iOrden og IK-mat). Vanlig JavaScript uten byggesteg. All tilgangsstyring skjer i databasen (RLS), ikke her. */
 (function () {
 'use strict';
 
