@@ -90,6 +90,7 @@ function go(name) {
   if (name === 'cal') renderCal();
   if (name === 'dev') loadDevs();
   if (name === 'learn') { S.learn.view = 'list'; renderLearn(); }
+  if (name === 'auth') authInit();
   if (name === 'more') renderMore();
 }
 $$('#tabs button[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
@@ -121,6 +122,7 @@ $('#authForm').addEventListener('submit', async function (e) {
     if (authMode === 'in') {
       var r = await sb.auth.signInWithPassword({ email: email, password: pw });
       if (r.error) throw r.error;
+      lsSet('fg-pinsess', 0);
     } else {
       var u = await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: location.origin + location.pathname } });
       if (u.error) throw u.error;
@@ -135,8 +137,117 @@ $('#resetPw').addEventListener('click', async function () {
   var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
   msg($('#authMsg'), r.error ? 'err' : 'ok', r.error ? errText(r.error) : 'Hvis adressen finnes, har vi sendt en lenke for nytt passord.');
 });
-async function logout() { await sb.auth.signOut(); S.org = null; S.mems = []; go('auth'); }
+async function logout() { lsSet('fg-pinsess', 0); await sb.auth.signOut(); S.org = null; S.mems = []; go('auth'); }
 $('#startOut').addEventListener('click', logout);
+
+/* ---------- Innlogging med navn og pinkode ---------- */
+var PIN_IDLE_MS = 20 * 60 * 1000, PAIR_RE = /[0-9A-Fa-f]{14}/;
+function pairCode() { return lsGet('fg-pair', null); }
+async function staffCall(body, withAuth) {
+  var tok = SB_KEY;
+  if (withAuth) { var ss = await sb.auth.getSession(); if (ss.data && ss.data.session) tok = ss.data.session.access_token; }
+  var r;
+  try { r = await fetch(SB_URL + '/functions/v1/staff-auth', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SB_KEY, Authorization: 'Bearer ' + tok }, body: JSON.stringify(body) }); }
+  catch (e) { var ne = new Error('Ingen nett'); ne.code = 'net'; throw ne; }
+  var j = {}; try { j = await r.json(); } catch (e) { /* tomt svar */ }
+  if (!r.ok) { var er = new Error(j.error || 'server'); er.code = j.error || 'server'; throw er; }
+  return j;
+}
+function staffErr(e) {
+  var m = { net: 'Ingen nett. Prøv igjen.', wrong: 'Feil navn eller pinkode.', locked: 'For mange forsøk. Vent 15 minutter, eller be lederen om ny pinkode.', bad_code: 'Stedskoden er ugyldig. Be lederen om en ny.', duplicate: 'Det finnes allerede en ansatt med det navnet.', bad_pin: 'Pinkoden må være fire siffer.', bad_name: 'Skriv et navn (maks 120 tegn).', too_many: 'For mange ansatte.', forbidden: 'Bare leder kan gjøre dette.' };
+  return m[e.code] || 'Noe gikk galt. Prøv igjen.';
+}
+(function () {
+  var sp = new URLSearchParams(location.search).get('s'), mm = sp && sp.match(PAIR_RE);
+  if (mm) { lsSet('fg-pair', mm[0].toUpperCase()); try { history.replaceState(null, '', location.pathname); } catch (e) { /* ok */ } }
+  if (lsGet('fg-pinsess', 0) && Date.now() - lsGet('fg-last', 0) > PIN_IDLE_MS) { lsSet('fg-pinsess', 0); sb.auth.signOut(); }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, function () { if (lsGet('fg-pinsess', 0)) lsSet('fg-last', Date.now()); }, { passive: true }); });
+  setInterval(function () { if (lsGet('fg-pinsess', 0) && S.user && Date.now() - lsGet('fg-last', 0) > PIN_IDLE_MS) { lsSet('fg-pinsess', 0); logout(); toast('Logget ut etter en stund uten bruk'); } }, 30000);
+})();
+async function authInit() {
+  var code = pairCode(), usePin = !!code && !S.authEmail;
+  $('#pinBox').hidden = !usePin; $('#emailBox').hidden = usePin;
+  $('#pairBtn').hidden = !!code; $('#backPin').hidden = !code;
+  if (!usePin) return;
+  var sel = clear($('#pinName')); $('#pinCode').value = ''; msg($('#pinMsg'), '', '');
+  var ro = null;
+  try { ro = await staffCall({ action: 'roster', code: code }); lsSet('fg-roster', ro); }
+  catch (e) {
+    if (e.code === 'bad_code') { lsSet('fg-pair', null); lsSet('fg-roster', null); toast('Stedskoden er ikke gyldig lenger'); authInit(); return; }
+    ro = lsGet('fg-roster', null); if (!ro) { msg($('#pinMsg'), 'err', staffErr(e)); return; }
+  }
+  $('#pinOrg').textContent = ro.org_name || '';
+  sel.appendChild(h('option', { value: '' }, 'Velg navn'));
+  ro.names.slice().sort(function (x, y) { return x.name.localeCompare(y.name, 'nb'); }).forEach(function (n) { sel.appendChild(h('option', { value: n.id }, n.name)); });
+  if (!ro.names.length) msg($('#pinMsg'), 'err', 'Ingen ansatte er lagt inn ennå. Lederen oppretter dem under «Ansatte og pinkode».');
+}
+async function pinLogin() {
+  var id = $('#pinName').value, pin = $('#pinCode').value.trim(), out = $('#pinMsg'), btn = $('#pinGo');
+  if (!id) { msg(out, 'err', 'Velg navnet ditt.'); return; }
+  if (!/^[0-9]{4}$/.test(pin)) { msg(out, 'err', 'Pinkoden er fire siffer.'); return; }
+  btn.disabled = true; msg(out, '', '');
+  try {
+    var r = await staffCall({ action: 'login', code: pairCode(), user_id: id, pin: pin });
+    var v = await sb.auth.verifyOtp({ token_hash: r.token_hash, type: 'magiclink' });
+    if (v.error) throw v.error;
+    lsSet('fg-pinsess', 1); lsSet('fg-last', Date.now()); $('#pinCode').value = '';
+  } catch (e) { $('#pinCode').value = ''; msg(out, 'err', e.code ? staffErr(e) : errText(e)); }
+  btn.disabled = false;
+}
+$('#pinGo').addEventListener('click', pinLogin);
+$('#pinCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') pinLogin(); });
+$('#pinToEmail').addEventListener('click', function () { S.authEmail = true; authInit(); });
+$('#backPin').addEventListener('click', function () { S.authEmail = false; authInit(); });
+$('#pairBtn').addEventListener('click', function () {
+  var inp = h('input', { type: 'text', id: 'pairIn', placeholder: 'Stedskode eller lenke', autocomplete: 'off' }), out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Koble til stedet'), h('p', { class: 'muted' }, 'Lederen finner stedskoden under «Ansatte og pinkode» i menyen. Du kan også åpne lenken lederen sender deg.'), h('label', { class: 'f' }, 'Stedskode', inp), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Avbryt'), h('button', { class: 'btn grow', type: 'button', onclick: async function () {
+      var m = inp.value.match(PAIR_RE); if (!m) { msg(out, 'err', 'Koden er 14 tegn.'); return; }
+      try { await staffCall({ action: 'roster', code: m[0].toUpperCase() }); lsSet('fg-pair', m[0].toUpperCase()); closeDlg(); S.authEmail = false; authInit(); }
+      catch (e) { msg(out, 'err', staffErr(e)); }
+    } }, 'Koble til'))]);
+});
+async function pinAdminDialog() {
+  var out = h('div', { role: 'status' }), list = h('div', { class: 'stack' }), codeBox = h('div', { class: 'stack' });
+  var nm = h('input', { type: 'text', maxlength: 120, placeholder: 'Navn', 'aria-label': 'Navn på ansatt' }), pn = h('input', { type: 'text', inputmode: 'numeric', pattern: '[0-9]*', maxlength: 4, placeholder: 'Pinkode (4 siffer)', 'aria-label': 'Pinkode, fire siffer' });
+  function reopen() { pinAdminDialog(); }
+  function ask(title, cb) {
+    var p2 = h('input', { type: 'text', inputmode: 'numeric', pattern: '[0-9]*', maxlength: 4, placeholder: '4 siffer' }), o2 = h('div', { role: 'status' });
+    openDlg([h('h2', null, title), h('label', { class: 'f' }, 'Ny pinkode (fire siffer)', p2), o2, h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: reopen }, 'Avbryt'), h('button', { class: 'btn grow', type: 'button', onclick: async function () {
+      if (!/^[0-9]{4}$/.test(p2.value)) { msg(o2, 'err', 'Pinkoden må være fire siffer.'); return; }
+      try { await cb(p2.value); toast('Lagret'); reopen(); } catch (e) { msg(o2, 'err', staffErr(e)); }
+    } }, 'Lagre'))]);
+  }
+  openDlg([h('h2', null, 'Ansatte og pinkode'),
+    h('p', { class: 'muted' }, 'Ansatte logger inn ved å velge navn og skrive pinkoden. Velg pinkoder som ikke er enkle å gjette (ikke 1234 eller fødselsår). Etter fem feil låses navnet i 15 minutter.'),
+    list, h('div', { class: 'card stack' }, h('h3', null, 'Ny ansatt'), nm, pn, h('button', { class: 'btn', type: 'button', onclick: async function () {
+      try { await staffCall({ action: 'create_staff', org_id: S.org.id, name: nm.value, pin: pn.value }, true); toast('Ansatt lagt til'); await selectOrg(S.mems.filter(function (x) { return x.org_id === S.org.id; })[0]); reopen(); }
+      catch (e) { msg(out, 'err', staffErr(e)); }
+    } }, 'Legg til')),
+    codeBox, out, h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Lukk')]);
+  try {
+    var sl = await staffCall({ action: 'staff_list', org_id: S.org.id }, true);
+    if (!sl.staff.length) list.appendChild(h('div', { class: 'note' }, 'Ingen ansatte med pinkode ennå.'));
+    sl.staff.forEach(function (s) {
+      list.appendChild(h('div', { class: 'trow' }, h('div', { class: 'grow', style: 'font-weight:600' }, s.name),
+        h('button', { class: 'btn soft small', type: 'button', onclick: function () { ask('Ny pinkode til ' + s.name, function (p) { return staffCall({ action: 'set_pin', org_id: S.org.id, user_id: s.id, pin: p }, true); }); } }, 'Ny pinkode'),
+        h('button', { class: 'btn danger small', type: 'button', onclick: async function () {
+          if (!confirm('Fjerne ' + s.name + ' fra stedet? Tidligere kvitteringer beholdes.')) return;
+          try { await staffCall({ action: 'remove_staff', org_id: S.org.id, user_id: s.id }, true); await selectOrg(S.mems.filter(function (x) { return x.org_id === S.org.id; })[0]); reopen(); } catch (e) { msg(out, 'err', staffErr(e)); }
+        } }, 'Fjern')));
+    });
+    var cd = await staffCall({ action: 'code', org_id: S.org.id }, true), link = location.origin + location.pathname + '?s=' + cd.code;
+    codeBox.appendChild(h('div', { class: 'card stack' }, h('h3', null, 'Koble en enhet til stedet'),
+      h('p', { class: 'muted' }, 'Åpne lenken på nettbrettet eller telefonen som skal brukes, eller skriv inn koden under «Ansatt? Koble til stedet med kode». Den som har koden kan se navnene og prøve pinkoder, så del den bare med de ansatte.'),
+      h('div', null, h('b', null, 'Stedskode: '), cd.code), h('div', { class: 'small', style: 'word-break:break-all' }, link),
+      h('div', { class: 'row' }, h('button', { class: 'btn soft small', type: 'button', onclick: function () { try { navigator.clipboard.writeText(link).then(function () { toast('Lenken er kopiert'); }, function () { toast('Kunne ikke kopiere. Marker lenken.'); }); } catch (e) { toast('Kunne ikke kopiere. Marker lenken.'); } } }, 'Kopier lenke'),
+        h('button', { class: 'btn danger small', type: 'button', onclick: async function () {
+          if (!confirm('Lage ny stedskode? Alle enheter må kobles til på nytt.')) return;
+          try { await staffCall({ action: 'code', org_id: S.org.id, renew: true }, true); toast('Ny stedskode laget'); reopen(); } catch (e) { msg(out, 'err', staffErr(e)); }
+        } }, 'Lag ny kode'))));
+  } catch (e) { msg(out, 'err', staffErr(e)); }
+}
+
 
 function recoveryDialog() {
   var pw = h('input', { type: 'password', id: 'newpw', minlength: 8, autocomplete: 'new-password' });
@@ -1808,6 +1919,7 @@ function drawHmsToday() {
     if (isLeder()) {
       panel.appendChild(item('Åpningstider', S.org.opening_hours ? hoursText(S.org.opening_hours).split(' · ')[0] : 'Ikke satt', hoursDialog));
       panel.appendChild(item('Kjøleskap og frysere', null, unitsDialog));
+      panel.appendChild(item('Ansatte og pinkode', 'Innlogging med navn og pinkode', pinAdminDialog));
       panel.appendChild(item('Team og invitasjon', null, teamDialog));
       panel.appendChild(item('Endringslogg', 'Hvem som endret hva', showAudit));
     }
@@ -1815,7 +1927,7 @@ function drawHmsToday() {
     panel.appendChild(item('Mitt navn', nameOf(S.user.id), nameDialog));
     if (S.mems.length > 1) panel.appendChild(item('Bytt virksomhet', null, orgSwitch));
     panel.appendChild(item('Personvern og vilkår', null, function () { location.href = '../personvern.html'; }));
-    panel.appendChild(item('Logg ut', S.user && S.user.email, logout));
+    panel.appendChild(item('Logg ut', S.user && (/@pin\.spisbart\.no$/.test(S.user.email || '') ? nameOf(S.user.id) : S.user.email), logout));
   }
   btn.addEventListener('click', function (e) {
     e.stopPropagation();

@@ -234,6 +234,15 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
   <div class="stack">
     <h1>FORTGJORT</h1>
     <p class="muted">Internkontroll for serveringssteder: rutiner, mat, alkohol og HMS. Fra <a href="../">spisbart.no</a>.</p>
+    <div id="pinBox" class="stack" hidden>
+      <h2 id="pinOrg"></h2>
+      <label class="f">Navn<select id="pinName" aria-label="Velg navn"></select></label>
+      <label class="f">Pinkode<input type="password" id="pinCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="Pinkode, fire siffer"></label>
+      <div id="pinMsg" role="status"></div>
+      <button class="btn" id="pinGo" type="button">Logg inn</button>
+      <button class="btn alt small" id="pinToEmail" type="button">Leder? Logg inn med e-post</button>
+    </div>
+    <div id="emailBox" class="stack">
     <div class="seg" role="group" aria-label="Velg">
       <button type="button" id="authIn" aria-pressed="true">Logg inn</button>
       <button type="button" id="authUp" aria-pressed="false">Ny bruker</button>
@@ -245,6 +254,9 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
       <button class="btn" id="authGo" type="submit">Logg inn</button>
       <button class="btn alt small" id="resetPw" type="button">Glemt passord</button>
     </form>
+      <button class="btn alt small" id="pairBtn" type="button">Ansatt? Koble til stedet med kode</button>
+      <button class="btn alt small" id="backPin" type="button" hidden>Tilbake til pinkode</button>
+    </div>
     <p class="muted small">Data lagres i EU. Ingen sporingsinfokapsler. Se <a href="../personvern.html">personvern</a> og <a href="../vilkar.html">vilkår</a>.</p>
   </div>
 </section>
@@ -355,7 +367,7 @@ table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-a
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="data.js?v=42"></script>
-<script src="learn.js?v=42"></script>
-<script src="app.js?v=42"></script>
+<script src="data.js?v=43"></script>
+<script src="learn.js?v=43"></script>
+<script src="app.js?v=43"></script>
 </body></html>
