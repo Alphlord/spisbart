@@ -283,7 +283,6 @@ async function renderToday() {
       saveCover(); renderToday();
     })); });
   }
-  drawQuickBar();
   var rows;
   try {
     rows = applyQueue(await fetchDay(day), day);
@@ -309,18 +308,6 @@ async function reloadQuick() {
   var q = await sb.from('quick_routines').select('*').eq('org_id', S.org.id).eq('active', true).order('sort').order('created_at');
   S.quick = q.error ? [] : q.data;
 }
-function drawQuickBar() {
-  var bar = clear($('#quickBar')), list = S.quick || [];
-  if (!list.length) {
-    if (isLeder()) bar.appendChild(h('button', { class: 'qbtn more', type: 'button', onclick: quickScreen }, '+ Når det skjer'));
-    return;
-  }
-  bar.appendChild(h('span', { class: 'lab' }, 'Når det skjer'));
-  list.filter(function (q) { return q.pinned; }).slice(0, 4).forEach(function (q) {
-    bar.appendChild(h('button', { class: 'qbtn', type: 'button', onclick: function () { quickOpen(q); } }, q.title));
-  });
-  bar.appendChild(h('button', { class: 'qbtn more', type: 'button', onclick: quickScreen }, 'Alle'));
-}
 function quickOpen(q) {
   var items = Array.isArray(q.items) ? q.items : [], boxes = [], note = h('textarea', { placeholder: 'Valgfritt notat om hva som skjedde' });
   var rows = items.map(function (t, i) {
@@ -338,22 +325,21 @@ function quickOpen(q) {
       h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Lukk')),
     h('p', { class: 'small muted' }, 'Sjekklisten er et forslag. Tilpass den til stedet. Er noen skadet eller i fare: ring 110, 112 eller 113.')]);
 }
-async function quickScreen() {
-  S.docBack = 'today';
+async function renderQuickSection(l) {
   var list = S.quick || [], runs = [];
   try { var rr = await sb.from('quick_runs').select('title,ticked,note,done_by,done_at').eq('org_id', S.org.id).order('done_at', { ascending: false }).limit(10); runs = rr.error ? [] : rr.data; } catch (e) { runs = []; }
-  var nodes = [h('div', { class: 'card stack' }, h('h2', null, 'Når det skjer'),
-    h('p', { class: 'muted' }, 'Korte sjekklister du åpner når noe skjer, uavhengig av vakt og klokkeslett. Alle kan åpne dem.'))];
-  if (!list.length) nodes.push(h('div', { class: 'note' }, isLeder() ? 'Ingen sjekklister ennå. Legg til fra forslag eller lag din egen.' : 'Ingen sjekklister er lagt inn ennå. Be lederen legge dem til.'));
+  var box = h('div', { class: 'stack' }, h('h2', null, 'Når det skjer'),
+    h('p', { class: 'muted' }, 'Korte sjekklister du åpner når noe skjer, uavhengig av vakt og klokkeslett. Alle kan åpne dem. Hver gjennomføring logges.'));
+  if (!list.length) box.appendChild(h('div', { class: 'note' }, isLeder() ? 'Ingen sjekklister ennå. Legg til fra forslag eller lag din egen.' : 'Ingen sjekklister er lagt inn ennå. Be lederen legge dem til.'));
   list.forEach(function (q) {
     var n = (q.items || []).length;
-    nodes.push(h('div', { class: 'row' },
-      h('button', { class: 'dev grow', type: 'button', onclick: function () { quickOpen(q); } }, h('div', { class: 't' }, q.title), h('div', { class: 'small muted' }, (q.intro ? q.intro + ' ' : '') + n + ' punkter' + (q.pinned ? ' · knapp i I dag' : ''))),
+    box.appendChild(h('div', { class: 'row' },
+      h('button', { class: 'dev grow', type: 'button', onclick: function () { quickOpen(q); } }, h('div', { class: 't' }, q.title), h('div', { class: 'small muted' }, (q.intro ? q.intro + ' ' : '') + n + ' punkter')),
       isLeder() ? h('button', { class: 'btn soft small', type: 'button', onclick: function () { quickEdit(q); } }, 'Rediger') : null));
   });
-  if (isLeder()) nodes.push(h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: function () { quickEdit(null); } }, 'Ny sjekkliste'), h('button', { class: 'btn alt', type: 'button', onclick: quickSuggest }, 'Legg til fra forslag')));
-  if (runs.length) nodes.push(h('div', { class: 'card stack' }, h('h2', null, 'Siste gjennomføringer'), table(['Tid', 'Hvem', 'Sjekkliste', 'Punkter'], runs.map(function (x) { return [fmtTs(x.done_at), nameOf(x.done_by), x.title, x.ticked]; }))));
-  docScreen(nodes, null); $('#docPrint').hidden = true;
+  if (isLeder()) box.appendChild(h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: function () { quickEdit(null); } }, 'Ny sjekkliste'), h('button', { class: 'btn alt', type: 'button', onclick: quickSuggest }, 'Legg til fra forslag')));
+  if (runs.length) box.appendChild(h('details', { class: 'card' }, h('summary', { style: 'font-weight:600;cursor:pointer' }, 'Logg for sjekklister (' + runs.length + ')'), table(['Tid', 'Hvem', 'Sjekkliste', 'Punkter'], runs.map(function (x) { return [fmtTs(x.done_at), nameOf(x.done_by), x.title, x.ticked]; }))));
+  l.appendChild(box);
 }
 function quickSuggest() {
   var have = {}; (S.quick || []).forEach(function (q) { have[q.title] = 1; });
@@ -368,29 +354,27 @@ function quickSuggest() {
       if (!rows.length) { closeDlg(); return; }
       var r = await sb.from('quick_routines').insert(rows);
       if (r.error) { toast(errText(r.error)); return; }
-      closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen(); toast('Lagt til');
+      closeDlg(); await reloadQuick(); renderMod(); toast('Lagt til');
     } }, 'Legg til valgte')]);
 }
 function quickEdit(q) {
   var title = h('input', { type: 'text', maxlength: 80, value: q ? q.title : '' }), intro = h('input', { type: 'text', maxlength: 300, value: q && q.intro ? q.intro : '' });
   var items = h('textarea', { rows: 8, placeholder: 'Ett punkt per linje' }, q ? (q.items || []).join('\n') : '');
-  var pin = h('input', { type: 'checkbox', id: 'q-pin', checked: q ? q.pinned : true });
-  openDlg([h('h2', null, q ? 'Rediger sjekkliste' : 'Ny sjekkliste'), h('label', { class: 'f' }, 'Navn', title), h('label', { class: 'f' }, 'Når brukes den?', intro), h('label', { class: 'f' }, 'Punkter', items),
-    h('label', { class: 'qchk', for: 'q-pin' }, pin, h('span', null, 'Vis som knapp i I dag (maks fire vises)')),
+    openDlg([h('h2', null, q ? 'Rediger sjekkliste' : 'Ny sjekkliste'), h('label', { class: 'f' }, 'Navn', title), h('label', { class: 'f' }, 'Når brukes den?', intro), h('label', { class: 'f' }, 'Punkter', items),
     h('div', { class: 'row' },
       h('button', { class: 'btn', type: 'button', onclick: async function () {
         var name = title.value.trim(), arr = items.value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
         if (!name || !arr.length) { toast('Skriv navn og minst ett punkt'); return; }
-        var row = { title: name, intro: intro.value.trim() || null, items: arr, pinned: pin.checked };
+        var row = { title: name, intro: intro.value.trim() || null, items: arr };
         var r = q ? await sb.from('quick_routines').update(row).eq('id', q.id) : await sb.from('quick_routines').insert(Object.assign({ org_id: S.org.id, sort: (S.quick || []).length }, row));
         if (r.error) { toast(errText(r.error)); return; }
-        closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen();
+        closeDlg(); await reloadQuick(); renderMod();
       } }, 'Lagre'),
       q ? h('button', { class: 'btn danger', type: 'button', onclick: async function () {
         if (!confirm('Slette «' + q.title + '»?')) return;
         var r = await sb.from('quick_routines').delete().eq('id', q.id);
         if (r.error) { toast(errText(r.error)); return; }
-        closeDlg(); await reloadQuick(); drawQuickBar(); quickScreen();
+        closeDlg(); await reloadQuick(); renderMod();
       } }, 'Slett') : null)]);
 }
 function chip(text, on, fn) { return h('button', { class: 'chip', type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick: fn }, text); }
@@ -869,7 +853,7 @@ function minOf(t) { return +hm(t).slice(0, 2) * 60 + +hm(t).slice(3); }
 function blockSpan(b) { return b.start_time || b.end_time ? hm(b.start_time) + '–' + hm(b.end_time) + (blockNight(b) ? ' (natt)' : '') : 'Hele døgnet'; }
 function blockDays(b) { return b.weekdays && b.weekdays.length && b.weekdays.length < 7 ? b.weekdays.slice().sort().map(function (n) { return WD[n - 1]; }).join(', ') : 'Alle dager'; }
 var MOD = {
-  rut: ['Rutiner', 'Bygg rutiner i rutinesamlinger for steder, vakter og tider på døgnet. Hver rutinesamling blir en egen gruppe i I dag-listen.'],
+  rut: ['Planlegging', 'Her planlegger du rutiner og sjekklister. Rutinesamlinger (steder, vakter og tider på døgnet) blir egne grupper i I dag-listen. Sjekklister åpnes når noe skjer.'],
   mat: ['IK-mat', 'Internkontroll for mat: HACCP-plan, temperaturer, renhold og avvik.'],
   alkohol: ['IK-alkohol', 'Internkontroll for servering av alkohol: ansvar, opplæring og hendelser.'],
   hms: ['HMS', 'Helse, miljø og sikkerhet: vernerunder, brann, førstehjelp og risiko.']
@@ -1266,6 +1250,7 @@ async function reloadBlocks() {
   if (!a.error) S.blocks = a.data; if (!b.error) S.tasks = b.data;
 }
 function renderRut(l) {
+  renderQuickSection(l);
   var leder = isLeder(), blocks = S.blocks || [];
   if (leder) l.appendChild(h('button', { class: 'btn', onclick: function () { blockDialog(null); } }, 'Ny rutinesamling'));
   if (leder && !blocks.length) {
@@ -1814,7 +1799,7 @@ function drawHmsToday() {
     clear(panel);
     if (!S.org) return;
     panel.appendChild(h('div', { class: 'mh' }, h('b', null, S.org.name), h('span', { class: 'small muted' }, isLeder() ? 'Leder' : 'Ansatt')));
-    panel.appendChild(item('Når det skjer', 'Sjekklister ved hendelser', quickScreen));
+    panel.appendChild(item('Planlegging', 'Rutiner og sjekklister', function () { S.mod = 'rut'; go('mod'); }));
     panel.appendChild(item('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
     panel.appendChild(item('Tilsynsmappe', 'Plan, kvitteringer og avvik', showFolder));
     if (isLeder()) {
