@@ -89,7 +89,7 @@ function go(name) {
   if (name === 'today') renderToday();
   if (name === 'cal') renderCal();
   if (name === 'dev') loadDevs();
-  if (name === 'learn') renderLearn();
+  if (name === 'learn') { S.learn.view = 'list'; renderLearn(); }
   if (name === 'more') renderMore();
 }
 $$('#tabs button[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
@@ -1859,7 +1859,7 @@ function hoursDialog() {
 }
 
 /* ---------- OPPLÆRING ---------- */
-S.learn = { view: 'list', signs: [], answers: null, order: null, result: null };
+S.learn = { view: 'list', signs: null, answers: null, order: null, result: null };
 function learnMe() { return (S.members || []).filter(function (m) { return m.user_id === S.user.id; })[0] || { work_areas: [] }; }
 function learnKinds(m) { var ids = m.work_areas || [], k = {}; S.areas.forEach(function (a) { if (ids.indexOf(a.id) >= 0) k[a.kind] = 1; }); return k; }
 function learnApplies(b, kinds) {
@@ -1877,13 +1877,21 @@ async function loadSigns(all) {
   var r = await q; if (r.error) throw r.error; return r.data;
 }
 async function renderLearn() {
-  var box = clear($('#learnBox'));
   if (!S.org) return;
+  var box = $('#learnBox'), v = S.learn.view;
+  function paint(fn) { var n = h('div', { class: 'stack' }); fn(n); clear(box); while (n.firstChild) box.appendChild(n.firstChild); }
   try {
-    if (S.learn.view === 'list') { S.learn.signs = await loadSigns(false); learnList(box); }
-    else if (S.learn.view === 'team') await learnTeam(box);
-    else { if (!S.learn.signs.length) S.learn.signs = await loadSigns(false); learnBolk(box, S.learn.view); }
-  } catch (e) { box.appendChild(h('div', { class: 'err' }, errText(e))); }
+    if (v === 'team') { var n = h('div', { class: 'stack' }); await learnTeam(n); clear(box); while (n.firstChild) box.appendChild(n.firstChild); return; }
+    if (v === 'list') {
+      if (S.learn.signs) paint(learnList);               // vis med en gang, oppdater i bakgrunnen
+      var fresh = await loadSigns(false);
+      if (S.learn.view !== 'list') return;
+      if (!S.learn.signs || JSON.stringify(fresh) !== JSON.stringify(S.learn.signs)) { S.learn.signs = fresh; paint(learnList); }
+      return;
+    }
+    if (!S.learn.signs) S.learn.signs = await loadSigns(false);
+    paint(function (n) { learnBolk(n, v); });
+  } catch (e) { clear(box); box.appendChild(h('div', { class: 'err' }, errText(e))); }
 }
 function learnList(box) {
   var L = window.DATA.learn, me = learnMe(), kinds = learnKinds(me), signs = S.learn.signs;
@@ -1920,7 +1928,7 @@ function learnGroup(box, title, list, signs) {
   var g = h('div', { class: 'group' }, h('header', null, h('h3', null, title), h('span', { class: 'pill' }, list.length)));
   list.forEach(function (b) {
     var s = learnSigned(signs, b);
-    g.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { S.learn.view = b.id; S.learn.answers = null; S.learn.result = null; renderLearn(); window.scrollTo(0, 0); } },
+    g.appendChild(h('button', { class: 'dev', type: 'button', onclick: function () { S.learn.view = b.id; S.learn.answers = null; S.learn.order = null; S.learn.result = null; renderLearn().then(function () { window.scrollTo(0, 0); }); } },
       h('div', { class: 't' }, b.title),
       h('div', { class: 'small muted' }, b.min + ' min · ' + (s ? (s.old ? 'Frisk opp (signert ' + fmtTs(s.at).split(' ')[0] + ')' : 'Signert ' + fmtTs(s.at).split(' ')[0]) : 'Ikke signert')),
       s && !s.old ? h('span', { class: 'pill g' }, 'Signert') : null));
@@ -1970,7 +1978,7 @@ function learnQuiz(qbox, b) {
     qbox.appendChild(card);
   });
   var btn = h('button', { class: 'btn', type: 'button', disabled: true, onclick: function () {
-    L.result = b.quiz.map(function (q, i) { return L.answers[i] === q.a; }); learnQuiz(qbox, b);
+    L.result = b.quiz.map(function (q, i) { return L.answers[i] === q.a; }); learnQuiz(qbox, b); qbox.scrollIntoView({ block: 'start' });
   } }, 'Send inn svar');
   qbox.appendChild(btn);
 }
@@ -1986,13 +1994,13 @@ function learnResult(qbox, b) {
     var btn = h('button', { class: 'btn', type: 'button', disabled: true, onclick: async function () {
       var r = await sb.from('training_signoffs').insert({ org_id: S.org.id, module_id: b.id, version: b.v, score: 4 });
       if (r.error) { toast(errText(r.error)); return; }
-      toast('Signert: ' + b.title); S.learn.signs = []; S.learn.view = 'list'; S.learn.order = null; renderLearn(); window.scrollTo(0, 0);
+      toast('Signert: ' + b.title); (S.learn.signs = S.learn.signs || []).unshift({ module_id: b.id, version: b.v, score: 4, signed_at: new Date().toISOString(), user_id: S.user.id }); S.learn.view = 'list'; S.learn.order = null; S.learn.answers = null; S.learn.result = null; await renderLearn(); window.scrollTo(0, 0);
     } }, 'Signer ut bolken');
     chk.addEventListener('change', function () { btn.disabled = !chk.checked; });
     qbox.appendChild(h('div', { class: 'card stack' }, h('label', { class: 'qchk', for: 'lsign' }, chk, h('span', null, 'Jeg har lest og forstått «' + b.title + '», og kan de fire viktigste punktene.')), btn));
   } else {
     qbox.appendChild(h('p', { class: 'muted' }, 'Les bolken en gang til og prøv på nytt. Du kan ta quizen så mange ganger du vil.'));
-    qbox.appendChild(h('button', { class: 'btn', type: 'button', onclick: function () { L.order = null; learnQuiz(qbox, b); } }, 'Prøv igjen'));
+    qbox.appendChild(h('button', { class: 'btn', type: 'button', onclick: function () { L.order = null; learnQuiz(qbox, b); qbox.scrollIntoView({ block: 'start' }); } }, 'Prøv igjen'));
   }
 }
 async function learnTeam(box) {
