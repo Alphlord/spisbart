@@ -1681,6 +1681,22 @@ function drawHmsToday() {
   b.appendChild(box);
 }
 
+/* Logo: rutene bytter plass en stund og kommer tilbake. FORTGJORT-navnet tar deg til I dag. */
+(function () {
+  var busy = false;
+  $('#logoBtn').addEventListener('click', function () {
+    if (busy) return; busy = true;
+    var q = $$('#logoBtn .q'), n = q.length, perm = [], i;
+    do { perm = []; for (i = 0; i < n; i++) perm.push(i); for (i = n - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = perm[i]; perm[i] = perm[j]; perm[j] = t; } }
+    while (perm.every(function (p, k) { return p === k; }));
+    q.forEach(function (el, k) {
+      var to = perm[k], dx = ((to % 3) - (k % 3)) * 42, dy = (Math.floor(to / 3) - Math.floor(k / 3)) * 42;
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    });
+    setTimeout(function () { q.forEach(function (el) { el.style.transform = ''; }); setTimeout(function () { busy = false; }, 600); }, 2200);
+  });
+  $('#homeBtn').addEventListener('click', function () { S.day = ymd(new Date()); go('today'); });
+})();
 $('#orgName').addEventListener('click', function () { if (S.org && S.mems.length > 1) orgSwitch(); });
 window.__ikmat = { S: S, go: go, dueOn: dueOn };
 })();
