@@ -167,7 +167,35 @@ prods=''.join([
 pbody='<section class="pagehead"><div class="wrap"><h1>Produkter</h1><p class="lead2">Fire apper, og alle kan prøves som demo uten innlogging.</p><div class="prodgrid">%s</div></div></section>'%prods
 page('produkter.html','Produkter – spisbart.no','Bare Barnemat, Auto·Mat og QuizzMeg: apper for barnehage, kjøkken og kunnskapsprøver.',pbody)
 page('barnehage.html','For barnehage – Bare Barnemat','Bare Barnemat: planlegg månedens måltider, få varsel om allergier og se hva måneden koster.',barn+'\n'+trygg,'','pg-barn')
-page('horeca.html','For horeca – Auto·Mat','Auto·Mat: varekost, svinn, margin og allergenkort for kjøkken, kafeer og serveringssteder.',kafe+'\n'+supplier,'','pg-kafe')
+fortgjort = """<section class="chapter ch-kafe" id="fortgjort">
+  <div class="wrap">
+    <h1>Internkontroll og rutiner som blir gjort</h1>
+    <div class="ch-top">
+      <div>
+        <p class="pitch"><b>FORTGJORT – dine rutiner</b> samler dagens oppgaver, internkontroll for mat og alkohol, HMS, avvik og opplæring i én app. Alle ser hva som skal gjøres i dag, kvitterer med navn og tid, og alt havner i en logg du kan vise frem ved tilsyn.</p>
+        <p class="ch-note">Demoen har fiktive data fra «Kafé Fiktiv». Logg inn med brukernavn <b>navn</b> og pinkode <b>1111</b>. Ingenting lagres: når du laster siden på nytt, starter demoen fra begynnelsen.</p>
+      </div>
+      <div class="panel">
+        <h3>Dette kan du</h3>
+        <ul>
+          <li>Få dagens rutiner delt inn i åpning og stenging for kjøkken, bar og kafé</li>
+          <li>Kvittere med avkrysning, temperaturmåling og notat</li>
+          <li>Registrere avvik og følge dem til de er lukket</li>
+          <li>Planlegge sjekklister og faste rutiner, med egen logg</li>
+          <li>La ansatte logge seg inn med navn og firesifret pinkode</li>
+          <li>Gi opplæring i mat, alkohol, HMS og rutiner, med quiz og signering</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phones">
+      <figure><img src="bilder/fortgjort-1.webp" width="520" height="1013" alt="FORTGJORT på mobil: dagens oppgaver med fremdrift og kvitteringer" loading="lazy"><figcaption>Dagens oppgaver, med navn og tid på hver kvittering.</figcaption></figure>
+      <figure><img src="bilder/fortgjort-2.webp" width="520" height="1013" alt="Avvik: liste over åpne og lukkede avvik" loading="lazy"><figcaption>Avvik fra måling eller hendelse, til de er fulgt opp.</figcaption></figure>
+      <figure><img src="bilder/fortgjort-3.webp" width="520" height="1013" alt="Opplæring: bolker per arbeidsområde med quiz og signering" loading="lazy"><figcaption>Opplæring etter arbeidsområde, signert med quiz.</figcaption></figure>
+    </div>
+    <div class="ch-btns ch-btns-end"><a class="ch-btn" href="ikmat/demo.html">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=FORTGJORT">Kontakt oss</a></div>
+  </div>
+</section>"""
+page('horeca.html','For horeca – Auto·Mat','Auto·Mat: varekost, svinn, margin og allergenkort for kjøkken, kafeer og serveringssteder.',kafe+'\n'+fortgjort+'\n'+supplier,'','pg-kafe')
 quiz=prove.replace('<div class="sub-app">','<div class="sub-app" id="skjenke">',1)
 i=quiz.index('<div class="sub-app">'); quiz=quiz[:i]+'<div class="sub-app" id="etablerer">'+quiz[i+len('<div class="sub-app">'):]
 page('quiz.html','Quiz deg til kunnskap – Skjenkeprøven og Etablererprøven','QuizzMeg: øv til skjenkeprøven og etablererprøven med pensum, quiz og eksamen.',quiz,'','pg-prove')

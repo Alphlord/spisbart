@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FORTGJORT – demo</title>
+<meta name="description" content="FORTGJORT – dine rutiner: rutiner, internkontroll for mat og alkohol, HMS, avvik og tilsynsmappe for kjøkken, bar og kafé.">
+<meta name="theme-color" content="#FFFDF8">
+<meta name="robots" content="noindex"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preload" href="../fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Mobil først: innhold i én kolonne, faste faner nederst. Samme palett som spisbart.no. */
+:root{
+  --bg:#FFFDF8; --fg:#1B1A17; --muted:#5E5A50; --line:#E6E0D2; --card:#FFFFFF; --band:#F4EFE2;
+  --accent:#E9D09A; --on-accent:#1B1A17; --green:#4F6338; --green-bg:#E7EEDC; --red:#A4474F; --red-bg:#F6E3E4;
+  --amber:#8A6414; --amber-bg:#F6ECD0; --blue:#1B4F7A;
+  --rk-prp:#CFE3B4; --rk-prp-fg:#2F4A17; --rk-cp:#F5E39A; --rk-cp-fg:#5A4608; --rk-oprp:#F2BE80; --rk-oprp-fg:#6A3A06; --rk-ccp:#EE9A9F; --rk-ccp-fg:#6B1820; --rk-mod:#E4E0D4; --rk-mod-fg:#4A463C;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --tabs:56px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#16150F; --fg:#F3EFE4; --muted:#B5AF9F; --line:#34312A; --card:#201E17; --band:#1D1B14;
+  --accent:#E9D09A; --on-accent:#16150F; --green:#9BBF5A; --green-bg:#26301A; --red:#E08A93; --red-bg:#3A1E22;
+  --amber:#E3BD66; --amber-bg:#33290F; --blue:#5FA8DC;
+  --rk-prp:#33492A; --rk-prp-fg:#CFE8B0; --rk-cp:#52451A; --rk-cp-fg:#F5E39A; --rk-oprp:#5B3A14; --rk-oprp-fg:#F6CE9A; --rk-ccp:#5E2429; --rk-ccp-fg:#F6B7BB; --rk-mod:#34312A; --rk-mod-fg:#D6D1C2; color-scheme:dark}}
+
+/* Farevurdering: risikomatrise */
+.rk{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:700}
+.rk.PRP{background:var(--rk-prp);color:var(--rk-prp-fg)} .rk.CP{background:var(--rk-cp);color:var(--rk-cp-fg)} .rk.OPRP{background:var(--rk-oprp);color:var(--rk-oprp-fg)} .rk.CCP{background:var(--rk-ccp);color:var(--rk-ccp-fg)} .rk.MOD,.rk.NONE{background:var(--rk-mod);color:var(--rk-mod-fg)}
+.hzr{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:4px} .hzr:last-child{border-bottom:0}
+.hzr .rline{display:flex;gap:10px;align-items:center;margin:0 0 4px 36px;flex-wrap:wrap}
+.rmx{display:grid;grid-template-columns:20px 64px repeat(5,minmax(0,1fr));gap:2px;align-items:stretch;margin:8px 0}
+.rmx .sp{grid-column:2} .rmx .hr{grid-column:2} .rmx .corner{grid-column:1/3}
+.rmx .xt{grid-column:3/8;font-weight:700;font-size:13px;text-align:center;padding-bottom:2px}
+.rmx .yt{grid-row:2/8;grid-column:1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.rmx .yt span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+.rmx .hc,.rmx .hr{font-size:11px;line-height:1.15;color:var(--muted);display:flex;min-width:0;overflow-wrap:anywhere;border-radius:6px}
+.rmx .hc{justify-content:center;text-align:center;padding:4px 1px;align-items:flex-end} .rmx .hr{padding-right:4px;align-items:center}
+.rmx .hc.on,.rmx .hr.on{color:var(--fg);font-weight:700;background:var(--band)}
+.rmx .cell{font:500 11px var(--body);border:2px solid transparent;border-radius:6px;min-height:46px;padding:0;cursor:pointer}
+.rmx .cell.PRP{background:var(--rk-prp);color:var(--rk-prp-fg)} .rmx .cell.CP{background:var(--rk-cp);color:var(--rk-cp-fg)} .rmx .cell.OPRP{background:var(--rk-oprp);color:var(--rk-oprp-fg)} .rmx .cell.CCP{background:var(--rk-ccp);color:var(--rk-ccp-fg)}
+.rmx .cell:not([aria-pressed=true]){color:color-mix(in srgb,currentColor 55%,transparent)}
+.rmx .cell[aria-pressed=true]{border-color:var(--fg);font-weight:700}
+.rres{border-radius:10px;padding:10px 12px;display:grid;gap:4px;margin-bottom:6px}
+.rres.PRP{background:var(--rk-prp);color:var(--rk-prp-fg)} .rres.CP{background:var(--rk-cp);color:var(--rk-cp-fg)} .rres.OPRP{background:var(--rk-oprp);color:var(--rk-oprp-fg)} .rres.CCP{background:var(--rk-ccp);color:var(--rk-ccp-fg)}
+.rres b{font-family:var(--display);font-size:20px} .rres p{margin:0;font-size:15px}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 var(--body);
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px)}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin:0;text-wrap:balance}
+h1{font-size:34px} h2{font-size:26px} h3{font-size:20px}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+[hidden]{display:none!important}
+.muted{color:var(--muted)} .small{font-size:14px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1 1 0;min-width:0}
+
+/* topplinje */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);padding-bottom:8px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;position:relative}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;color:var(--fg)}
+.brandbox{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.logo{border:0;background:none;padding:6px;margin:-6px;cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent}
+.logo svg{width:24px;height:24px;display:block;overflow:visible}
+.logo .q{transition:transform .55s cubic-bezier(.5,-.3,.3,1.3)}
+.wordmark{border:0;background:none;padding:6px 0;cursor:pointer;font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:.03em;text-transform:uppercase;color:var(--fg);line-height:1}
+@media(max-width:519px){.top .wrap{flex-wrap:wrap;row-gap:0;padding-top:6px}.top .brandbox{flex:1 1 auto}.top .burger{order:2}.top .mods{order:3;flex:1 0 100%;margin-left:0;justify-content:space-between}nav.tabs{top:calc(env(safe-area-inset-top,0px) + 102px)}}
+@media(prefers-reduced-motion:reduce){.logo .q{transition:none}}
+.burger{border:0;background:none;padding:10px;margin:-4px -10px -4px 0;cursor:pointer;line-height:0;color:var(--fg);flex:0 0 auto}
+.burger svg{width:26px;height:26px;display:block}
+.menupanel{position:absolute;right:0;top:100%;z-index:30;width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 90px);overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;margin-top:4px}
+.menupanel .mh{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.menupanel .mh b{display:block;font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+.menupanel .mi{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:16px;padding:11px 10px;border-radius:8px;cursor:pointer;color:var(--fg)}
+.menupanel .mi:hover,.menupanel .mi:focus-visible{background:rgba(0,0,0,.06)}
+.menupanel .mi small{display:block;color:var(--muted);font-size:13px}
+.menupanel hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mods{display:flex;align-items:center;justify-content:flex-end;gap:0;min-width:0;flex:0 1 auto;margin-left:auto}
+.mods .sq{width:9px;height:9px;border-radius:2px;flex:0 0 auto;margin:0 3px}
+.mods button{border:0;background:transparent;font-family:var(--display);font-weight:800;flex:0 1 auto;text-align:center;font-size:17px;text-transform:uppercase;letter-spacing:.01em;color:var(--muted);padding:12px 6px 8px;border-bottom:3px solid transparent;cursor:pointer}
+.mods button[aria-current=true]{color:var(--fg);border-bottom-color:#E8B84B}
+
+main{padding-top:18px}
+.screen{display:none;flex-direction:column;gap:18px}
+.screen.on{display:flex}
+
+/* knapper og felt */
+.btn{border:2px solid var(--fg);background:var(--fg);color:var(--bg);border-radius:10px;padding:11px 18px;font-weight:600;min-height:46px}
+.btn.alt{background:transparent;color:var(--fg)}
+.btn.soft{background:var(--band);border-color:var(--line);color:var(--fg)}
+.btn.small{min-height:38px;padding:6px 12px;font-size:15px}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn[disabled]{opacity:.5;cursor:default}
+label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:15px}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=time],select,textarea{
+  width:100%;border:2px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;min-height:46px;font-weight:400;font-size:17px}
+textarea{min-height:96px;resize:vertical}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.note{background:var(--band);border-radius:12px;padding:12px 14px;font-size:15px}
+.err{background:var(--red-bg);color:var(--red);border-radius:10px;padding:10px 12px;font-size:15px}
+.ok{background:var(--green-bg);color:var(--green);border-radius:10px;padding:10px 12px;font-size:15px}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:600;background:var(--band);color:var(--muted)}
+.pill.g{background:var(--green-bg);color:var(--green)} .pill.r{background:var(--red-bg);color:var(--red)} .pill.a{background:var(--amber-bg);color:var(--amber)}
+
+/* innlogging */
+#s-auth{max-width:440px;margin:0 auto}
+.seg{display:flex;border:2px solid var(--fg);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:10px;font-weight:600;min-height:44px}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+
+/* veiviser */
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:6px;border-radius:99px;background:var(--line)}
+.steps i.on{background:var(--green)}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.chk:last-child{border-bottom:0}
+.chk input{width:24px;height:24px;flex:none;margin:2px 0 0;accent-color:var(--green)}
+.chk b{display:block;font-weight:600}
+.chk span{display:block;color:var(--muted);font-size:14px}
+
+/* i dag */
+.datebar{display:flex;align-items:center;gap:8px}
+.datebar .d{flex:1;text-align:center;font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
+.datebar .d small{display:block;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--muted)}
+.prog{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--green);width:0;transition:width .2s}
+.cov{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cov .chips{flex:1 1 0;min-width:0}
+.cov .lab{font-size:13px;color:var(--muted);flex:0 0 auto}
+.quick{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-bottom:2px}
+.quick .lab{font-size:13px;color:var(--muted);flex:0 0 auto}
+.qbtn{border:2px solid #C25A2E;background:var(--card);color:var(--fg);border-radius:10px;padding:6px 12px;font-weight:700;white-space:nowrap;min-height:38px;font-family:var(--display);font-size:17px;text-transform:uppercase;letter-spacing:.02em}
+.qbtn.more{border-color:var(--line);color:var(--muted)}
+details.other{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 12px}
+details.other summary{cursor:pointer;padding:10px 0;font-family:var(--display);font-weight:800;font-size:19px;text-transform:uppercase}
+.qchk{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:17px}
+.qchk input{width:26px;height:26px;flex:0 0 auto;margin-top:1px}
+.bar{height:10px;border-radius:99px;background:var(--band);overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-weight:600;white-space:nowrap;min-height:38px}
+.chip[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.group{display:flex;flex-direction:column;gap:8px}
+.group>header{display:flex;align-items:baseline;gap:10px}
+.group>header h3{flex:1}
+.task{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.task .tick{flex:none;width:38px;height:38px;border-radius:10px;border:2px solid var(--fg);background:transparent;display:grid;place-content:center;font-size:22px;line-height:1;padding:0}
+.task.done .tick{background:var(--green);border-color:var(--green);color:#fff}
+.task.skipped .tick{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.task .body{flex:1;min-width:0}
+.task .ttl{font-weight:600}
+.task.done .ttl{color:var(--muted)}
+.task .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.task .more{font-size:14px;color:var(--muted);margin-top:6px}
+.task .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* kalender */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .h{font-size:12px;text-align:center;color:var(--muted);font-weight:600;text-transform:uppercase}
+.cal button.day{aspect-ratio:1;border:1px solid var(--line);background:var(--card);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;font-weight:600}
+.cal button.day.out{opacity:.35}
+.cal button.day.today{border:2px solid var(--fg)}
+.cal button.day .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.cal button.day .dot.g{background:var(--green)} .cal button.day .dot.a{background:var(--amber)} .cal button.day .dot.r{background:var(--red)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.trow{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.trow.off{opacity:.55}
+
+/* avvik */
+.dev{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;text-align:left;width:100%}
+.dev .t{font-weight:600}
+
+/* faner */
+#s-today .datebar{margin-top:16px}
+.tabs{position:sticky;top:calc(env(safe-area-inset-top,0px) + 61px);z-index:19;background:var(--card);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:2px}
+.tabs button{border:0;background:transparent;height:var(--tabs);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;color:var(--muted)}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-current=page]{color:var(--fg)}
+.tabs button[data-go=today] svg rect{fill:#8DB75A}
+.tabs button[data-go=today] svg path{stroke:#111}
+.tabs button[aria-current=page] svg{stroke-width:2.6}
+
+/* dialog som bunnark */
+dialog{border:0;border-radius:18px 18px 0 0;padding:0;max-width:720px;width:100%;margin:auto auto 0;background:var(--bg);color:var(--fg);max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog .in{padding:18px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;max-height:90vh}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:60;font-weight:600;max-width:90vw}
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.scroll{overflow-x:auto}
+.offline{background:var(--amber-bg);color:var(--amber);text-align:center;font-size:14px;padding:6px}
+@media print{
+  .top,.tabs,.noprint,.toast,.offline{display:none!important}
+  body{padding:0;background:#fff;color:#000;font-size:12pt}
+  .screen:not(.printing){display:none!important}
+  .card{border:1px solid #999;break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){.prog i{transition:none}}
+</style></head>
+<body><style>
+#dg{position:fixed;inset:0;z-index:99999;background:#f4f1ea;display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif}
+#dg form{background:#fff;border-radius:14px;padding:24px;max-width:340px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.12)}
+#dg h1{margin:0 0 4px;font-size:1.3rem}#dg p{margin:0 0 14px;color:#555;font-size:.92rem}
+#dg label{display:block;font-size:.85rem;margin:10px 0 4px}#dg input{width:100%;box-sizing:border-box;padding:11px;font-size:1rem;border:1px solid #bbb;border-radius:8px}
+#dg button{margin-top:16px;width:100%;padding:12px;font-size:1rem;border:0;border-radius:8px;background:#2f6b3a;color:#fff;font-weight:600}
+#dg .e{color:#b00020;font-size:.85rem;min-height:1.2em;margin-top:8px}
+#dbar{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#fff3c4;color:#533;font:12px system-ui;padding:5px 8px;text-align:center;border-top:1px solid #e0c96a}
+#dbar a{color:#533;margin-left:8px}
+</style>
+<div id="dg"><form id="dgf"><h1>FORTGJORT – demo</h1><p>Prøv appen med fiktive data. Ingenting lagres.</p>
+<label for="dgu">Brukernavn</label><input id="dgu" autocomplete="off" autocapitalize="off">
+<label for="dgp">Pinkode</label><input id="dgp" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+<div class="e" id="dge"></div><button>Logg inn</button></form></div>
+<div id="dbar">Demo med fiktive data – alt nullstilles når du laster siden på nytt. <a href="../horeca.html">Tilbake til spisbart.no</a></div>
+<script>document.getElementById('dgf').onsubmit=function(e){e.preventDefault();
+if(document.getElementById('dgu').value.trim().toLowerCase()==='navn'&&document.getElementById('dgp').value==='1111'){document.getElementById('dg').remove();window.__demoOpen();}
+else document.getElementById('dge').textContent='Feil brukernavn eller pinkode.';};</script>
+
+<div id="offline" class="offline" hidden>Ingen nett. Kvitteringer lagres her og sendes når du er på nett igjen.</div>
+<header class="top" id="top" hidden><div class="wrap">
+  <div class="brandbox">
+    <button class="logo" id="logoBtn" type="button" aria-label="Ruter. Trykk så bytter de plass."><svg viewBox="0 0 120 120" aria-hidden="true"><rect class="q" data-i="0" x="0" y="0" width="36" height="36" rx="4" fill="#F2B544"/><rect class="q" data-i="1" x="42" y="0" width="36" height="36" rx="4" fill="#C25A2E"/><rect class="q" data-i="2" x="84" y="0" width="36" height="36" rx="4" fill="#C25A2E"/><rect class="q" data-i="3" x="0" y="42" width="36" height="36" rx="4" fill="#66794D"/><rect class="q" data-i="4" x="42" y="42" width="36" height="36" rx="4" fill="#F2B544"/><rect class="q" data-i="5" x="84" y="42" width="36" height="36" rx="4" fill="#C25A2E"/><rect class="q" data-i="6" x="0" y="84" width="36" height="36" rx="4" fill="#66794D"/><rect class="q" data-i="7" x="42" y="84" width="36" height="36" rx="4" fill="#66794D"/><rect class="q" data-i="8" x="84" y="84" width="36" height="36" rx="4" fill="#F2B544"/></svg></button>
+    <button class="wordmark" id="homeBtn" type="button" aria-label="FORTGJORT, gå til i dag">FORTGJORT</button>
+  </div>
+  <nav class="mods" id="mods" aria-label="Moduler">
+    <button type="button" data-mod="rut">Planlegging</button><i class="sq" style="background:#66794D" aria-hidden="true"></i>
+    <button type="button" data-mod="mat">IK-mat</button><i class="sq" style="background:#F2B544" aria-hidden="true"></i>
+    <button type="button" data-mod="alkohol">IK-alkohol</button><i class="sq" style="background:#C25A2E" aria-hidden="true"></i>
+    <button type="button" data-mod="hms">HMS</button>
+  </nav>
+  <button class="burger" id="burger" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menuPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="menupanel" id="menuPanel" role="menu" hidden></div>
+</div></header>
+<nav class="tabs" id="tabs" hidden aria-label="Hovedmeny"><div class="wrap">
+  <button data-go="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8.5 9.5 1.8 1.8 3.5-3.6M8.5 16h7"/></svg>I dag</button>
+  <button id="addNav" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Rutine</button>
+  <button data-go="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/></svg>Avvik</button>
+  <button data-go="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 5l9 4.5-9 4.5z"/><path d="M7 12v4.5c0 1 2.2 2.5 5 2.5s5-1.5 5-2.5V12"/></svg>Opplæring</button>
+</div></nav>
+
+<main class="wrap">
+
+<!-- Innlogging -->
+<section class="screen" id="s-auth">
+  <div class="stack">
+    <h1>FORTGJORT</h1>
+    <p class="muted">Internkontroll for serveringssteder: rutiner, mat, alkohol og HMS. Fra <a href="../">spisbart.no</a>.</p>
+    <div id="pinBox" class="stack" hidden>
+      <h2 id="pinOrg"></h2>
+      <label class="f">Navn<select id="pinName" aria-label="Velg navn"></select></label>
+      <label class="f">Pinkode<input type="password" id="pinCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="Pinkode, fire siffer"></label>
+      <div id="pinMsg" role="status"></div>
+      <button class="btn" id="pinGo" type="button">Logg inn</button>
+      <button class="btn alt small" id="pinToEmail" type="button">Leder? Logg inn med e-post</button>
+    </div>
+    <div id="emailBox" class="stack">
+    <div class="seg" role="group" aria-label="Velg">
+      <button type="button" id="authIn" aria-pressed="true">Logg inn</button>
+      <button type="button" id="authUp" aria-pressed="false">Ny bruker</button>
+    </div>
+    <form id="authForm" class="stack" autocomplete="on">
+      <label class="f">E-post<input type="email" id="email" autocomplete="email" required></label>
+      <label class="f">Passord<input type="password" id="pw" autocomplete="current-password" minlength="8" required></label>
+      <div id="authMsg" role="status"></div>
+      <button class="btn" id="authGo" type="submit">Logg inn</button>
+      <button class="btn alt small" id="resetPw" type="button">Glemt passord</button>
+    </form>
+      <button class="btn alt small" id="pairBtn" type="button">Ansatt? Koble til stedet med kode</button>
+      <button class="btn alt small" id="backPin" type="button" hidden>Tilbake til pinkode</button>
+    </div>
+    <p class="muted small">Data lagres i EU. Ingen sporingsinfokapsler. Se <a href="../personvern.html">personvern</a> og <a href="../vilkar.html">vilkår</a>.</p>
+  </div>
+</section>
+
+<!-- Start: ny virksomhet eller bli med -->
+<section class="screen" id="s-start">
+  <h1>Kom i gang</h1>
+  <div class="card stack">
+    <h2>Ny virksomhet</h2>
+    <p class="muted">HACCP-veiviseren stiller noen spørsmål og lager plan og kalender for stedet ditt.</p>
+    <button class="btn" id="startNew">Start veiviseren</button>
+  </div>
+  <div class="card stack">
+    <h2>Bli med på et sted</h2>
+    <p class="muted">Har du fått en kode av din leder, skriv den her.</p>
+    <label class="f">Ditt navn<input type="text" id="joinName" autocomplete="name"></label>
+    <label class="f">Kode<input type="text" id="joinCode" autocapitalize="characters" autocomplete="off"></label>
+    <div id="joinMsg" role="status"></div>
+    <button class="btn alt" id="joinGo">Bli med</button>
+  </div>
+  <button class="btn alt small" id="startOut">Logg ut</button>
+</section>
+
+<!-- Veiviser -->
+<section class="screen" id="s-wiz">
+  <div class="steps" id="wizSteps" aria-hidden="true"></div>
+  <div id="wizBody" class="stack"></div>
+  <div id="wizMsg" role="status"></div>
+  <div class="row noprint">
+    <button class="btn alt" id="wizBack">Tilbake</button>
+    <button class="btn grow" id="wizNext">Neste</button>
+  </div>
+</section>
+
+<!-- I dag -->
+<section class="screen" id="s-today">
+  <div class="datebar">
+    <button class="btn alt small" id="dPrev" aria-label="Forrige dag">‹</button>
+    <div class="d" id="dLabel"></div>
+    <button class="btn alt small" id="dNext" aria-label="Neste dag">›</button>
+  </div>
+  <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+  <div class="muted small" id="progTxt"></div>
+  <div class="cov" id="covRow"><span class="lab">Jeg dekker i dag</span><div class="chips" id="areaChips" role="group" aria-label="Jeg dekker i dag"></div></div>
+  <div id="hmsToday"></div>
+  <div id="overdue"></div>
+  <div id="taskList" class="stack"></div>
+  <div id="closeBox"></div>
+</section>
+
+<!-- Kalender -->
+<section class="screen" id="s-cal">
+  <div class="datebar">
+    <button class="btn alt small" id="mPrev" aria-label="Forrige måned">‹</button>
+    <div class="d" id="mLabel"></div>
+    <button class="btn alt small" id="mNext" aria-label="Neste måned">›</button>
+  </div>
+  <div class="cal" id="calGrid"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>Alt gjort</span><span><i style="background:var(--amber)"></i>Delvis</span><span><i style="background:var(--red)"></i>Mangler</span></div>
+  <div class="row"><h2 class="grow">Gjentagende oppgaver</h2><button class="btn small" id="addTask">Ny rutine</button></div>
+  <div id="taskAdmin" class="stack"></div>
+</section>
+
+<!-- Avvik -->
+<section class="screen" id="s-dev">
+  <div class="row"><h1 class="grow">Avvik</h1><button class="btn small" id="newDev">Nytt avvik</button></div>
+  <input type="text" id="devQ" placeholder="Søk i avvik" aria-label="Søk i avvik">
+  <div class="chips" id="devChips" role="group" aria-label="Status"></div>
+  <div id="devList" class="stack"></div>
+</section>
+
+<!-- Opplæring -->
+<section class="screen" id="s-learn">
+  <div id="learnBox" class="stack"></div>
+</section>
+
+<!-- Mer -->
+<section class="screen" id="s-mod">
+  <h1 id="modTitle"></h1>
+  <p class="muted" id="modInfo"></p>
+  <div class="stack" id="modLinks"></div>
+  <div id="modTasksWrap"><div class="row"><h2 class="grow">Rutiner</h2><button class="btn small" id="modAdd" type="button">Ny rutine</button></div>
+  <div class="stack" id="modTasks"></div></div>
+</section>
+
+<section class="screen" id="s-sub">
+  <div class="row noprint"><button class="btn alt small" id="subBack" type="button">Tilbake</button></div>
+  <h1 id="subTitle"></h1>
+  <div class="stack" id="subBody"></div>
+</section>
+
+<section class="screen" id="s-more">
+  <h1>Mer</h1>
+  <div class="stack" id="moreList"></div>
+</section>
+
+<!-- Dokumentvisning (plan, tilsynsmappe, logg) -->
+<section class="screen" id="s-doc">
+  <div class="row noprint"><button class="btn alt small" id="docBack">Tilbake</button><button class="btn small" id="docPrint">Skriv ut eller lagre som PDF</button><button class="btn soft small" id="docCsv" hidden>Last ned Excel (CSV)</button></div>
+  <div id="docBody" class="stack"></div>
+</section>
+
+</main>
+
+
+
+<dialog id="dlg"><div class="in" id="dlgBody"></div></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="data.js?v=45"></script>
+<script src="demo-stub.js?v=45"></script>
+<script src="learn.js?v=45"></script>
+<script src="app.js?v=45"></script>
+</body></html>

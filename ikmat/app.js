@@ -1356,7 +1356,7 @@ async function finishWizard() {
 }
 
 /* ---------- PWA ---------- */
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !window.__DEMO) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* valgfritt */ }); });
 }
 /* ---------- RUTINER: BOLKER ---------- */
