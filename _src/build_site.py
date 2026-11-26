@@ -157,7 +157,7 @@ teaser='''<section class="band">
 page('index.html','spisbart.no – Verktøy for matkontroll','Spisbart lager spesialverktøy for matkontroll og kunnskapsprøver. Bare Barnemat, Auto·Mat og QuizzMeg.',hero+'\n'+tiles+'\n'+showcase+'\n'+teaser,'<script>\n'+fit_only+'</script>')
 
 def prod(c,tag,name,desc,demo,page_,mail):
-    return '''<article class="prod %s"><span class="tag">%s</span><h2>%s</h2><p>%s</p><div class="ch-btns"><a class="ch-btn" href="%s">Prøv demo</a><a class="ch-btn alt" href="%s">Les mer</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=%s">Kjøp</a></div></article>'''%(c,tag,name,desc,demo,page_,mail)
+    return '''<article class="prod %s"><span class="tag">%s</span><h2>%s</h2><p>%s</p><div class="ch-btns"><a class="ch-btn" href="%s" target="_blank" rel="noopener">Prøv demo</a><a class="ch-btn alt" href="%s">Les mer</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=%s">Kjøp</a></div></article>'''%(c,tag,name,desc,demo,page_,mail)
 prods=''.join([
  prod('ch-barn','For barnehage','Bare Barnemat','Kalenderen der du planlegger månedens måltider. Du får varsel når en rett ikke passer for et barn med allergi eller spesialkost, og ser hva måneden koster.','barnemat/?demo=1','barnehage.html','Kj%C3%B8p%20Bare%20Barnemat'),
  prod('ch-kafe','For horeca','Auto·Mat','Regner ut varekost, påslag og margin for hver rett. Bestilling, svinn og allergener ligger i samme app, for proffkjøkken, kafeer og serveringssteder.','automat/','horeca.html','Kj%C3%B8p%20Auto%C2%B7Mat'),
@@ -192,7 +192,7 @@ fortgjort = """<section class="chapter ch-kafe" id="fortgjort">
       <figure><img src="bilder/fortgjort-2.webp" width="520" height="1013" alt="Avvik: liste over åpne og lukkede avvik" loading="lazy"><figcaption>Avvik fra måling eller hendelse, til de er fulgt opp.</figcaption></figure>
       <figure><img src="bilder/fortgjort-3.webp" width="520" height="1013" alt="Opplæring: bolker per arbeidsområde med quiz og signering" loading="lazy"><figcaption>Opplæring etter arbeidsområde, signert med quiz.</figcaption></figure>
     </div>
-    <div class="ch-btns ch-btns-end"><a class="ch-btn" href="ikmat/demo.html">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=FORTGJORT">Kontakt oss</a></div>
+    <div class="ch-btns ch-btns-end"><a class="ch-btn" href="ikmat/demo.html" target="_blank" rel="noopener">Prøv demo</a><a class="ch-btn alt" href="mailto:post@spisbart.no?subject=FORTGJORT">Kontakt oss</a></div>
   </div>
 </section>"""
 page('horeca.html','For horeca – Auto·Mat','Auto·Mat: varekost, svinn, margin og allergenkort for kjøkken, kafeer og serveringssteder.',kafe+'\n'+fortgjort+'\n'+supplier,'','pg-kafe')
