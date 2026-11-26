@@ -160,7 +160,7 @@ sb.auth.onAuthStateChange(function (ev, session) {
 
 async function afterLogin() {
   try {
-    var r = await sb.from('members').select('org_id, role, display_name, organizations(id, name, orgnr, address, business_type, has_alcohol, created_at)').eq('user_id', S.user.id);
+    var r = await sb.from('members').select('org_id, role, display_name, organizations(id, name, orgnr, address, business_type, has_alcohol, created_at, opening_hours)').eq('user_id', S.user.id);
     if (r.error) throw r.error;
     S.mems = r.data || [];
     if (!S.mems.length) { S.org = null; go('start'); return; }
@@ -1064,7 +1064,7 @@ function riskResult(sel) {
 var WSTEPS = ['Stedet', 'Avdelinger', 'Prosess', 'Farer', 'Hygiene', 'Styringspunkter', 'Kjøl og frys', 'Oppsummering'];
 function startWizard() {
   var D = window.DATA;
-  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: (S.org && S.user && S.names[S.user.id]) || '', areas: D.defaultAreas.restaurant.slice(), alk: false, steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [], risk: {}, openRisk: null };
+  W = { step: 0, name: '', orgnr: '', btype: 'restaurant', myname: (S.org && S.user && S.names[S.user.id]) || '', areas: D.defaultAreas.restaurant.slice(), alk: false, hours: defaultHours(), steps: D.defaultSteps.restaurant.slice(), hz: {}, ghp: D.ghp.map(function (g, i) { return i; }), ccp: {}, units: [], risk: {}, openRisk: null };
   Object.keys(D.hazards).forEach(function (st) { D.hazards[st].forEach(function (_, i) { var sg = D.risk.suggest[st] && D.risk.suggest[st][i]; if (sg) W.risk[st + i] = sg.slice(); }); });
   D.ccps.forEach(function (c) { W.ccp[c.id] = { value: c.value, monitor: c.monitor, action: c.action, verify: c.verify }; });
   go('wiz'); drawWiz();
@@ -1094,6 +1094,7 @@ function drawWiz() {
     b.appendChild(h('p', { class: 'muted' }, 'Hver avdeling får egne åpne- og stengerutiner.'));
     D.areas.forEach(function (a) { b.appendChild(h('div', { class: 'card' }, checkRow(a.slice(1)[0], null, W.areas.indexOf(a[0]) >= 0, function (on) { toggleIn(W.areas, a[0], on); }, 'a-' + a[0]))); });
     b.appendChild(h('div', { class: 'card' }, checkRow('Vi har skjenkebevilling', 'Legger til rutiner for IK-alkohol.', W.alk, function (on) { W.alk = on; }, 'w-alk')));
+    b.appendChild(h('div', { class: 'card stack' }, h('h3', null, 'Åpningstider'), h('p', { class: 'muted' }, 'Brukes i opplæringen og rutinene. Du kan endre dem senere i menyen.'), hoursEditor(W.hours)));
   } else if (W.step === 2) {
     b.appendChild(h('p', { class: 'muted' }, 'Hvilke steg går maten gjennom hos dere? Forhåndsvalgt etter type sted.'));
     var c = h('div', { class: 'card' });
@@ -1181,6 +1182,7 @@ async function finishWizard() {
   var cr = await sb.rpc('create_organization', { p_name: W.name.trim(), p_orgnr: W.orgnr.trim() || null, p_business_type: W.btype, p_has_alcohol: W.alk, p_areas: W.areas, p_display_name: W.myname.trim() });
   if (cr.error) throw cr.error;
   var orgId = cr.data;
+  try { await sb.from('organizations').update({ opening_hours: W.hours }).eq('id', orgId); } catch (e) { /* kan settes senere */ }
   var plan = { businessType: W.btype, areas: W.areas, alcohol: W.alk, steps: W.steps, hazards: {}, ghp: [], ccps: [], created: new Date().toISOString() };
   W.steps.forEach(function (s) {
     plan.hazards[s] = hzDefault(s).map(function (i) {
@@ -1804,6 +1806,7 @@ function drawHmsToday() {
     panel.appendChild(item('IK-mat-plan', 'HACCP-planen for stedet', showPlan));
     panel.appendChild(item('Tilsynsmappe', 'Plan, kvitteringer og avvik', showFolder));
     if (isLeder()) {
+      panel.appendChild(item('Åpningstider', S.org.opening_hours ? hoursText(S.org.opening_hours).split(' · ')[0] : 'Ikke satt', hoursDialog));
       panel.appendChild(item('Kjøleskap og frysere', null, unitsDialog));
       panel.appendChild(item('Team og invitasjon', null, teamDialog));
       panel.appendChild(item('Endringslogg', 'Hvem som endret hva', showAudit));
@@ -1822,6 +1825,38 @@ function drawHmsToday() {
   document.addEventListener('click', function (e) { if (!panel.hidden && !panel.contains(e.target)) close(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { close(); btn.focus(); } });
 })();
+
+
+/* ---------- Åpningstider ---------- */
+function defaultHours() { var o = {}; for (var d = 1; d <= 7; d++) o[d] = ['11:00', '22:00']; return o; }
+function hoursText(hrs) {
+  if (!hrs) return 'Ikke satt';
+  var parts = [], i = 1;
+  function key(d) { return hrs[d] ? hrs[d][0] + '–' + hrs[d][1] : 'stengt'; }
+  while (i <= 7) { var j = i; while (j < 7 && key(j + 1) === key(i)) j++; parts.push((i === j ? WD[i - 1] : WD[i - 1] + '–' + WD[j - 1]) + ' ' + key(i)); i = j + 1; }
+  return parts.join(' · ');
+}
+function hoursEditor(hrs) {
+  var wrap = h('div', { class: 'stack' });
+  for (var d = 1; d <= 7; d++) (function (d) {
+    var on = !!hrs[d], o = h('input', { type: 'time', value: on ? hrs[d][0] : '11:00', disabled: !on, 'aria-label': WD[d - 1] + ' åpner' }), c = h('input', { type: 'time', value: on ? hrs[d][1] : '22:00', disabled: !on, 'aria-label': WD[d - 1] + ' stenger' });
+    function sync() { hrs[d] = [o.value || '11:00', c.value || '22:00']; }
+    var cb = h('input', { type: 'checkbox', checked: on, id: 'oh' + d, onchange: function () { if (cb.checked) { sync(); } else delete hrs[d]; o.disabled = c.disabled = !cb.checked; } });
+    o.addEventListener('change', function () { if (cb.checked) sync(); }); c.addEventListener('change', function () { if (cb.checked) sync(); });
+    wrap.appendChild(h('div', { class: 'row' }, h('label', { class: 'qchk', for: 'oh' + d, style: 'flex:0 0 5.5em' }, cb, h('span', null, WD[d - 1])), o, h('span', { class: 'muted' }, '–'), c));
+  })(d);
+  return wrap;
+}
+function hoursDialog() {
+  var hrs = JSON.parse(JSON.stringify(S.org.opening_hours || defaultHours())), out = h('div', { role: 'status' });
+  openDlg([h('h2', null, 'Åpningstider'), h('p', { class: 'muted' }, 'Stedets egne åpningstider. Lovpålagte skjenketider kommer i tillegg, og det som er strengest gjelder. Stenger dere etter midnatt, setter du klokkeslettet etter midnatt (f.eks. 02:00).'),
+    hoursEditor(hrs), out,
+    h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: async function () {
+      var r = await sb.from('organizations').update({ opening_hours: hrs }).eq('id', S.org.id);
+      if (r.error) { msg(out, 'err', errText(r.error)); return; }
+      S.org.opening_hours = hrs; closeDlg(); toast('Åpningstidene er lagret'); if (S.screen === 'learn') renderLearn();
+    } }, 'Lagre'), h('button', { class: 'btn alt', type: 'button', onclick: closeDlg }, 'Avbryt'))]);
+}
 
 /* ---------- OPPLÆRING ---------- */
 S.learn = { view: 'list', signs: [], answers: null, order: null, result: null };
@@ -1900,12 +1935,23 @@ function learnBolk(box, id) {
   box.appendChild(h('p', { class: 'muted' }, b.intro));
   var signed = learnSigned(S.learn.signs, b);
   if (signed && !signed.old) box.appendChild(h('div', { class: 'ok' }, 'Du signerte denne bolken ' + fmtTs(signed.at).split(' ')[0] + '.'));
+  if (b.id === 'alk-tid') learnPlace(box);
   b.sections.forEach(function (s) {
     box.appendChild(h('div', { class: 'card stack' }, h('h3', null, s.h), s.p.map(function (t) { return h('p', null, t); })));
   });
   var qbox = h('div', { class: 'stack' });
   box.appendChild(qbox);
   learnQuiz(qbox, b);
+}
+function learnPlace(box) {
+  var card = h('div', { class: 'card stack' }, h('h3', null, 'Slik er det hos dere'));
+  box.appendChild(card);
+  card.appendChild(h('div', null, h('b', null, 'Åpningstid: '), S.org.opening_hours ? hoursText(S.org.opening_hours) : 'Ikke satt' + (isLeder() ? '. Legg inn under «Åpningstider» i menyen.' : '. Spør leder.')));
+  var sk = h('div', null, h('b', null, 'Skjenketid (fra bevillingen): '), 'Laster ...'); card.appendChild(sk);
+  sb.from('hms_settings').select('extra').eq('org_id', S.org.id).eq('module', 'alkohol').maybeSingle().then(function (r) {
+    var t = r && r.data && r.data.extra && r.data.extra.skjenketider; sk.lastChild.textContent = t || 'Ikke registrert' + (isLeder() ? '. Legg inn under IK-alkohol.' : '. Spør leder.');
+  }, function () { sk.lastChild.textContent = 'Ikke registrert'; });
+  card.appendChild(h('div', null, h('b', null, 'Loven: '), 'Aldri skjenking etter kl. 03.00, og maks 30 minutter utdrikking. Det som er strengest av åpningstid, bevilling og loven gjelder.'));
 }
 function learnQuiz(qbox, b) {
   clear(qbox);
