@@ -141,7 +141,7 @@ async function logout() { lsSet('fg-pinsess', 0); await sb.auth.signOut(); S.org
 $('#startOut').addEventListener('click', logout);
 
 /* ---------- Innlogging med navn og pinkode ---------- */
-var PIN_IDLE_MS = 20 * 60 * 1000, PAIR_RE = /[0-9A-Fa-f]{14}/;
+var PIN_IDLE_MS = 5 * 60 * 1000, PAIR_RE = /[0-9A-Fa-f]{14}/;
 function pairCode() { return lsGet('fg-pair', null); }
 async function staffCall(body, withAuth) {
   var tok = SB_KEY;
@@ -162,7 +162,9 @@ function staffErr(e) {
   if (mm) { lsSet('fg-pair', mm[0].toUpperCase()); try { history.replaceState(null, '', location.pathname); } catch (e) { /* ok */ } }
   if (lsGet('fg-pinsess', 0) && Date.now() - lsGet('fg-last', 0) > PIN_IDLE_MS) { lsSet('fg-pinsess', 0); sb.auth.signOut(); }
   ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, function () { if (lsGet('fg-pinsess', 0)) lsSet('fg-last', Date.now()); }, { passive: true }); });
-  setInterval(function () { if (lsGet('fg-pinsess', 0) && S.user && Date.now() - lsGet('fg-last', 0) > PIN_IDLE_MS) { lsSet('fg-pinsess', 0); logout(); toast('Logget ut etter en stund uten bruk'); } }, 30000);
+  function idleCheck() { if (lsGet('fg-pinsess', 0) && S.user && Date.now() - lsGet('fg-last', 0) > PIN_IDLE_MS) { lsSet('fg-pinsess', 0); logout(); toast('Låst etter 5 minutter uten bruk'); } }
+  setInterval(idleCheck, 10000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) idleCheck(); });
 })();
 async function authInit() {
   var code = pairCode(), usePin = !!code && !S.authEmail;
